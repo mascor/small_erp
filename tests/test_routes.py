@@ -146,6 +146,23 @@ class TestActivityRoutes:
             activity = RevenueActivity.query.get(activity_id)
             assert activity is None
 
+    def test_delete_activity_unauthorized_user_blocked(self, client, app, superadmin_user, operator_user, revenue_activity):
+        """Test unauthorized user cannot delete another user's activity."""
+        client.post('/login', data={
+            'username': 'operator',
+            'password': 'password123'
+        })
+
+        activity_id = revenue_activity.id
+
+        response = client.post(f'/activities/{activity_id}/delete', follow_redirects=True)
+
+        assert response.status_code == 200
+        with app.app_context():
+            from app.models import RevenueActivity
+            activity = RevenueActivity.query.get(activity_id)
+            assert activity is not None
+
 
 class TestActivityCostRoutes:
     """Test activity cost management routes."""
@@ -419,6 +436,57 @@ class TestUserManagementRoutes:
             assert user.full_name == 'Operator User'
             assert user.role == 'operatore'
             assert user.check_password('N3wStr0ngPass!') is True
+
+    def test_delete_user_post(self, client, app, superadmin_user, operator_user):
+        """Test POST to delete a user."""
+        client.post('/login', data={
+            'username': 'superadmin',
+            'password': 'password123'
+        })
+
+        user_id = operator_user.id
+
+        response = client.post(f'/users/{user_id}/delete', follow_redirects=True)
+        assert response.status_code == 200
+
+        with app.app_context():
+            from app.models import User
+            user = User.query.get(user_id)
+            assert user is None
+
+    def test_delete_user_self_denied(self, client, app, superadmin_user):
+        """Test self-deletion is denied."""
+        client.post('/login', data={
+            'username': 'superadmin',
+            'password': 'password123'
+        })
+
+        user_id = superadmin_user.id
+
+        response = client.post(f'/users/{user_id}/delete', follow_redirects=True)
+        assert response.status_code == 200
+
+        with app.app_context():
+            from app.models import User
+            user = User.query.get(user_id)
+            assert user is not None
+
+    def test_delete_superadmin_denied_for_admin(self, client, app, superadmin_user, admin_user):
+        """Test deleting superadmin is denied for admin users."""
+        client.post('/login', data={
+            'username': 'admin',
+            'password': 'password123'
+        })
+
+        superadmin_id = superadmin_user.id
+
+        response = client.post(f'/users/{superadmin_id}/delete', follow_redirects=True)
+        assert response.status_code == 200
+
+        with app.app_context():
+            from app.models import User
+            user = User.query.get(superadmin_id)
+            assert user is not None
 
 
 class TestReportRoutes:

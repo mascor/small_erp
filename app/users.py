@@ -128,3 +128,43 @@ def edit(id):
         return redirect(url_for('users.index'))
 
     return render_template('users/form.html', user=user)
+
+
+@users_bp.route('/<int:id>/delete', methods=['POST'])
+@login_required
+@admin_required
+def delete(id):
+    user = db.get_or_404(User, id)
+
+    if user.is_superadmin:
+        logger.warning(f'Attempt to delete superadmin user: {user.username} by user {current_user.username}')
+        flash(tr('Non puoi eliminare il superadmin.', 'You cannot delete the superadmin.'), 'error')
+        return redirect(url_for('users.index'))
+
+    if user.id == current_user.id:
+        logger.warning(f'Attempt to self-delete user: {current_user.username}')
+        flash(tr('Non puoi eliminare il tuo utente.', 'You cannot delete your own user.'), 'error')
+        return redirect(url_for('users.index'))
+
+    if len(user.created_activities) > 0 or len(user.participations) > 0:
+        logger.warning(f'Attempt to delete user {user.username} (ID: {id}) with linked records by user {current_user.username}')
+        flash(
+            tr(
+                f'Impossibile eliminare l\'utente "{user.username}": ha dati collegati.',
+                f'Cannot delete user "{user.username}": linked records exist.'
+            ),
+            'error'
+        )
+        return redirect(url_for('users.index'))
+
+    username = user.username
+    logger.info(f'User deleted: {username} (ID: {id}) by user {current_user.username}')
+    log_action('delete', 'User', user.id,
+               f'Eliminato utente: {username}',
+               old_values=model_to_dict(user, USER_FIELDS))
+
+    db.session.delete(user)
+    db.session.commit()
+
+    flash(tr(f'Utente "{username}" eliminato.', f'User "{username}" deleted.'), 'success')
+    return redirect(url_for('users.index'))

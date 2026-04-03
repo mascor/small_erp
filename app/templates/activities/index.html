@@ -52,8 +52,15 @@
             <div class="btn-group">
               <a href="{{ url_for('activities.detail', id=act.id) }}" class="btn btn-ghost btn-sm">{{ tr('Dettaglio',
                 'Details') }}</a>
+              {% if current_user.is_admin or act.created_by == current_user.id %}
               <a href="{{ url_for('activities.edit', id=act.id) }}" class="btn btn-ghost btn-sm">{{ tr('Modifica',
                 'Edit') }}</a>
+              <form method="POST" action="{{ url_for('activities.delete', id=act.id) }}" class="confirm-delete"
+                onsubmit="return confirm('{{ tr('Eliminare questa attivita e tutti i dati collegati?', 'Delete this activity and all linked data?') }}')">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-ghost btn-sm text-danger">{{ tr('Elimina', 'Delete') }}</button>
+              </form>
+              {% endif %}
             </div>
           </td>
         </tr>

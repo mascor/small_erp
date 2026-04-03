@@ -199,6 +199,11 @@ class TestActivitiesListUI:
         resp = client.get('/activities/')
         assert f'/activities/{revenue_activity.id}/edit'.encode() in resp.data
 
+    def test_activities_has_delete_form(self, client, superadmin_user, revenue_activity):
+        _login(client)
+        resp = client.get('/activities/')
+        assert f'/activities/{revenue_activity.id}/delete'.encode() in resp.data
+
     def test_activities_has_detail_link(self, client, superadmin_user, revenue_activity):
         _login(client)
         resp = client.get('/activities/')
@@ -239,6 +244,12 @@ class TestActivitiesListUI:
         resp = client.get('/activities/')
         # Italian currency format: 1.000,00
         assert b'1.000,00' in resp.data
+
+    def test_activities_hides_edit_and_delete_for_non_owner_operator(self, client, superadmin_user, operator_user, revenue_activity):
+        _login(client, 'operator')
+        resp = client.get('/activities/')
+        assert f'/activities/{revenue_activity.id}/edit'.encode() not in resp.data
+        assert f'/activities/{revenue_activity.id}/delete'.encode() not in resp.data
 
 
 # ===========================================================================
@@ -434,6 +445,12 @@ class TestActivityDetailUI:
         _login(client)
         resp = client.get(f'/activities/{revenue_activity.id}')
         assert f'/activities/{revenue_activity.id}/delete'.encode() in resp.data
+
+    def test_detail_hides_edit_and_delete_for_non_owner_operator(self, client, superadmin_user, operator_user, revenue_activity):
+        _login(client, 'operator')
+        resp = client.get(f'/activities/{revenue_activity.id}')
+        assert f'/activities/{revenue_activity.id}/edit'.encode() not in resp.data
+        assert f'/activities/{revenue_activity.id}/delete'.encode() not in resp.data
 
     def test_detail_has_add_cost_button(self, client, superadmin_user, revenue_activity):
         _login(client)
