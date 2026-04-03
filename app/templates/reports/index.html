@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+{% block title %}Report Mensile — Small ERP{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Report Mensile</h1>
+  </div>
+  <button class="btn btn-secondary" onclick="window.print()">Stampa Report</button>
+</div>
+
+<!-- Period selector -->
+<form method="GET" class="filters-bar">
+  <div class="filter-group">
+    <label>Mese</label>
+    <select name="month" class="form-control">
+      {% for num, name in months.items() %}
+      <option value="{{ num }}" {% if num == selected_month %}selected{% endif %}>{{ name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="filter-group">
+    <label>Anno</label>
+    <select name="year" class="form-control">
+      {% for y in years %}
+      <option value="{{ y }}" {% if y == selected_year %}selected{% endif %}>{{ y }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <button type="submit" class="btn btn-primary btn-sm">Genera Report</button>
+</form>
+
+<div class="report-period" data-print-date="{{ '%02d/%02d/%04d'|format(1, selected_month, selected_year) }}">
+  {{ report.month_name }} {{ report.year }}
+</div>
+
+<!-- Summary cards -->
+<div class="report-summary-grid">
+  <div class="report-summary-card">
+    <div class="summary-label">Ricavi Totali</div>
+    <div class="summary-value">&euro; {{ report.total_revenue|currency }}</div>
+  </div>
+  <div class="report-summary-card">
+    <div class="summary-label">Costi Totali</div>
+    <div class="summary-value">&euro; {{ report.total_costs|currency }}</div>
+  </div>
+  <div class="report-summary-card">
+    <div class="summary-label">Spese Extra</div>
+    <div class="summary-value">&euro; {{ report.total_extra_costs|currency }}</div>
+  </div>
+  <div class="report-summary-card">
+    <div class="summary-label">Commissioni Agenti</div>
+    <div class="summary-value">&euro; {{ report.total_agent_compensations|currency }}</div>
+  </div>
+  <div class="report-summary-card">
+    <div class="summary-label">Margine Netto</div>
+    <div class="summary-value {% if report.net_margin >= 0 %}positive{% else %}negative{% endif %}">
+      &euro; {{ report.net_margin|currency }}
+    </div>
+  </div>
+</div>
+
+<!-- Activities detail -->
+{% if report.activities %}
+<div class="detail-section mt-xl">
+  <h3>Dettaglio Attività ({{ report.activities|length }})</h3>
+
+  {% for item in report.activities %}
+  {% set act = item.activity %}
+  {% set t = item.totals %}
+  <div class="card mb-lg">
+    <div class="card-header">
+      <div>
+        <h4 style="margin:0">
+          <a href="{{ url_for('activities.detail', id=act.id) }}">{{ act.title }}</a>
+        </h4>
+        <span class="text-sm text-muted">{{ act.date.strftime('%d/%m/%Y') }}</span>
+        <span class="badge badge-{{ act.status }} badge-dot" style="margin-left:8px">{{ act.status_label }}</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="table-wrapper">
+        <table class="table-compact">
+          <thead>
+            <tr>
+              <th>Voce</th>
+              <th class="num">Importo</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Ricavo</td>
+              <td class="num">&euro; {{ t.revenue|currency }}</td>
+            </tr>
+            <tr>
+              <td>Agente: {% if act.agent %}{{ act.agent.full_name }}{% else %}—{% endif %} ({{ t.agent_percentage|percentage }})</td>
+              <td class="num negative">&minus; &euro; {{ t.agent_compensation|currency }}</td>
+            </tr>
+            <tr>
+              <td>Costi operativi</td>
+              <td class="num negative">&minus; &euro; {{ t.total_operative_costs|currency }}</td>
+            </tr>
+            <tr>
+              <td>Spese extra</td>
+              <td class="num negative">&minus; &euro; {{ t.total_extra_costs|currency }}</td>
+            </tr>
+            <tr style="font-weight:600; background:var(--navy-50)">
+              <td>Margine Netto</td>
+              <td class="num {% if t.net_margin >= 0 %}positive{% else %}negative{% endif %}">
+                &euro; {{ t.net_margin|currency }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      {% if t.participants %}
+      <h4 class="mt-lg mb-sm" style="font-size:0.9rem">Partecipanti</h4>
+      <div class="table-wrapper">
+        <table class="table-compact">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Ruolo</th>
+              <th class="num">Quota</th>
+              <th class="num">Fisso</th>
+              <th class="num">Proporzionale</th>
+              <th class="num">Totale</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in t.participants %}
+            <tr>
+              <td>{{ p.name }}</td>
+              <td class="text-muted text-sm">{{ p.role or '—' }}</td>
+              <td class="num">{{ p.work_share }}</td>
+              <td class="num">&euro; {{ p.fixed_compensation|currency }}</td>
+              <td class="num">&euro; {{ p.proportional_share|currency }}</td>
+              <td class="num" style="font-weight:600">&euro; {{ p.total_due|currency }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Agent summary -->
+{% if report.agent_summary %}
+<div class="detail-section mt-xl">
+  <h3>Riepilogo per Agente</h3>
+  <div class="card">
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Agente</th>
+            <th class="num">Totale Commissioni</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for a in report.agent_summary %}
+          <tr>
+            <td><strong>{{ a.name }}</strong></td>
+            <td class="num">&euro; {{ a.total|currency }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Participant summary -->
+{% if report.participant_summary %}
+<div class="detail-section mt-xl">
+  <h3>Riepilogo per Partecipante</h3>
+  <div class="card">
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Partecipante</th>
+            <th class="num">Totale Maturato</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in report.participant_summary %}
+          <tr>
+            <td><strong>{{ p.name }}</strong></td>
+            <td class="num">&euro; {{ p.total|currency }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% else %}
+<div class="card mt-xl">
+  <div class="empty-state">
+    <div class="empty-icon">&#9776;</div>
+    <h4>Nessuna attività nel periodo</h4>
+    <p>Non ci sono attività registrate per {{ report.month_name }} {{ report.year }}.</p>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

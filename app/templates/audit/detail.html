@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Audit Log #{{ log.id }} — Small ERP{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Dettaglio Log #{{ log.id }}</h1>
+    <p class="page-subtitle">{{ log.timestamp.strftime('%d/%m/%Y %H:%M:%S') }}</p>
+  </div>
+  <a href="{{ url_for('audit.index') }}" class="btn btn-secondary">&larr; Torna ai Log</a>
+</div>
+
+<div class="card mb-lg">
+  <div class="card-body">
+    <div class="detail-grid">
+      <div class="detail-item">
+        <div class="item-label">Utente</div>
+        <div class="item-value"><strong>{{ log.username }}</strong></div>
+      </div>
+      <div class="detail-item">
+        <div class="item-label">Data e Ora</div>
+        <div class="item-value">{{ log.timestamp.strftime('%d/%m/%Y %H:%M:%S') }}</div>
+      </div>
+      <div class="detail-item">
+        <div class="item-label">Azione</div>
+        <div class="item-value"><span class="audit-action {{ log.action_type }}">{{ log.action_type }}</span></div>
+      </div>
+      <div class="detail-item">
+        <div class="item-label">Entità</div>
+        <div class="item-value">{{ log.entity_type or '—' }}{% if log.entity_id %} #{{ log.entity_id }}{% endif %}</div>
+      </div>
+      <div class="detail-item">
+        <div class="item-label">Indirizzo IP</div>
+        <div class="item-value mono">{{ log.ip_address or '—' }}</div>
+      </div>
+    </div>
+
+    <div class="detail-item mt-lg">
+      <div class="item-label">Descrizione</div>
+      <div class="item-value">{{ log.description }}</div>
+    </div>
+  </div>
+</div>
+
+{% if old_values or new_values %}
+<div class="card">
+  <div class="card-header">
+    <h3>Valori Modificati</h3>
+  </div>
+  <div class="card-body">
+    <div class="audit-detail-values">
+      {% if old_values %}
+      <div class="audit-values-block">
+        <h4>Prima</h4>
+        <ul class="audit-values-list">
+          {% for key, val in old_values.items() %}
+          <li>
+            <span class="key">{{ key }}</span>
+            <span class="val">{{ val if val is not none else '—' }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      {% if new_values %}
+      <div class="audit-values-block">
+        <h4>Dopo</h4>
+        <ul class="audit-values-list">
+          {% for key, val in new_values.items() %}
+          <li>
+            <span class="key">{{ key }}</span>
+            <span class="val">{{ val if val is not none else '—' }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

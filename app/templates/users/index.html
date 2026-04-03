@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Utenti — Small ERP{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Gestione Utenti</h1>
+    <p class="page-subtitle">{{ users|length }} utenti registrati</p>
+  </div>
+  <a href="{{ url_for('users.create') }}" class="btn btn-primary">+ Nuovo Utente</a>
+</div>
+
+<div class="card">
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Nome Completo</th>
+          <th>Email</th>
+          <th>Ruolo</th>
+          <th>Stato</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in users %}
+        <tr>
+          <td><strong>{{ user.username }}</strong></td>
+          <td>{{ user.full_name }}</td>
+          <td class="text-muted">{{ user.email }}</td>
+          <td><span class="badge badge-confermata">{{ user.role }}</span></td>
+          <td>
+            {% if user.is_active_user %}
+            <span class="badge badge-active badge-dot">Attivo</span>
+            {% else %}
+            <span class="badge badge-inactive badge-dot">Disattivato</span>
+            {% endif %}
+          </td>
+          <td class="text-right">
+            <a href="{{ url_for('users.edit', id=user.id) }}" class="btn btn-ghost btn-sm">Modifica</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

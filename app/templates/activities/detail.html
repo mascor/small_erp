@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+{% block title %}{{ activity.title }} — Small ERP{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{{ activity.title }}</h1>
+    <p class="page-subtitle">
+      <span class="badge badge-{{ activity.status }} badge-dot">{{ activity.status_label }}</span>
+      &nbsp; {{ activity.date.strftime('%d/%m/%Y') }}
+    </p>
+  </div>
+  <div class="btn-group">
+    <a href="{{ url_for('activities.edit', id=activity.id) }}" class="btn btn-secondary">Modifica</a>
+    <form method="POST" action="{{ url_for('activities.delete', id=activity.id) }}" class="confirm-delete"
+          onsubmit="return confirm('Eliminare questa attività e tutti i dati collegati?')">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn btn-danger btn-sm">Elimina</button>
+    </form>
+  </div>
+</div>
+
+{% if activity.description %}
+<p class="text-muted mb-lg">{{ activity.description }}</p>
+{% endif %}
+
+<!-- Financial Breakdown -->
+<div class="breakdown mb-xl">
+  <div class="breakdown-header">
+    <h3>Riepilogo Economico</h3>
+  </div>
+  <div class="breakdown-body">
+    <div class="breakdown-row">
+      <span class="label">Ricavo Totale</span>
+      <span class="value">&euro; {{ totals.revenue|currency }}</span>
+    </div>
+    <div class="breakdown-row">
+      <span class="label">
+        Compenso Agente
+        {% if activity.agent %}({{ activity.agent.full_name }} — {{ totals.agent_percentage|percentage }}){% endif %}
+      </span>
+      <span class="value negative">&minus; &euro; {{ totals.agent_compensation|currency }}</span>
+    </div>
+    <div class="breakdown-row">
+      <span class="label">Costi Operativi</span>
+      <span class="value negative">&minus; &euro; {{ totals.total_operative_costs|currency }}</span>
+    </div>
+    <div class="breakdown-row">
+      <span class="label">Spese Extra</span>
+      <span class="value negative">&minus; &euro; {{ totals.total_extra_costs|currency }}</span>
+    </div>
+    <hr class="breakdown-divider">
+    <div class="breakdown-row subtotal">
+      <span class="label"><strong>Margine Netto</strong></span>
+      <span class="value {% if totals.net_margin >= 0 %}positive{% else %}negative{% endif %}">
+        <strong>&euro; {{ totals.net_margin|currency }}</strong>
+      </span>
+    </div>
+    <div class="breakdown-row">
+      <span class="label">Compensi Fissi Partecipanti</span>
+      <span class="value negative">&minus; &euro; {{ totals.total_fixed_compensations|currency }}</span>
+    </div>
+    <div class="breakdown-row total">
+      <span class="label">Residuo Distribuibile per Quote</span>
+      <span class="value {% if totals.distributable_residual >= 0 %}accent{% else %}negative{% endif %}">
+        &euro; {{ totals.distributable_residual|currency }}
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- Costs Section -->
+<div class="detail-section">
+  <div class="d-flex justify-between align-center mb-md">
+    <h3>Costi ({{ activity.costs.count() }})</h3>
+    <a href="{{ url_for('activities.add_cost', id=activity.id) }}" class="btn btn-primary btn-sm">+ Aggiungi Costo</a>
+  </div>
+
+  {% set costs = activity.costs.all() %}
+  {% if costs %}
+  <div class="card">
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Descrizione</th>
+            <th>Categoria</th>
+            <th>Tipo</th>
+            <th>Data</th>
+            <th class="num">Importo</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for cost in costs %}
+          <tr>
+            <td>{{ cost.description }}</td>
+            <td><span class="text-sm">{{ cost.category|capitalize }}</span></td>
+            <td>
+              {% if cost.cost_type == 'operativo' %}
+              <span class="badge badge-confermata">Operativo</span>
+              {% else %}
+              <span class="badge badge-bozza">Extra</span>
+              {% endif %}
+            </td>
+            <td class="text-muted text-sm">{{ cost.date.strftime('%d/%m/%Y') }}</td>
+            <td class="num">&euro; {{ cost.amount|currency }}</td>
+            <td class="text-right">
+              <div class="btn-group">
+                <a href="{{ url_for('activities.edit_cost', id=activity.id, cost_id=cost.id) }}" class="btn btn-ghost btn-sm">Modifica</a>
+                <form method="POST" action="{{ url_for('activities.delete_cost', id=activity.id, cost_id=cost.id) }}"
+                      class="confirm-delete" onsubmit="return confirm('Eliminare questo costo?')">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="btn btn-ghost btn-sm text-danger">Elimina</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% else %}
+  <div class="card">
+    <div class="empty-state">
+      <p>Nessun costo registrato per questa attività.</p>
+      <a href="{{ url_for('activities.add_cost', id=activity.id) }}" class="btn btn-primary btn-sm">+ Aggiungi Costo</a>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Participants Section -->
+<div class="detail-section">
+  <div class="d-flex justify-between align-center mb-md">
+    <h3>Partecipanti ({{ activity.participants.count() }})</h3>
+    <a href="{{ url_for('activities.add_participant', id=activity.id) }}" class="btn btn-primary btn-sm">+ Aggiungi Partecipante</a>
+  </div>
+
+  {% if totals.participants %}
+  <div class="participant-grid">
+    {% for p in totals.participants %}
+    <div class="participant-card">
+      <div class="d-flex justify-between align-center">
+        <div>
+          <div class="participant-name">{{ p.name }}</div>
+          {% if p.role %}<div class="participant-role">{{ p.role }}</div>{% endif %}
+        </div>
+        <div class="btn-group">
+          <a href="{{ url_for('activities.edit_participant', id=activity.id, pid=p.id) }}" class="btn btn-ghost btn-sm">Modifica</a>
+          <form method="POST" action="{{ url_for('activities.delete_participant', id=activity.id, pid=p.id) }}"
+                class="confirm-delete" onsubmit="return confirm('Rimuovere questo partecipante?')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-ghost btn-sm text-danger">&times;</button>
+          </form>
+        </div>
+      </div>
+      <div class="participant-details">
+        <div class="participant-detail">
+          <span class="detail-label">Quota Lavoro</span>
+          <span class="detail-value">{{ p.work_share }}</span>
+        </div>
+        <div class="participant-detail">
+          <span class="detail-label">Compenso Fisso</span>
+          <span class="detail-value">&euro; {{ p.fixed_compensation|currency }}</span>
+        </div>
+        <div class="participant-detail">
+          <span class="detail-label">Quota Proporzionale</span>
+          <span class="detail-value">&euro; {{ p.proportional_share|currency }}</span>
+        </div>
+      </div>
+      <div class="participant-total">
+        <span class="total-label">Totale Spettante</span>
+        <span class="total-value">&euro; {{ p.total_due|currency }}</span>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card">
+    <div class="empty-state">
+      <p>Nessun partecipante per questa attività.</p>
+      <a href="{{ url_for('activities.add_participant', id=activity.id) }}" class="btn btn-primary btn-sm">+ Aggiungi Partecipante</a>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+{% if activity.notes %}
+<div class="detail-section">
+  <h3>Note</h3>
+  <div class="card">
+    <div class="card-body">
+      <p class="text-muted">{{ activity.notes }}</p>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

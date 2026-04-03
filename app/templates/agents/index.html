@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Agenti — Small ERP{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Agenti</h1>
+    <p class="page-subtitle">{{ agents|length }} agenti registrati</p>
+  </div>
+  <a href="{{ url_for('agents.create') }}" class="btn btn-primary">+ Nuovo Agente</a>
+</div>
+
+{% if agents %}
+<div class="card">
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Email</th>
+          <th class="num">% Standard</th>
+          <th>Stato</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for agent in agents %}
+        <tr>
+          <td><strong>{{ agent.full_name }}</strong></td>
+          <td class="text-muted">{{ agent.email or '—' }}</td>
+          <td class="num">{{ agent.default_percentage|percentage }}</td>
+          <td>
+            {% if agent.is_active %}
+            <span class="badge badge-active badge-dot">Attivo</span>
+            {% else %}
+            <span class="badge badge-inactive badge-dot">Inattivo</span>
+            {% endif %}
+          </td>
+          <td class="text-right">
+            <div class="btn-group">
+              <a href="{{ url_for('agents.edit', id=agent.id) }}" class="btn btn-ghost btn-sm">Modifica</a>
+              <form method="POST" action="{{ url_for('agents.delete', id=agent.id) }}"
+                    class="confirm-delete" onsubmit="return confirm('Eliminare l\'agente {{ agent.full_name }}?')">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-ghost btn-sm text-danger">Elimina</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card">
+  <div class="empty-state">
+    <div class="empty-icon">&#9679;</div>
+    <h4>Nessun agente</h4>
+    <p>Aggiungi il primo agente per gestire le commissioni.</p>
+    <a href="{{ url_for('agents.create') }}" class="btn btn-primary">+ Nuovo Agente</a>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

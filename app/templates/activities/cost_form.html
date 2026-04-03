@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}{% if cost %}Modifica{% else %}Aggiungi{% endif %} Costo — Small ERP{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{% if cost %}Modifica Costo{% else %}Aggiungi Costo{% endif %}</h1>
+    <p class="page-subtitle">Attività: {{ activity.title }}</p>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <form method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="description">Descrizione <span class="required">*</span></label>
+          <input type="text" id="description" name="description" class="form-control"
+                 value="{{ cost.description if cost else '' }}" required
+                 placeholder="Descrizione del costo">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="amount">Importo (&euro;) <span class="required">*</span></label>
+          <input type="text" id="amount" name="amount" class="form-control"
+                 value="{{ cost.amount if cost else '' }}" required
+                 placeholder="0,00">
+        </div>
+      </div>
+
+      <div class="form-row-3">
+        <div class="form-group">
+          <label class="form-label" for="category">Categoria <span class="required">*</span></label>
+          <select id="category" name="category" class="form-control" required>
+            <option value="">Seleziona...</option>
+            {% for val, label in [('materiale','Materiale'),('trasporto','Trasporto'),('consulenza','Consulenza'),('marketing','Marketing'),('spese_vive','Spese vive'),('altro','Altro')] %}
+            <option value="{{ val }}" {% if cost and cost.category == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="cost_type">Tipo Costo</label>
+          <select id="cost_type" name="cost_type" class="form-control">
+            <option value="operativo" {% if cost and cost.cost_type == 'operativo' %}selected{% endif %}>Costo Operativo</option>
+            <option value="extra" {% if cost and cost.cost_type == 'extra' %}selected{% endif %}>Spesa Extra</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="date">Data <span class="required">*</span></label>
+          <input type="date" id="date" name="date" class="form-control"
+                 value="{{ cost.date.isoformat() if cost else '' }}" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="notes">Note</label>
+        <textarea id="notes" name="notes" class="form-control" rows="2">{{ cost.notes if cost else '' }}</textarea>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">{% if cost %}Salva{% else %}Aggiungi Costo{% endif %}</button>
+        <a href="{{ url_for('activities.detail', id=activity.id) }}" class="btn btn-secondary">Annulla</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

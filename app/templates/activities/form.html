@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}{% if activity %}Modifica{% else %}Nuova{% endif %} Attività — Small ERP{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>{% if activity %}Modifica Attività{% else %}Nuova Attività di Ricavo{% endif %}</h1>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <form method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="title">Titolo <span class="required">*</span></label>
+          <input type="text" id="title" name="title" class="form-control"
+                 value="{{ activity.title if activity else '' }}" required
+                 placeholder="Nome dell'attività">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="date">Data <span class="required">*</span></label>
+          <input type="date" id="date" name="date" class="form-control"
+                 value="{{ activity.date.isoformat() if activity else '' }}" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="description">Descrizione</label>
+        <textarea id="description" name="description" class="form-control" rows="3"
+                  placeholder="Breve descrizione dell'attività">{{ activity.description if activity else '' }}</textarea>
+      </div>
+
+      <div class="form-row-3">
+        <div class="form-group">
+          <label class="form-label" for="status">Stato</label>
+          <select id="status" name="status" class="form-control">
+            <option value="bozza" {% if activity and activity.status == 'bozza' %}selected{% endif %}>Bozza</option>
+            <option value="confermata" {% if activity and activity.status == 'confermata' %}selected{% endif %}>Confermata</option>
+            <option value="chiusa" {% if activity and activity.status == 'chiusa' %}selected{% endif %}>Chiusa</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="total_revenue">Ricavo Totale (&euro;) <span class="required">*</span></label>
+          <input type="text" id="total_revenue" name="total_revenue" class="form-control"
+                 value="{{ activity.total_revenue if activity else '' }}" required
+                 placeholder="0,00">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="agent_percentage">% Agente</label>
+          <input type="text" id="agent_percentage" name="agent_percentage" class="form-control"
+                 value="{{ activity.agent_percentage if activity else '0' }}"
+                 placeholder="0,00">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="agent_id">Agente</label>
+        <select id="agent_id" name="agent_id" class="form-control">
+          <option value="">— Nessun agente —</option>
+          {% for agent in agents %}
+          <option value="{{ agent.id }}"
+                  data-percentage="{{ agent.default_percentage }}"
+                  {% if activity and activity.agent_id == agent.id %}selected{% endif %}>
+            {{ agent.full_name }}{% if agent.default_percentage %} ({{ agent.default_percentage }}%){% endif %}
+          </option>
+          {% endfor %}
+        </select>
+        <span class="form-hint">Selezionando un agente con percentuale predefinita, verrà suggerita automaticamente.</span>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="notes">Note</label>
+        <textarea id="notes" name="notes" class="form-control" rows="2"
+                  placeholder="Note aggiuntive">{{ activity.notes if activity else '' }}</textarea>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+          {% if activity %}Salva Modifiche{% else %}Crea Attività{% endif %}
+        </button>
+        <a href="{{ url_for('activities.index') }}" class="btn btn-secondary">Annulla</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.getElementById('agent_id').addEventListener('change', function() {
+    const selected = this.options[this.selectedIndex];
+    const pct = selected.getAttribute('data-percentage');
+    if (pct && parseFloat(pct) > 0) {
+      document.getElementById('agent_percentage').value = pct;
+    }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Audit Log — Small ERP{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Audit Log</h1>
+</div>
+
+<!-- Filters -->
+<form method="GET" class="filters-bar">
+  <div class="filter-group">
+    <label>Utente</label>
+    <input type="text" name="username" class="form-control" value="{{ filters.username }}" placeholder="Username...">
+  </div>
+  <div class="filter-group">
+    <label>Azione</label>
+    <select name="action_type" class="form-control">
+      <option value="">Tutte</option>
+      {% for at in action_types %}
+      <option value="{{ at }}" {% if filters.action_type == at %}selected{% endif %}>{{ at }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="filter-group">
+    <label>Entità</label>
+    <select name="entity_type" class="form-control">
+      <option value="">Tutte</option>
+      {% for et in entity_types %}
+      <option value="{{ et }}" {% if filters.entity_type == et %}selected{% endif %}>{{ et }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="filter-group">
+    <label>Dal</label>
+    <input type="date" name="date_from" class="form-control" value="{{ filters.date_from }}">
+  </div>
+  <div class="filter-group">
+    <label>Al</label>
+    <input type="date" name="date_to" class="form-control" value="{{ filters.date_to }}">
+  </div>
+  <button type="submit" class="btn btn-primary btn-sm">Filtra</button>
+  <a href="{{ url_for('audit.index') }}" class="btn btn-secondary btn-sm">Reset</a>
+</form>
+
+{% if logs %}
+<div class="card">
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Data/Ora</th>
+          <th>Utente</th>
+          <th>Azione</th>
+          <th>Entità</th>
+          <th>Descrizione</th>
+          <th>IP</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in logs %}
+        <tr>
+          <td class="text-sm nowrap">{{ log.timestamp.strftime('%d/%m/%Y %H:%M:%S') }}</td>
+          <td><strong>{{ log.username }}</strong></td>
+          <td><span class="audit-action {{ log.action_type }}">{{ log.action_type }}</span></td>
+          <td class="text-sm">{{ log.entity_type or '—' }}{% if log.entity_id %} #{{ log.entity_id }}{% endif %}</td>
+          <td class="text-sm">{{ log.description[:80] }}{% if log.description|length > 80 %}...{% endif %}</td>
+          <td class="text-muted text-xs text-mono">{{ log.ip_address or '—' }}</td>
+          <td>
+            <a href="{{ url_for('audit.detail', id=log.id) }}" class="btn btn-ghost btn-sm">Dettaglio</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Pagination -->
+{% if pagination.pages > 1 %}
+<div class="pagination">
+  {% if pagination.has_prev %}
+  <a href="?page={{ pagination.prev_num }}&username={{ filters.username }}&action_type={{ filters.action_type }}&entity_type={{ filters.entity_type }}&date_from={{ filters.date_from }}&date_to={{ filters.date_to }}">&laquo;</a>
+  {% else %}
+  <span class="disabled">&laquo;</span>
+  {% endif %}
+
+  {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+    {% if p %}
+      {% if p == pagination.page %}
+      <span class="current">{{ p }}</span>
+      {% else %}
+      <a href="?page={{ p }}&username={{ filters.username }}&action_type={{ filters.action_type }}&entity_type={{ filters.entity_type }}&date_from={{ filters.date_from }}&date_to={{ filters.date_to }}">{{ p }}</a>
+      {% endif %}
+    {% else %}
+    <span class="disabled">...</span>
+    {% endif %}
+  {% endfor %}
+
+  {% if pagination.has_next %}
+  <a href="?page={{ pagination.next_num }}&username={{ filters.username }}&action_type={{ filters.action_type }}&entity_type={{ filters.entity_type }}&date_from={{ filters.date_from }}&date_to={{ filters.date_to }}">&raquo;</a>
+  {% else %}
+  <span class="disabled">&raquo;</span>
+  {% endif %}
+</div>
+{% endif %}
+
+{% else %}
+<div class="card">
+  <div class="empty-state">
+    <div class="empty-icon">&#9881;</div>
+    <h4>Nessun log trovato</h4>
+    <p>Non ci sono log che corrispondono ai filtri selezionati.</p>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

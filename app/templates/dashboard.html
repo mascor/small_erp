@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Small ERP{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Dashboard</h1>
+    <p class="page-subtitle">Panoramica del mese corrente</p>
+  </div>
+  <a href="{{ url_for('activities.create') }}" class="btn btn-primary">+ Nuova Attività</a>
+</div>
+
+<!-- KPI Cards -->
+<div class="stats-grid">
+  <div class="stat-card stat-activities">
+    <div class="stat-label">Attività Aperte</div>
+    <div class="stat-value">{{ stats.open_activities }}</div>
+    <div class="stat-detail">bozza + confermata</div>
+  </div>
+
+  <div class="stat-card stat-revenue">
+    <div class="stat-label">Ricavi del Mese</div>
+    <div class="stat-value">&euro; {{ stats.month_revenue|currency }}</div>
+  </div>
+
+  <div class="stat-card stat-costs">
+    <div class="stat-label">Costi del Mese</div>
+    <div class="stat-value">&euro; {{ stats.month_costs|currency }}</div>
+  </div>
+
+  <div class="stat-card stat-margin">
+    <div class="stat-label">Margine Netto</div>
+    <div class="stat-value {% if stats.month_margin >= 0 %}positive{% else %}negative{% endif %}">
+      &euro; {{ stats.month_margin|currency }}
+    </div>
+  </div>
+</div>
+
+<!-- Two-column grid -->
+<div class="dashboard-grid">
+  <!-- Recent activities -->
+  <div class="card">
+    <div class="card-header">
+      <h3>Attività Recenti</h3>
+      <a href="{{ url_for('activities.index') }}" class="btn btn-ghost btn-sm">Vedi tutte &rarr;</a>
+    </div>
+    {% if stats.recent_activities %}
+    <div class="table-wrapper">
+      <table class="table-compact">
+        <thead>
+          <tr>
+            <th>Titolo</th>
+            <th>Data</th>
+            <th>Stato</th>
+            <th class="num">Ricavo</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for act in stats.recent_activities %}
+          <tr>
+            <td><a href="{{ url_for('activities.detail', id=act.id) }}">{{ act.title }}</a></td>
+            <td class="text-muted text-sm">{{ act.date.strftime('%d/%m/%Y') }}</td>
+            <td><span class="badge badge-{{ act.status }} badge-dot">{{ act.status_label }}</span></td>
+            <td class="num">&euro; {{ act.total_revenue|currency }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">&#9733;</div>
+      <h4>Nessuna attività</h4>
+      <p>Crea la tua prima attività di ricavo per iniziare.</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Top agents -->
+  <div class="card">
+    <div class="card-header">
+      <h3>Top Agenti del Mese</h3>
+      <a href="{{ url_for('agents.index') }}" class="btn btn-ghost btn-sm">Vedi tutti &rarr;</a>
+    </div>
+    {% if stats.top_agents %}
+    <div class="table-wrapper">
+      <table class="table-compact">
+        <thead>
+          <tr>
+            <th>Agente</th>
+            <th class="num">Commissioni</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for agent in stats.top_agents %}
+          <tr>
+            <td>{{ agent.name }}</td>
+            <td class="num">&euro; {{ agent.total|currency }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">&#9679;</div>
+      <h4>Nessuna commissione</h4>
+      <p>Le commissioni appariranno qui quando ci saranno attività nel mese.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
