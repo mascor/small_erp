@@ -1,11 +1,13 @@
 {% extends "base.html" %}
-{% block title %}{% if participant %}Modifica{% else %}Aggiungi{% endif %} Partecipante — Small ERP{% endblock %}
+{% block title %}{% if participant %}{{ tr('Modifica', 'Edit') }}{% else %}{{ tr('Aggiungi', 'Add') }}{% endif %} {{
+tr('Partecipante', 'Participant') }} — Small ERP{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div>
-    <h1>{% if participant %}Modifica Partecipante{% else %}Aggiungi Partecipante{% endif %}</h1>
-    <p class="page-subtitle">Attività: {{ activity.title }}</p>
+    <h1>{% if participant %}{{ tr('Modifica Partecipante', 'Edit Participant') }}{% else %}{{ tr('Aggiungi
+      Partecipante', 'Add Participant') }}{% endif %}</h1>
+    <p class="page-subtitle">{{ tr('Attivita', 'Activity') }}: {{ activity.title }}</p>
   </div>
 </div>
 
@@ -16,56 +18,64 @@
 
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label" for="participant_name">Nome Partecipante <span class="required">*</span></label>
+          <label class="form-label" for="participant_name">{{ tr('Nome Partecipante', 'Participant Name') }} <span
+              class="required">*</span></label>
           <input type="text" id="participant_name" name="participant_name" class="form-control"
-                 value="{{ participant.participant_name if participant else '' }}" required
-                 placeholder="Nome e cognome">
+            value="{{ participant.participant_name if participant else '' }}" required
+            placeholder="{{ tr('Nome e cognome', 'First and last name') }}">
         </div>
         <div class="form-group">
-          <label class="form-label" for="user_id">Utente Collegato</label>
+          <label class="form-label" for="user_id">{{ tr('Utente Collegato', 'Linked User') }}</label>
           <select id="user_id" name="user_id" class="form-control">
-            <option value="">— Nessuno —</option>
+            <option value="">— {{ tr('Nessuno', 'None') }} —</option>
             {% for u in users %}
-            <option value="{{ u.id }}" {% if participant and participant.user_id == u.id %}selected{% endif %}>
+            <option value="{{ u.id }}" {% if participant and participant.user_id==u.id %}selected{% endif %}>
               {{ u.full_name }} ({{ u.username }})
             </option>
             {% endfor %}
           </select>
-          <span class="form-hint">Opzionale: collega a un utente del sistema.</span>
+          <span class="form-hint">{{ tr('Opzionale: collega a un utente del sistema.', 'Optional: link to a system
+            user.') }}</span>
         </div>
       </div>
 
       <div class="form-row-3">
         <div class="form-group">
-          <label class="form-label" for="role_description">Ruolo Svolto</label>
+          <label class="form-label" for="role_description">{{ tr('Ruolo Svolto', 'Role') }}</label>
           <input type="text" id="role_description" name="role_description" class="form-control"
-                 value="{{ participant.role_description if participant else '' }}"
-                 placeholder="Es: sviluppatore, consulente...">
+            value="{{ participant.role_description if participant else '' }}"
+            placeholder="{{ tr('Es: sviluppatore, consulente...', 'E.g. developer, consultant...') }}">
         </div>
         <div class="form-group">
-          <label class="form-label" for="work_share">Quota Lavoro <span class="required">*</span></label>
+          <label class="form-label" for="work_share">{{ tr('Quota Lavoro', 'Work Share') }} <span
+              class="required">*</span></label>
           <input type="text" id="work_share" name="work_share" class="form-control"
-                 value="{{ participant.work_share if participant else '' }}" required
-                 placeholder="Es: 50">
-          <span class="form-hint">Valore numerico per la ripartizione proporzionale.</span>
+            value="{{ participant.work_share if participant else '' }}" required
+            placeholder="{{ tr('Es: 50', 'E.g. 50') }}">
+          <span class="form-hint">{{ tr('Valore numerico per la ripartizione proporzionale.', 'Numeric value for
+            proportional distribution.') }}</span>
         </div>
         <div class="form-group">
-          <label class="form-label" for="fixed_compensation">Compenso Fisso (&euro;)</label>
+          <label class="form-label" for="fixed_compensation">{{ tr('Compenso Fisso', 'Fixed Compensation') }}
+            (&euro;)</label>
           <input type="text" id="fixed_compensation" name="fixed_compensation" class="form-control"
-                 value="{{ participant.fixed_compensation if participant else '0' }}"
-                 placeholder="0,00">
-          <span class="form-hint">Compenso fisso aggiuntivo (detratto prima della ripartizione).</span>
+            value="{{ participant.fixed_compensation if participant else '0' }}" placeholder="0,00">
+          <span class="form-hint">{{ tr('Compenso fisso aggiuntivo (detratto prima della ripartizione).', 'Additional
+            fixed amount (deducted before distribution).') }}</span>
         </div>
       </div>
 
       <div class="form-group">
-        <label class="form-label" for="notes">Note</label>
-        <textarea id="notes" name="notes" class="form-control" rows="2">{{ participant.notes if participant else '' }}</textarea>
+        <label class="form-label" for="notes">{{ tr('Note', 'Notes') }}</label>
+        <textarea id="notes" name="notes" class="form-control"
+          rows="2">{{ participant.notes if participant else '' }}</textarea>
       </div>
 
       <div class="form-actions">
-        <button type="submit" class="btn btn-primary">{% if participant %}Salva{% else %}Aggiungi Partecipante{% endif %}</button>
-        <a href="{{ url_for('activities.detail', id=activity.id) }}" class="btn btn-secondary">Annulla</a>
+        <button type="submit" class="btn btn-primary">{% if participant %}{{ tr('Salva', 'Save') }}{% else %}{{
+          tr('Aggiungi Partecipante', 'Add Participant') }}{% endif %}</button>
+        <a href="{{ url_for('activities.detail', id=activity.id) }}" class="btn btn-secondary">{{ tr('Annulla',
+          'Cancel') }}</a>
       </div>
     </form>
   </div>

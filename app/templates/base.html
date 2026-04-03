@@ -1,11 +1,13 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="{{ current_lang }}">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}Small ERP{% endblock %}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
+
 <body>
   <div class="app-layout">
     <!-- Mobile toggle -->
@@ -18,37 +20,43 @@
         <div class="brand-icon">E</div>
         <div>
           <h2>Small ERP</h2>
-          <small>Gestione Attività</small>
+          <small>{{ tr('Gestione Attivita', 'Activity Management') }}</small>
         </div>
       </div>
 
       <nav class="sidebar-nav">
-        <div class="nav-section">Principale</div>
-        <a href="{{ url_for('dashboard.index') }}" class="nav-link {% if request.endpoint == 'dashboard.index' %}active{% endif %}">
-          <span class="nav-icon">&#9632;</span> Dashboard
+        <div class="nav-section">{{ tr('Principale', 'Main') }}</div>
+        <a href="{{ url_for('dashboard.index') }}"
+          class="nav-link {% if request.endpoint == 'dashboard.index' %}active{% endif %}">
+          <span class="nav-icon">&#9632;</span> {{ tr('Dashboard', 'Dashboard') }}
         </a>
-        <a href="{{ url_for('activities.index') }}" class="nav-link {% if request.endpoint and request.endpoint.startswith('activities.') %}active{% endif %}">
-          <span class="nav-icon">&#9733;</span> Attività
+        <a href="{{ url_for('activities.index') }}"
+          class="nav-link {% if request.endpoint and request.endpoint.startswith('activities.') %}active{% endif %}">
+          <span class="nav-icon">&#9733;</span> {{ tr('Attivita', 'Activities') }}
         </a>
-        <a href="{{ url_for('agents.index') }}" class="nav-link {% if request.endpoint and request.endpoint.startswith('agents.') %}active{% endif %}">
-          <span class="nav-icon">&#9679;</span> Agenti
+        <a href="{{ url_for('agents.index') }}"
+          class="nav-link {% if request.endpoint and request.endpoint.startswith('agents.') %}active{% endif %}">
+          <span class="nav-icon">&#9679;</span> {{ tr('Agenti', 'Agents') }}
         </a>
 
-        <div class="nav-section">Analisi</div>
-        <a href="{{ url_for('reports.index') }}" class="nav-link {% if request.endpoint and request.endpoint.startswith('reports.') %}active{% endif %}">
-          <span class="nav-icon">&#9776;</span> Report Mensili
+        <div class="nav-section">{{ tr('Analisi', 'Insights') }}</div>
+        <a href="{{ url_for('reports.index') }}"
+          class="nav-link {% if request.endpoint and request.endpoint.startswith('reports.') %}active{% endif %}">
+          <span class="nav-icon">&#9776;</span> {{ tr('Report Mensili', 'Monthly Reports') }}
         </a>
 
         {% if current_user.is_admin %}
-        <div class="nav-section">Amministrazione</div>
-        <a href="{{ url_for('users.index') }}" class="nav-link {% if request.endpoint and request.endpoint.startswith('users.') %}active{% endif %}">
-          <span class="nav-icon">&#9823;</span> Utenti
+        <div class="nav-section">{{ tr('Amministrazione', 'Administration') }}</div>
+        <a href="{{ url_for('users.index') }}"
+          class="nav-link {% if request.endpoint and request.endpoint.startswith('users.') %}active{% endif %}">
+          <span class="nav-icon">&#9823;</span> {{ tr('Utenti', 'Users') }}
         </a>
         {% endif %}
 
         {% if current_user.is_superadmin %}
-        <a href="{{ url_for('audit.index') }}" class="nav-link {% if request.endpoint and request.endpoint.startswith('audit.') %}active{% endif %}">
-          <span class="nav-icon">&#9881;</span> Audit Log
+        <a href="{{ url_for('audit.index') }}"
+          class="nav-link {% if request.endpoint and request.endpoint.startswith('audit.') %}active{% endif %}">
+          <span class="nav-icon">&#9881;</span> {{ tr('Audit Log', 'Audit Log') }}
         </a>
         {% endif %}
       </nav>
@@ -58,10 +66,23 @@
           <div class="user-avatar">{{ current_user.full_name[:2]|upper }}</div>
           <div class="user-info">
             <div class="user-name">{{ current_user.full_name }}</div>
-            <div class="user-role">{{ current_user.role }}</div>
+            <div class="user-role">{{ role_label(current_user.role) }}</div>
           </div>
         </div>
-        <a href="{{ url_for('auth.logout') }}" class="sidebar-logout">&#8617; Esci</a>
+        <form method="POST" action="{{ url_for('set_language') }}" class="language-switch">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="next"
+            value="{% if request.query_string %}{{ request.full_path }}{% else %}{{ request.path }}{% endif %}">
+          <label for="lang-switch">{{ tr('Lingua', 'Language') }}</label>
+          <select id="lang-switch" name="lang" class="lang-select" onchange="this.form.submit()">
+            <option value="it" {% if current_lang=='it' %}selected{% endif %}>Italiano</option>
+            <option value="en" {% if current_lang=='en' %}selected{% endif %}>English</option>
+          </select>
+        </form>
+        <form method="POST" action="{{ url_for('auth.logout') }}" class="sidebar-logout-form">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="sidebar-logout">&#8617; {{ tr('Esci', 'Logout') }}</button>
+        </form>
       </div>
     </aside>
 
@@ -104,4 +125,5 @@
   </script>
   {% block scripts %}{% endblock %}
 </body>
+
 </html>

@@ -5,6 +5,9 @@ from flask import request
 from flask_login import current_user
 from . import db
 from .models import AuditLog
+from .logging_config import get_logger
+
+logger = get_logger(__name__)
 
 
 def log_action(action_type, entity_type=None, entity_id=None, description='',
@@ -30,13 +33,15 @@ def log_action(action_type, entity_type=None, entity_id=None, description='',
         action_type=action_type,
         entity_type=entity_type,
         entity_id=entity_id,
-        description=description,
+        description=description or '',
         old_values=json.dumps(old_values, default=str) if old_values else None,
         new_values=json.dumps(new_values, default=str) if new_values else None,
         ip_address=ip_address,
     )
     db.session.add(entry)
     db.session.commit()
+    
+    logger.debug(f'Audit log recorded: action={action_type}, entity={entity_type}, entity_id={entity_id}, user={username}, ip={ip_address}')
 
 
 def model_to_dict(obj, fields):
@@ -44,5 +49,8 @@ def model_to_dict(obj, fields):
     result = {}
     for f in fields:
         val = getattr(obj, f, None)
-        result[f] = str(val) if val is not None else None
+        if isinstance(val, bool) or val is None:
+            result[f] = val
+        else:
+            result[f] = str(val)
     return result

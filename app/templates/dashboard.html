@@ -1,35 +1,35 @@
 {% extends "base.html" %}
-{% block title %}Dashboard — Small ERP{% endblock %}
+{% block title %}{{ tr('Dashboard', 'Dashboard') }} — Small ERP{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div>
     <h1>Dashboard</h1>
-    <p class="page-subtitle">Panoramica del mese corrente</p>
+    <p class="page-subtitle">{{ tr('Panoramica del mese corrente', 'Current month overview') }}</p>
   </div>
-  <a href="{{ url_for('activities.create') }}" class="btn btn-primary">+ Nuova Attività</a>
+  <a href="{{ url_for('activities.create') }}" class="btn btn-primary">+ {{ tr('Nuova Attivita', 'New Activity') }}</a>
 </div>
 
 <!-- KPI Cards -->
 <div class="stats-grid">
   <div class="stat-card stat-activities">
-    <div class="stat-label">Attività Aperte</div>
+    <div class="stat-label">{{ tr('Attivita Aperte', 'Open Activities') }}</div>
     <div class="stat-value">{{ stats.open_activities }}</div>
-    <div class="stat-detail">bozza + confermata</div>
+    <div class="stat-detail">{{ tr('bozza + confermata', 'draft + confirmed') }}</div>
   </div>
 
   <div class="stat-card stat-revenue">
-    <div class="stat-label">Ricavi del Mese</div>
+    <div class="stat-label">{{ tr('Ricavi del Mese', 'Monthly Revenue') }}</div>
     <div class="stat-value">&euro; {{ stats.month_revenue|currency }}</div>
   </div>
 
   <div class="stat-card stat-costs">
-    <div class="stat-label">Costi del Mese</div>
+    <div class="stat-label">{{ tr('Costi del Mese', 'Monthly Costs') }}</div>
     <div class="stat-value">&euro; {{ stats.month_costs|currency }}</div>
   </div>
 
   <div class="stat-card stat-margin">
-    <div class="stat-label">Margine Netto</div>
+    <div class="stat-label">{{ tr('Margine Netto', 'Net Margin') }}</div>
     <div class="stat-value {% if stats.month_margin >= 0 %}positive{% else %}negative{% endif %}">
       &euro; {{ stats.month_margin|currency }}
     </div>
@@ -41,18 +41,19 @@
   <!-- Recent activities -->
   <div class="card">
     <div class="card-header">
-      <h3>Attività Recenti</h3>
-      <a href="{{ url_for('activities.index') }}" class="btn btn-ghost btn-sm">Vedi tutte &rarr;</a>
+      <h3>{{ tr('Attivita Recenti', 'Recent Activities') }}</h3>
+      <a href="{{ url_for('activities.index') }}" class="btn btn-ghost btn-sm">{{ tr('Vedi tutte', 'See all') }}
+        &rarr;</a>
     </div>
     {% if stats.recent_activities %}
     <div class="table-wrapper">
       <table class="table-compact">
         <thead>
           <tr>
-            <th>Titolo</th>
-            <th>Data</th>
-            <th>Stato</th>
-            <th class="num">Ricavo</th>
+            <th>{{ tr('Titolo', 'Title') }}</th>
+            <th>{{ tr('Data', 'Date') }}</th>
+            <th>{{ tr('Stato', 'Status') }}</th>
+            <th class="num">{{ tr('Ricavo', 'Revenue') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -60,7 +61,7 @@
           <tr>
             <td><a href="{{ url_for('activities.detail', id=act.id) }}">{{ act.title }}</a></td>
             <td class="text-muted text-sm">{{ act.date.strftime('%d/%m/%Y') }}</td>
-            <td><span class="badge badge-{{ act.status }} badge-dot">{{ act.status_label }}</span></td>
+            <td><span class="badge badge-{{ act.status }} badge-dot">{{ status_label(act.status) }}</span></td>
             <td class="num">&euro; {{ act.total_revenue|currency }}</td>
           </tr>
           {% endfor %}
@@ -70,8 +71,9 @@
     {% else %}
     <div class="empty-state">
       <div class="empty-icon">&#9733;</div>
-      <h4>Nessuna attività</h4>
-      <p>Crea la tua prima attività di ricavo per iniziare.</p>
+      <h4>{{ tr('Nessuna attivita', 'No activities yet') }}</h4>
+      <p>{{ tr('Crea la tua prima attivita di ricavo per iniziare.', 'Create your first revenue activity to get
+        started.') }}</p>
     </div>
     {% endif %}
   </div>
@@ -79,16 +81,16 @@
   <!-- Top agents -->
   <div class="card">
     <div class="card-header">
-      <h3>Top Agenti del Mese</h3>
-      <a href="{{ url_for('agents.index') }}" class="btn btn-ghost btn-sm">Vedi tutti &rarr;</a>
+      <h3>{{ tr('Top Agenti del Mese', 'Top Agents This Month') }}</h3>
+      <a href="{{ url_for('agents.index') }}" class="btn btn-ghost btn-sm">{{ tr('Vedi tutti', 'See all') }} &rarr;</a>
     </div>
     {% if stats.top_agents %}
     <div class="table-wrapper">
       <table class="table-compact">
         <thead>
           <tr>
-            <th>Agente</th>
-            <th class="num">Commissioni</th>
+            <th>{{ tr('Agente', 'Agent') }}</th>
+            <th class="num">{{ tr('Commissioni', 'Commissions') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -104,8 +106,9 @@
     {% else %}
     <div class="empty-state">
       <div class="empty-icon">&#9679;</div>
-      <h4>Nessuna commissione</h4>
-      <p>Le commissioni appariranno qui quando ci saranno attività nel mese.</p>
+      <h4>{{ tr('Nessuna commissione', 'No commissions yet') }}</h4>
+      <p>{{ tr('Le commissioni appariranno qui quando ci saranno attivita nel mese.', 'Commissions will appear here when
+        there are activities this month.') }}</p>
     </div>
     {% endif %}
   </div>

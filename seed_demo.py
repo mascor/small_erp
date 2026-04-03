@@ -1,17 +1,24 @@
 """Seed the database with demo data for testing."""
+import logging
 from datetime import date, datetime
 from decimal import Decimal
 from app import create_app, db
 from app.models import User, Agent, RevenueActivity, ActivityCost, ActivityParticipant, AuditLog
 
+logger = logging.getLogger(__name__)
+
 
 def seed():
     app = create_app()
     with app.app_context():
-        # Check if data already exists
-        if Agent.query.first():
-            print('Dati demo già presenti. Seed non eseguito.')
-            return
+        try:
+            # Check if data already exists
+            if Agent.query.first():
+                logger.info('Demo data already present. Seed not executed.')
+                print('Dati demo già presenti. Seed non eseguito.')
+                return
+
+            logger.info('Starting database seed with demo data...')
 
         # Create demo users
         op1 = User(username='mario.rossi', email='mario@erp.local',
@@ -195,11 +202,15 @@ def seed():
         db.session.add_all(sample_logs)
 
         db.session.commit()
+        logger.info('Demo data seeded successfully: 2 users, 3 agents, 5 activities, 3 audit logs')
         print('Dati demo inseriti con successo!')
-        print(f'  - 2 utenti operativi (mario.rossi / laura.bianchi, password: demo123)')
+        print(f'  - 2 utenti operativi (mario.rossi / laura.bianchi)')
         print(f'  - 3 agenti')
         print(f'  - 5 attività di ricavo con costi e partecipanti')
         print(f'  - 3 log di audit di esempio')
+        except Exception as e:
+            logger.error(f'Error seeding demo data: {str(e)}', exc_info=True)
+            raise
 
 
 if __name__ == '__main__':

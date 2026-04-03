@@ -1,33 +1,33 @@
 {% extends "base.html" %}
-{% block title %}Report Mensile — Small ERP{% endblock %}
+{% block title %}{{ tr('Report Mensile', 'Monthly Report') }} — Small ERP{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div>
-    <h1>Report Mensile</h1>
+    <h1>{{ tr('Report Mensile', 'Monthly Report') }}</h1>
   </div>
-  <button class="btn btn-secondary" onclick="window.print()">Stampa Report</button>
+  <button class="btn btn-secondary" onclick="window.print()">{{ tr('Stampa Report', 'Print Report') }}</button>
 </div>
 
 <!-- Period selector -->
 <form method="GET" class="filters-bar">
   <div class="filter-group">
-    <label>Mese</label>
+    <label>{{ tr('Mese', 'Month') }}</label>
     <select name="month" class="form-control">
       {% for num, name in months.items() %}
-      <option value="{{ num }}" {% if num == selected_month %}selected{% endif %}>{{ name }}</option>
+      <option value="{{ num }}" {% if num==selected_month %}selected{% endif %}>{{ name }}</option>
       {% endfor %}
     </select>
   </div>
   <div class="filter-group">
-    <label>Anno</label>
+    <label>{{ tr('Anno', 'Year') }}</label>
     <select name="year" class="form-control">
       {% for y in years %}
-      <option value="{{ y }}" {% if y == selected_year %}selected{% endif %}>{{ y }}</option>
+      <option value="{{ y }}" {% if y==selected_year %}selected{% endif %}>{{ y }}</option>
       {% endfor %}
     </select>
   </div>
-  <button type="submit" class="btn btn-primary btn-sm">Genera Report</button>
+  <button type="submit" class="btn btn-primary btn-sm">{{ tr('Genera Report', 'Generate Report') }}</button>
 </form>
 
 <div class="report-period" data-print-date="{{ '%02d/%02d/%04d'|format(1, selected_month, selected_year) }}">
@@ -37,23 +37,23 @@
 <!-- Summary cards -->
 <div class="report-summary-grid">
   <div class="report-summary-card">
-    <div class="summary-label">Ricavi Totali</div>
+    <div class="summary-label">{{ tr('Ricavi Totali', 'Total Revenue') }}</div>
     <div class="summary-value">&euro; {{ report.total_revenue|currency }}</div>
   </div>
   <div class="report-summary-card">
-    <div class="summary-label">Costi Totali</div>
+    <div class="summary-label">{{ tr('Costi Totali', 'Total Costs') }}</div>
     <div class="summary-value">&euro; {{ report.total_costs|currency }}</div>
   </div>
   <div class="report-summary-card">
-    <div class="summary-label">Spese Extra</div>
+    <div class="summary-label">{{ tr('Spese Extra', 'Extra Costs') }}</div>
     <div class="summary-value">&euro; {{ report.total_extra_costs|currency }}</div>
   </div>
   <div class="report-summary-card">
-    <div class="summary-label">Commissioni Agenti</div>
+    <div class="summary-label">{{ tr('Commissioni Agenti', 'Agent Commissions') }}</div>
     <div class="summary-value">&euro; {{ report.total_agent_compensations|currency }}</div>
   </div>
   <div class="report-summary-card">
-    <div class="summary-label">Margine Netto</div>
+    <div class="summary-label">{{ tr('Margine Netto', 'Net Margin') }}</div>
     <div class="summary-value {% if report.net_margin >= 0 %}positive{% else %}negative{% endif %}">
       &euro; {{ report.net_margin|currency }}
     </div>
@@ -63,7 +63,7 @@
 <!-- Activities detail -->
 {% if report.activities %}
 <div class="detail-section mt-xl">
-  <h3>Dettaglio Attività ({{ report.activities|length }})</h3>
+  <h3>{{ tr('Dettaglio Attivita', 'Activity Details') }} ({{ report.activities|length }})</h3>
 
   {% for item in report.activities %}
   {% set act = item.activity %}
@@ -75,7 +75,8 @@
           <a href="{{ url_for('activities.detail', id=act.id) }}">{{ act.title }}</a>
         </h4>
         <span class="text-sm text-muted">{{ act.date.strftime('%d/%m/%Y') }}</span>
-        <span class="badge badge-{{ act.status }} badge-dot" style="margin-left:8px">{{ act.status_label }}</span>
+        <span class="badge badge-{{ act.status }} badge-dot" style="margin-left:8px">{{ status_label(act.status)
+          }}</span>
       </div>
     </div>
     <div class="card-body">
@@ -83,29 +84,30 @@
         <table class="table-compact">
           <thead>
             <tr>
-              <th>Voce</th>
-              <th class="num">Importo</th>
+              <th>{{ tr('Voce', 'Item') }}</th>
+              <th class="num">{{ tr('Importo', 'Amount') }}</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td>Ricavo</td>
+              <td>{{ tr('Ricavo', 'Revenue') }}</td>
               <td class="num">&euro; {{ t.revenue|currency }}</td>
             </tr>
             <tr>
-              <td>Agente: {% if act.agent %}{{ act.agent.full_name }}{% else %}—{% endif %} ({{ t.agent_percentage|percentage }})</td>
+              <td>Agente: {% if act.agent %}{{ act.agent.full_name }}{% else %}—{% endif %} ({{
+                t.agent_percentage|percentage }})</td>
               <td class="num negative">&minus; &euro; {{ t.agent_compensation|currency }}</td>
             </tr>
             <tr>
-              <td>Costi operativi</td>
+              <td>{{ tr('Costi operativi', 'Operating costs') }}</td>
               <td class="num negative">&minus; &euro; {{ t.total_operative_costs|currency }}</td>
             </tr>
             <tr>
-              <td>Spese extra</td>
+              <td>{{ tr('Spese extra', 'Extra costs') }}</td>
               <td class="num negative">&minus; &euro; {{ t.total_extra_costs|currency }}</td>
             </tr>
             <tr style="font-weight:600; background:var(--navy-50)">
-              <td>Margine Netto</td>
+              <td>{{ tr('Margine Netto', 'Net Margin') }}</td>
               <td class="num {% if t.net_margin >= 0 %}positive{% else %}negative{% endif %}">
                 &euro; {{ t.net_margin|currency }}
               </td>
@@ -115,17 +117,17 @@
       </div>
 
       {% if t.participants %}
-      <h4 class="mt-lg mb-sm" style="font-size:0.9rem">Partecipanti</h4>
+      <h4 class="mt-lg mb-sm" style="font-size:0.9rem">{{ tr('Partecipanti', 'Participants') }}</h4>
       <div class="table-wrapper">
         <table class="table-compact">
           <thead>
             <tr>
-              <th>Nome</th>
-              <th>Ruolo</th>
-              <th class="num">Quota</th>
-              <th class="num">Fisso</th>
-              <th class="num">Proporzionale</th>
-              <th class="num">Totale</th>
+              <th>{{ tr('Nome', 'Name') }}</th>
+              <th>{{ tr('Ruolo', 'Role') }}</th>
+              <th class="num">{{ tr('Quota', 'Share') }}</th>
+              <th class="num">{{ tr('Fisso', 'Fixed') }}</th>
+              <th class="num">{{ tr('Proporzionale', 'Proportional') }}</th>
+              <th class="num">{{ tr('Totale', 'Total') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -151,14 +153,14 @@
 <!-- Agent summary -->
 {% if report.agent_summary %}
 <div class="detail-section mt-xl">
-  <h3>Riepilogo per Agente</h3>
+  <h3>{{ tr('Riepilogo per Agente', 'Summary by Agent') }}</h3>
   <div class="card">
     <div class="table-wrapper">
       <table>
         <thead>
           <tr>
-            <th>Agente</th>
-            <th class="num">Totale Commissioni</th>
+            <th>{{ tr('Agente', 'Agent') }}</th>
+            <th class="num">{{ tr('Totale Commissioni', 'Total Commissions') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -178,14 +180,14 @@
 <!-- Participant summary -->
 {% if report.participant_summary %}
 <div class="detail-section mt-xl">
-  <h3>Riepilogo per Partecipante</h3>
+  <h3>{{ tr('Riepilogo per Partecipante', 'Summary by Participant') }}</h3>
   <div class="card">
     <div class="table-wrapper">
       <table>
         <thead>
           <tr>
-            <th>Partecipante</th>
-            <th class="num">Totale Maturato</th>
+            <th>{{ tr('Partecipante', 'Participant') }}</th>
+            <th class="num">{{ tr('Totale Maturato', 'Total Earned') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -206,8 +208,9 @@
 <div class="card mt-xl">
   <div class="empty-state">
     <div class="empty-icon">&#9776;</div>
-    <h4>Nessuna attività nel periodo</h4>
-    <p>Non ci sono attività registrate per {{ report.month_name }} {{ report.year }}.</p>
+    <h4>{{ tr('Nessuna attivita nel periodo', 'No activities in this period') }}</h4>
+    <p>{{ tr('Non ci sono attivita registrate per', 'There are no activities recorded for') }} {{ report.month_name }}
+      {{ report.year }}.</p>
   </div>
 </div>
 {% endif %}

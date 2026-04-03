@@ -1,45 +1,45 @@
 {% extends "base.html" %}
-{% block title %}Audit Log — Small ERP{% endblock %}
+{% block title %}{{ tr('Audit Log', 'Audit Log') }} — Small ERP{% endblock %}
 
 {% block content %}
 <div class="page-header">
-  <h1>Audit Log</h1>
+  <h1>{{ tr('Audit Log', 'Audit Log') }}</h1>
 </div>
 
 <!-- Filters -->
 <form method="GET" class="filters-bar">
   <div class="filter-group">
-    <label>Utente</label>
+    <label>{{ tr('Utente', 'User') }}</label>
     <input type="text" name="username" class="form-control" value="{{ filters.username }}" placeholder="Username...">
   </div>
   <div class="filter-group">
-    <label>Azione</label>
+    <label>{{ tr('Azione', 'Action') }}</label>
     <select name="action_type" class="form-control">
-      <option value="">Tutte</option>
+      <option value="">{{ tr('Tutte', 'All') }}</option>
       {% for at in action_types %}
-      <option value="{{ at }}" {% if filters.action_type == at %}selected{% endif %}>{{ at }}</option>
+      <option value="{{ at }}" {% if filters.action_type==at %}selected{% endif %}>{{ at }}</option>
       {% endfor %}
     </select>
   </div>
   <div class="filter-group">
-    <label>Entità</label>
+    <label>{{ tr('Entita', 'Entity') }}</label>
     <select name="entity_type" class="form-control">
-      <option value="">Tutte</option>
+      <option value="">{{ tr('Tutte', 'All') }}</option>
       {% for et in entity_types %}
-      <option value="{{ et }}" {% if filters.entity_type == et %}selected{% endif %}>{{ et }}</option>
+      <option value="{{ et }}" {% if filters.entity_type==et %}selected{% endif %}>{{ et }}</option>
       {% endfor %}
     </select>
   </div>
   <div class="filter-group">
-    <label>Dal</label>
+    <label>{{ tr('Dal', 'From') }}</label>
     <input type="date" name="date_from" class="form-control" value="{{ filters.date_from }}">
   </div>
   <div class="filter-group">
-    <label>Al</label>
+    <label>{{ tr('Al', 'To') }}</label>
     <input type="date" name="date_to" class="form-control" value="{{ filters.date_to }}">
   </div>
-  <button type="submit" class="btn btn-primary btn-sm">Filtra</button>
-  <a href="{{ url_for('audit.index') }}" class="btn btn-secondary btn-sm">Reset</a>
+  <button type="submit" class="btn btn-primary btn-sm">{{ tr('Filtra', 'Filter') }}</button>
+  <a href="{{ url_for('audit.index') }}" class="btn btn-secondary btn-sm">{{ tr('Reset', 'Reset') }}</a>
 </form>
 
 {% if logs %}
@@ -48,11 +48,11 @@
     <table>
       <thead>
         <tr>
-          <th>Data/Ora</th>
-          <th>Utente</th>
-          <th>Azione</th>
-          <th>Entità</th>
-          <th>Descrizione</th>
+          <th>{{ tr('Data/Ora', 'Date/Time') }}</th>
+          <th>{{ tr('Utente', 'User') }}</th>
+          <th>{{ tr('Azione', 'Action') }}</th>
+          <th>{{ tr('Entita', 'Entity') }}</th>
+          <th>{{ tr('Descrizione', 'Description') }}</th>
           <th>IP</th>
           <th></th>
         </tr>
@@ -67,7 +67,8 @@
           <td class="text-sm">{{ log.description[:80] }}{% if log.description|length > 80 %}...{% endif %}</td>
           <td class="text-muted text-xs text-mono">{{ log.ip_address or '—' }}</td>
           <td>
-            <a href="{{ url_for('audit.detail', id=log.id) }}" class="btn btn-ghost btn-sm">Dettaglio</a>
+            <a href="{{ url_for('audit.detail', id=log.id) }}" class="btn btn-ghost btn-sm">{{ tr('Dettaglio',
+              'Details') }}</a>
           </td>
         </tr>
         {% endfor %}
@@ -80,25 +81,29 @@
 {% if pagination.pages > 1 %}
 <div class="pagination">
   {% if pagination.has_prev %}
-  <a href="?page={{ pagination.prev_num }}&username={{ filters.username }}&action_type={{ filters.action_type }}&entity_type={{ filters.entity_type }}&date_from={{ filters.date_from }}&date_to={{ filters.date_to }}">&laquo;</a>
+  <a
+    href="?page={{ pagination.prev_num }}&username={{ filters.username }}&action_type={{ filters.action_type }}&entity_type={{ filters.entity_type }}&date_from={{ filters.date_from }}&date_to={{ filters.date_to }}">&laquo;</a>
   {% else %}
   <span class="disabled">&laquo;</span>
   {% endif %}
 
   {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
-    {% if p %}
-      {% if p == pagination.page %}
-      <span class="current">{{ p }}</span>
-      {% else %}
-      <a href="?page={{ p }}&username={{ filters.username }}&action_type={{ filters.action_type }}&entity_type={{ filters.entity_type }}&date_from={{ filters.date_from }}&date_to={{ filters.date_to }}">{{ p }}</a>
-      {% endif %}
-    {% else %}
-    <span class="disabled">...</span>
-    {% endif %}
+  {% if p %}
+  {% if p == pagination.page %}
+  <span class="current">{{ p }}</span>
+  {% else %}
+  <a
+    href="?page={{ p }}&username={{ filters.username }}&action_type={{ filters.action_type }}&entity_type={{ filters.entity_type }}&date_from={{ filters.date_from }}&date_to={{ filters.date_to }}">{{
+    p }}</a>
+  {% endif %}
+  {% else %}
+  <span class="disabled">...</span>
+  {% endif %}
   {% endfor %}
 
   {% if pagination.has_next %}
-  <a href="?page={{ pagination.next_num }}&username={{ filters.username }}&action_type={{ filters.action_type }}&entity_type={{ filters.entity_type }}&date_from={{ filters.date_from }}&date_to={{ filters.date_to }}">&raquo;</a>
+  <a
+    href="?page={{ pagination.next_num }}&username={{ filters.username }}&action_type={{ filters.action_type }}&entity_type={{ filters.entity_type }}&date_from={{ filters.date_from }}&date_to={{ filters.date_to }}">&raquo;</a>
   {% else %}
   <span class="disabled">&raquo;</span>
   {% endif %}
@@ -109,8 +114,8 @@
 <div class="card">
   <div class="empty-state">
     <div class="empty-icon">&#9881;</div>
-    <h4>Nessun log trovato</h4>
-    <p>Non ci sono log che corrispondono ai filtri selezionati.</p>
+    <h4>{{ tr('Nessun log trovato', 'No logs found') }}</h4>
+    <p>{{ tr('Non ci sono log che corrispondono ai filtri selezionati.', 'No logs match the selected filters.') }}</p>
   </div>
 </div>
 {% endif %}

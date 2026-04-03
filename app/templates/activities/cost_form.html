@@ -1,11 +1,13 @@
 {% extends "base.html" %}
-{% block title %}{% if cost %}Modifica{% else %}Aggiungi{% endif %} Costo — Small ERP{% endblock %}
+{% block title %}{% if cost %}{{ tr('Modifica', 'Edit') }}{% else %}{{ tr('Aggiungi', 'Add') }}{% endif %} {{
+tr('Costo', 'Cost') }} — Small ERP{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div>
-    <h1>{% if cost %}Modifica Costo{% else %}Aggiungi Costo{% endif %}</h1>
-    <p class="page-subtitle">Attività: {{ activity.title }}</p>
+    <h1>{% if cost %}{{ tr('Modifica Costo', 'Edit Cost') }}{% else %}{{ tr('Aggiungi Costo', 'Add Cost') }}{% endif %}
+    </h1>
+    <p class="page-subtitle">{{ tr('Attivita', 'Activity') }}: {{ activity.title }}</p>
   </div>
 </div>
 
@@ -16,51 +18,60 @@
 
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label" for="description">Descrizione <span class="required">*</span></label>
+          <label class="form-label" for="description">{{ tr('Descrizione', 'Description') }} <span
+              class="required">*</span></label>
           <input type="text" id="description" name="description" class="form-control"
-                 value="{{ cost.description if cost else '' }}" required
-                 placeholder="Descrizione del costo">
+            value="{{ cost.description if cost else '' }}" required
+            placeholder="{{ tr('Descrizione del costo', 'Cost description') }}">
         </div>
         <div class="form-group">
-          <label class="form-label" for="amount">Importo (&euro;) <span class="required">*</span></label>
-          <input type="text" id="amount" name="amount" class="form-control"
-                 value="{{ cost.amount if cost else '' }}" required
-                 placeholder="0,00">
+          <label class="form-label" for="amount">{{ tr('Importo', 'Amount') }} (&euro;) <span
+              class="required">*</span></label>
+          <input type="text" id="amount" name="amount" class="form-control" value="{{ cost.amount if cost else '' }}"
+            required placeholder="0,00">
         </div>
       </div>
 
       <div class="form-row-3">
         <div class="form-group">
-          <label class="form-label" for="category">Categoria <span class="required">*</span></label>
+          <label class="form-label" for="category">{{ tr('Categoria', 'Category') }} <span
+              class="required">*</span></label>
           <select id="category" name="category" class="form-control" required>
-            <option value="">Seleziona...</option>
-            {% for val, label in [('materiale','Materiale'),('trasporto','Trasporto'),('consulenza','Consulenza'),('marketing','Marketing'),('spese_vive','Spese vive'),('altro','Altro')] %}
-            <option value="{{ val }}" {% if cost and cost.category == val %}selected{% endif %}>{{ label }}</option>
+            <option value="">{{ tr('Seleziona...', 'Select...') }}</option>
+            {% for val, label in [('materiale', tr('Materiale','Materials')),('trasporto',
+            tr('Trasporto','Transport')),('consulenza', tr('Consulenza','Consulting')),('marketing',
+            tr('Marketing','Marketing')),('spese_vive', tr('Spese vive','Out-of-pocket')),('altro',
+            tr('Altro','Other'))] %}
+            <option value="{{ val }}" {% if cost and cost.category==val %}selected{% endif %}>{{ label }}</option>
             {% endfor %}
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label" for="cost_type">Tipo Costo</label>
+          <label class="form-label" for="cost_type">{{ tr('Tipo Costo', 'Cost Type') }}</label>
           <select id="cost_type" name="cost_type" class="form-control">
-            <option value="operativo" {% if cost and cost.cost_type == 'operativo' %}selected{% endif %}>Costo Operativo</option>
-            <option value="extra" {% if cost and cost.cost_type == 'extra' %}selected{% endif %}>Spesa Extra</option>
+            <option value="operativo" {% if cost and cost.cost_type=='operativo' %}selected{% endif %}>{{ tr('Costo
+              Operativo', 'Operating Cost') }}</option>
+            <option value="extra" {% if cost and cost.cost_type=='extra' %}selected{% endif %}>{{ tr('Spesa Extra',
+              'Extra Cost') }}</option>
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label" for="date">Data <span class="required">*</span></label>
+          <label class="form-label" for="date">{{ tr('Data', 'Date') }} <span class="required">*</span></label>
           <input type="date" id="date" name="date" class="form-control"
-                 value="{{ cost.date.isoformat() if cost else '' }}" required>
+            value="{{ cost.date.isoformat() if cost else '' }}" required>
         </div>
       </div>
 
       <div class="form-group">
-        <label class="form-label" for="notes">Note</label>
+        <label class="form-label" for="notes">{{ tr('Note', 'Notes') }}</label>
         <textarea id="notes" name="notes" class="form-control" rows="2">{{ cost.notes if cost else '' }}</textarea>
       </div>
 
       <div class="form-actions">
-        <button type="submit" class="btn btn-primary">{% if cost %}Salva{% else %}Aggiungi Costo{% endif %}</button>
-        <a href="{{ url_for('activities.detail', id=activity.id) }}" class="btn btn-secondary">Annulla</a>
+        <button type="submit" class="btn btn-primary">{% if cost %}{{ tr('Salva', 'Save') }}{% else %}{{ tr('Aggiungi
+          Costo', 'Add Cost') }}{% endif %}</button>
+        <a href="{{ url_for('activities.detail', id=activity.id) }}" class="btn btn-secondary">{{ tr('Annulla',
+          'Cancel') }}</a>
       </div>
     </form>
   </div>

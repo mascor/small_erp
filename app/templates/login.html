@@ -1,18 +1,20 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="{{ current_lang }}">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login — Small ERP</title>
+  <title>{{ tr('Login', 'Login') }} — Small ERP</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
+
 <body>
   <div class="login-page">
     <div class="login-card">
       <div class="login-brand">
         <div class="brand-icon">E</div>
         <h1>Small ERP</h1>
-        <p>Accedi per continuare</p>
+        <p>{{ tr('Accedi per continuare', 'Sign in to continue') }}</p>
       </div>
 
       {% with messages = get_flashed_messages(with_categories=true) %}
@@ -28,18 +30,19 @@
       <form method="POST">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="form-group">
-          <label class="form-label" for="username">Username</label>
+          <label class="form-label" for="username">{{ tr('Username', 'Username') }}</label>
           <input type="text" id="username" name="username" class="form-control"
-                 placeholder="Il tuo username" required autofocus>
+            placeholder="{{ tr('Il tuo username', 'Your username') }}" required autofocus>
         </div>
         <div class="form-group">
-          <label class="form-label" for="password">Password</label>
+          <label class="form-label" for="password">{{ tr('Password', 'Password') }}</label>
           <input type="password" id="password" name="password" class="form-control"
-                 placeholder="La tua password" required>
+            placeholder="{{ tr('La tua password', 'Your password') }}" required>
         </div>
-        <button type="submit" class="btn btn-primary">Accedi</button>
+        <button type="submit" class="btn btn-primary">{{ tr('Accedi', 'Sign in') }}</button>
       </form>
     </div>
   </div>
 </body>
+
 </html>

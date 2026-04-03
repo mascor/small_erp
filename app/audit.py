@@ -1,8 +1,14 @@
 import json
+import re
+from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
 from .models import AuditLog
+from .logging_config import get_logger
+from .i18n import tr
 from functools import wraps
+
+logger = get_logger(__name__)
 
 audit_bp = Blueprint('audit', __name__, url_prefix='/audit')
 
@@ -13,7 +19,7 @@ def superadmin_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         if not current_user.is_superadmin:
-            flash('Accesso riservato al superadmin.', 'error')
+            flash(tr('Accesso riservato al superadmin.', 'Access reserved to superadmin.'), 'error')
             return redirect(url_for('dashboard.index'))
         return f(*args, **kwargs)
     return decorated
@@ -23,57 +29,79 @@ def superadmin_required(f):
 @login_required
 @superadmin_required
 def index():
-    page = request.args.get('page', 1, type=int)
-    username = request.args.get('username', '').strip()
-    action_type = request.args.get('action_type', '').strip()
-    entity_type = request.args.get('entity_type', '').strip()
-    date_from = request.args.get('date_from', '').strip()
-    date_to = request.args.get('date_to', '').strip()
+    try:
+        page = request.args.get('page', 1, type=int)
+        username = request.args.get('username', '').strip()
+        action_type = request.args.get('action_type', '').strip()
+        entity_type = request.args.get('entity_type', '').strip()
+        date_from = request.args.get('date_from', '').strip()
+        date_to = request.args.get('date_to', '').strip()
 
-    query = AuditLog.query
+        logger.debug(f'Audit log accessed by superadmin: {current_user.username}, filters: username={username}, action_type={action_type}, entity_type={entity_type}')
 
-    if username:
-        query = query.filter(AuditLog.username.ilike(f'%{username}%'))
-    if action_type:
-        query = query.filter_by(action_type=action_type)
-    if entity_type:
-        query = query.filter_by(entity_type=entity_type)
-    if date_from:
-        query = query.filter(AuditLog.timestamp >= date_from)
-    if date_to:
-        query = query.filter(AuditLog.timestamp <= date_to + ' 23:59:59')
+        query = AuditLog.query
 
-    pagination = query.order_by(AuditLog.timestamp.desc()).paginate(
-        page=page, per_page=PER_PAGE, error_out=False
-    )
+        if username:
+            safe_username = username.replace('%', '').replace('_', '')
+            if safe_username:
+                query = query.filter(AuditLog.username.ilike(f'%{safe_username}%'))
+        if action_type:
+            query = query.filter_by(action_type=action_type)
+        if entity_type:
+            query = query.filter_by(entity_type=entity_type)
+        if date_from:
+            try:
+                parsed_from = datetime.fromisoformat(date_from)
+                query = query.filter(AuditLog.timestamp >= parsed_from)
+            except ValueError:
+                logger.warning(f'Invalid date_from format: {date_from}')
+        if date_to:
+            try:
+                parsed_to = datetime.fromisoformat(date_to + 'T23:59:59')
+                query = query.filter(AuditLog.timestamp <= parsed_to)
+            except ValueError:
+                logger.warning(f'Invalid date_to format: {date_to}')
 
-    action_types = ['login', 'logout', 'create', 'update', 'delete',
-                    'status_change', 'user_create', 'user_update']
-    entity_types = ['User', 'Agent', 'RevenueActivity', 'ActivityCost', 'ActivityParticipant']
+        pagination = query.order_by(AuditLog.timestamp.desc()).paginate(
+            page=page, per_page=PER_PAGE, error_out=False
+        )
 
-    return render_template('audit/index.html',
-                           logs=pagination.items,
-                           pagination=pagination,
-                           action_types=action_types,
-                           entity_types=entity_types,
-                           filters={
-                               'username': username,
-                               'action_type': action_type,
-                               'entity_type': entity_type,
-                               'date_from': date_from,
-                               'date_to': date_to,
-                           })
+        action_types = ['login', 'logout', 'create', 'update', 'delete',
+                        'status_change', 'user_create', 'user_update']
+        entity_types = ['User', 'Agent', 'RevenueActivity', 'ActivityCost', 'ActivityParticipant']
+
+        return render_template('audit/index.html',
+                               logs=pagination.items,
+                               pagination=pagination,
+                               action_types=action_types,
+                               entity_types=entity_types,
+                               filters={
+                                   'username': username,
+                                   'action_type': action_type,
+                                   'entity_type': entity_type,
+                                   'date_from': date_from,
+                                   'date_to': date_to,
+                               })
+    except Exception as e:
+        logger.error(f'Error accessing audit log: {str(e)}', exc_info=True)
+        raise
 
 
 @audit_bp.route('/<int:id>')
 @login_required
 @superadmin_required
 def detail(id):
-    from . import db
-    log = db.get_or_404(AuditLog, id)
+    try:
+        from . import db
+        log = db.get_or_404(AuditLog, id)
+        
+        logger.debug(f'Audit log detail accessed: ID={id}, action={log.action_type}, entity={log.entity_type} by user {current_user.username}')
 
-    old_values = json.loads(log.old_values) if log.old_values else None
-    new_values = json.loads(log.new_values) if log.new_values else None
+        old_values = json.loads(log.old_values) if log.old_values else None
+        new_values = json.loads(log.new_values) if log.new_values else None
 
-    return render_template('audit/detail.html', log=log,
-                           old_values=old_values, new_values=new_values)
+        return render_template('audit/detail.html', log=log,
+                               old_values=old_values, new_values=new_values)
+    except Exception as e:
+        logger.error(f'Error accessing audit log detail {id}: {str(e)}', exc_info=True)
+        raise

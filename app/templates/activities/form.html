@@ -1,9 +1,11 @@
 {% extends "base.html" %}
-{% block title %}{% if activity %}Modifica{% else %}Nuova{% endif %} Attività — Small ERP{% endblock %}
+{% block title %}{% if activity %}{{ tr('Modifica', 'Edit') }}{% else %}{{ tr('Nuova', 'New') }}{% endif %} {{
+tr('Attivita', 'Activity') }} — Small ERP{% endblock %}
 
 {% block content %}
 <div class="page-header">
-  <h1>{% if activity %}Modifica Attività{% else %}Nuova Attività di Ricavo{% endif %}</h1>
+  <h1>{% if activity %}{{ tr('Modifica Attivita', 'Edit Activity') }}{% else %}{{ tr('Nuova Attivita di Ricavo', 'New
+    Revenue Activity') }}{% endif %}</h1>
 </div>
 
 <div class="card">
@@ -13,73 +15,76 @@
 
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label" for="title">Titolo <span class="required">*</span></label>
+          <label class="form-label" for="title">{{ tr('Titolo', 'Title') }} <span class="required">*</span></label>
           <input type="text" id="title" name="title" class="form-control"
-                 value="{{ activity.title if activity else '' }}" required
-                 placeholder="Nome dell'attività">
+            value="{{ activity.title if activity else '' }}" required
+            placeholder="{{ tr('Nome dell\'attivita', 'Activity name') }}">
         </div>
         <div class="form-group">
-          <label class="form-label" for="date">Data <span class="required">*</span></label>
+          <label class="form-label" for="date">{{ tr('Data', 'Date') }} <span class="required">*</span></label>
           <input type="date" id="date" name="date" class="form-control"
-                 value="{{ activity.date.isoformat() if activity else '' }}" required>
+            value="{{ activity.date.isoformat() if activity else '' }}" required>
         </div>
       </div>
 
       <div class="form-group">
-        <label class="form-label" for="description">Descrizione</label>
+        <label class="form-label" for="description">{{ tr('Descrizione', 'Description') }}</label>
         <textarea id="description" name="description" class="form-control" rows="3"
-                  placeholder="Breve descrizione dell'attività">{{ activity.description if activity else '' }}</textarea>
+          placeholder="{{ tr('Breve descrizione dell\'attivita', 'Short activity description') }}">{{ activity.description if activity else '' }}</textarea>
       </div>
 
       <div class="form-row-3">
         <div class="form-group">
-          <label class="form-label" for="status">Stato</label>
+          <label class="form-label" for="status">{{ tr('Stato', 'Status') }}</label>
           <select id="status" name="status" class="form-control">
-            <option value="bozza" {% if activity and activity.status == 'bozza' %}selected{% endif %}>Bozza</option>
-            <option value="confermata" {% if activity and activity.status == 'confermata' %}selected{% endif %}>Confermata</option>
-            <option value="chiusa" {% if activity and activity.status == 'chiusa' %}selected{% endif %}>Chiusa</option>
+            <option value="bozza" {% if activity and activity.status=='bozza' %}selected{% endif %}>{{
+              status_label('bozza') }}</option>
+            <option value="confermata" {% if activity and activity.status=='confermata' %}selected{% endif %}>{{
+              status_label('confermata') }}</option>
+            <option value="chiusa" {% if activity and activity.status=='chiusa' %}selected{% endif %}>{{
+              status_label('chiusa') }}</option>
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label" for="total_revenue">Ricavo Totale (&euro;) <span class="required">*</span></label>
+          <label class="form-label" for="total_revenue">{{ tr('Ricavo Totale', 'Total Revenue') }} (&euro;) <span
+              class="required">*</span></label>
           <input type="text" id="total_revenue" name="total_revenue" class="form-control"
-                 value="{{ activity.total_revenue if activity else '' }}" required
-                 placeholder="0,00">
+            value="{{ activity.total_revenue if activity else '' }}" required placeholder="0,00">
         </div>
         <div class="form-group">
-          <label class="form-label" for="agent_percentage">% Agente</label>
+          <label class="form-label" for="agent_percentage">% {{ tr('Agente', 'Agent') }}</label>
           <input type="text" id="agent_percentage" name="agent_percentage" class="form-control"
-                 value="{{ activity.agent_percentage if activity else '0' }}"
-                 placeholder="0,00">
+            value="{{ activity.agent_percentage if activity else '0' }}" placeholder="0,00">
         </div>
       </div>
 
       <div class="form-group">
-        <label class="form-label" for="agent_id">Agente</label>
+        <label class="form-label" for="agent_id">{{ tr('Agente', 'Agent') }}</label>
         <select id="agent_id" name="agent_id" class="form-control">
-          <option value="">— Nessun agente —</option>
+          <option value="">— {{ tr('Nessun agente', 'No agent') }} —</option>
           {% for agent in agents %}
-          <option value="{{ agent.id }}"
-                  data-percentage="{{ agent.default_percentage }}"
-                  {% if activity and activity.agent_id == agent.id %}selected{% endif %}>
+          <option value="{{ agent.id }}" data-percentage="{{ agent.default_percentage }}" {% if activity and
+            activity.agent_id==agent.id %}selected{% endif %}>
             {{ agent.full_name }}{% if agent.default_percentage %} ({{ agent.default_percentage }}%){% endif %}
           </option>
           {% endfor %}
         </select>
-        <span class="form-hint">Selezionando un agente con percentuale predefinita, verrà suggerita automaticamente.</span>
+        <span class="form-hint">{{ tr('Selezionando un agente con percentuale predefinita, verra suggerita
+          automaticamente.', 'Selecting an agent with a default percentage will auto-fill this field.') }}</span>
       </div>
 
       <div class="form-group">
-        <label class="form-label" for="notes">Note</label>
+        <label class="form-label" for="notes">{{ tr('Note', 'Notes') }}</label>
         <textarea id="notes" name="notes" class="form-control" rows="2"
-                  placeholder="Note aggiuntive">{{ activity.notes if activity else '' }}</textarea>
+          placeholder="{{ tr('Note aggiuntive', 'Additional notes') }}">{{ activity.notes if activity else '' }}</textarea>
       </div>
 
       <div class="form-actions">
         <button type="submit" class="btn btn-primary">
-          {% if activity %}Salva Modifiche{% else %}Crea Attività{% endif %}
+          {% if activity %}{{ tr('Salva Modifiche', 'Save Changes') }}{% else %}{{ tr('Crea Attivita', 'Create
+          Activity') }}{% endif %}
         </button>
-        <a href="{{ url_for('activities.index') }}" class="btn btn-secondary">Annulla</a>
+        <a href="{{ url_for('activities.index') }}" class="btn btn-secondary">{{ tr('Annulla', 'Cancel') }}</a>
       </div>
     </form>
   </div>
@@ -88,7 +93,7 @@
 
 {% block scripts %}
 <script>
-  document.getElementById('agent_id').addEventListener('change', function() {
+  document.getElementById('agent_id').addEventListener('change', function () {
     const selected = this.options[this.selectedIndex];
     const pct = selected.getAttribute('data-percentage');
     if (pct && parseFloat(pct) > 0) {

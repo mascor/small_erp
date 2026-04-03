@@ -11,11 +11,12 @@
     </p>
   </div>
   <div class="btn-group">
-    <a href="{{ url_for('activities.edit', id=activity.id) }}" class="btn btn-secondary">Modifica</a>
+    <a href="{{ url_for('activities.edit', id=activity.id) }}" class="btn btn-secondary">{{ tr('Modifica', 'Edit')
+      }}</a>
     <form method="POST" action="{{ url_for('activities.delete', id=activity.id) }}" class="confirm-delete"
-          onsubmit="return confirm('Eliminare questa attività e tutti i dati collegati?')">
+      onsubmit="return confirm('{{ tr('Eliminare questa attivita e tutti i dati collegati?', 'Delete this activity and all linked data?') }}')">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <button type="submit" class="btn btn-danger btn-sm">Elimina</button>
+      <button type="submit" class="btn btn-danger btn-sm">{{ tr('Elimina', 'Delete') }}</button>
     </form>
   </div>
 </div>
@@ -27,41 +28,41 @@
 <!-- Financial Breakdown -->
 <div class="breakdown mb-xl">
   <div class="breakdown-header">
-    <h3>Riepilogo Economico</h3>
+    <h3>{{ tr('Riepilogo Economico', 'Financial Summary') }}</h3>
   </div>
   <div class="breakdown-body">
     <div class="breakdown-row">
-      <span class="label">Ricavo Totale</span>
+      <span class="label">{{ tr('Ricavo Totale', 'Total Revenue') }}</span>
       <span class="value">&euro; {{ totals.revenue|currency }}</span>
     </div>
     <div class="breakdown-row">
       <span class="label">
-        Compenso Agente
+        {{ tr('Compenso Agente', 'Agent Compensation') }}
         {% if activity.agent %}({{ activity.agent.full_name }} — {{ totals.agent_percentage|percentage }}){% endif %}
       </span>
       <span class="value negative">&minus; &euro; {{ totals.agent_compensation|currency }}</span>
     </div>
     <div class="breakdown-row">
-      <span class="label">Costi Operativi</span>
+      <span class="label">{{ tr('Costi Operativi', 'Operating Costs') }}</span>
       <span class="value negative">&minus; &euro; {{ totals.total_operative_costs|currency }}</span>
     </div>
     <div class="breakdown-row">
-      <span class="label">Spese Extra</span>
+      <span class="label">{{ tr('Spese Extra', 'Extra Costs') }}</span>
       <span class="value negative">&minus; &euro; {{ totals.total_extra_costs|currency }}</span>
     </div>
     <hr class="breakdown-divider">
     <div class="breakdown-row subtotal">
-      <span class="label"><strong>Margine Netto</strong></span>
+      <span class="label"><strong>{{ tr('Margine Netto', 'Net Margin') }}</strong></span>
       <span class="value {% if totals.net_margin >= 0 %}positive{% else %}negative{% endif %}">
         <strong>&euro; {{ totals.net_margin|currency }}</strong>
       </span>
     </div>
     <div class="breakdown-row">
-      <span class="label">Compensi Fissi Partecipanti</span>
+      <span class="label">{{ tr('Compensi Fissi Partecipanti', 'Fixed Participant Compensation') }}</span>
       <span class="value negative">&minus; &euro; {{ totals.total_fixed_compensations|currency }}</span>
     </div>
     <div class="breakdown-row total">
-      <span class="label">Residuo Distribuibile per Quote</span>
+      <span class="label">{{ tr('Residuo Distribuibile per Quote', 'Distributable Residual') }}</span>
       <span class="value {% if totals.distributable_residual >= 0 %}accent{% else %}negative{% endif %}">
         &euro; {{ totals.distributable_residual|currency }}
       </span>
@@ -72,8 +73,9 @@
 <!-- Costs Section -->
 <div class="detail-section">
   <div class="d-flex justify-between align-center mb-md">
-    <h3>Costi ({{ activity.costs.count() }})</h3>
-    <a href="{{ url_for('activities.add_cost', id=activity.id) }}" class="btn btn-primary btn-sm">+ Aggiungi Costo</a>
+    <h3>{{ tr('Costi', 'Costs') }} ({{ activity.costs.count() }})</h3>
+    <a href="{{ url_for('activities.add_cost', id=activity.id) }}" class="btn btn-primary btn-sm">+ {{ tr('Aggiungi
+      Costo', 'Add Cost') }}</a>
   </div>
 
   {% set costs = activity.costs.all() %}
@@ -83,11 +85,11 @@
       <table>
         <thead>
           <tr>
-            <th>Descrizione</th>
-            <th>Categoria</th>
-            <th>Tipo</th>
-            <th>Data</th>
-            <th class="num">Importo</th>
+            <th>{{ tr('Descrizione', 'Description') }}</th>
+            <th>{{ tr('Categoria', 'Category') }}</th>
+            <th>{{ tr('Tipo', 'Type') }}</th>
+            <th>{{ tr('Data', 'Date') }}</th>
+            <th class="num">{{ tr('Importo', 'Amount') }}</th>
             <th></th>
           </tr>
         </thead>
@@ -98,20 +100,22 @@
             <td><span class="text-sm">{{ cost.category|capitalize }}</span></td>
             <td>
               {% if cost.cost_type == 'operativo' %}
-              <span class="badge badge-confermata">Operativo</span>
+              <span class="badge badge-confermata">{{ tr('Operativo', 'Operating') }}</span>
               {% else %}
-              <span class="badge badge-bozza">Extra</span>
+              <span class="badge badge-bozza">{{ tr('Extra', 'Extra') }}</span>
               {% endif %}
             </td>
             <td class="text-muted text-sm">{{ cost.date.strftime('%d/%m/%Y') }}</td>
             <td class="num">&euro; {{ cost.amount|currency }}</td>
             <td class="text-right">
               <div class="btn-group">
-                <a href="{{ url_for('activities.edit_cost', id=activity.id, cost_id=cost.id) }}" class="btn btn-ghost btn-sm">Modifica</a>
+                <a href="{{ url_for('activities.edit_cost', id=activity.id, cost_id=cost.id) }}"
+                  class="btn btn-ghost btn-sm">{{ tr('Modifica', 'Edit') }}</a>
                 <form method="POST" action="{{ url_for('activities.delete_cost', id=activity.id, cost_id=cost.id) }}"
-                      class="confirm-delete" onsubmit="return confirm('Eliminare questo costo?')">
+                  class="confirm-delete"
+                  onsubmit="return confirm('{{ tr('Eliminare questo costo?', 'Delete this cost?') }}')">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                  <button type="submit" class="btn btn-ghost btn-sm text-danger">Elimina</button>
+                  <button type="submit" class="btn btn-ghost btn-sm text-danger">{{ tr('Elimina', 'Delete') }}</button>
                 </form>
               </div>
             </td>
@@ -124,8 +128,9 @@
   {% else %}
   <div class="card">
     <div class="empty-state">
-      <p>Nessun costo registrato per questa attività.</p>
-      <a href="{{ url_for('activities.add_cost', id=activity.id) }}" class="btn btn-primary btn-sm">+ Aggiungi Costo</a>
+      <p>{{ tr('Nessun costo registrato per questa attivita.', 'No costs recorded for this activity.') }}</p>
+      <a href="{{ url_for('activities.add_cost', id=activity.id) }}" class="btn btn-primary btn-sm">+ {{ tr('Aggiungi
+        Costo', 'Add Cost') }}</a>
     </div>
   </div>
   {% endif %}
@@ -134,8 +139,9 @@
 <!-- Participants Section -->
 <div class="detail-section">
   <div class="d-flex justify-between align-center mb-md">
-    <h3>Partecipanti ({{ activity.participants.count() }})</h3>
-    <a href="{{ url_for('activities.add_participant', id=activity.id) }}" class="btn btn-primary btn-sm">+ Aggiungi Partecipante</a>
+    <h3>{{ tr('Partecipanti', 'Participants') }} ({{ activity.participants.count() }})</h3>
+    <a href="{{ url_for('activities.add_participant', id=activity.id) }}" class="btn btn-primary btn-sm">+ {{
+      tr('Aggiungi Partecipante', 'Add Participant') }}</a>
   </div>
 
   {% if totals.participants %}
@@ -148,9 +154,11 @@
           {% if p.role %}<div class="participant-role">{{ p.role }}</div>{% endif %}
         </div>
         <div class="btn-group">
-          <a href="{{ url_for('activities.edit_participant', id=activity.id, pid=p.id) }}" class="btn btn-ghost btn-sm">Modifica</a>
+          <a href="{{ url_for('activities.edit_participant', id=activity.id, pid=p.id) }}"
+            class="btn btn-ghost btn-sm">{{ tr('Modifica', 'Edit') }}</a>
           <form method="POST" action="{{ url_for('activities.delete_participant', id=activity.id, pid=p.id) }}"
-                class="confirm-delete" onsubmit="return confirm('Rimuovere questo partecipante?')">
+            class="confirm-delete"
+            onsubmit="return confirm('{{ tr('Rimuovere questo partecipante?', 'Remove this participant?') }}')">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="btn btn-ghost btn-sm text-danger">&times;</button>
           </form>
@@ -158,20 +166,20 @@
       </div>
       <div class="participant-details">
         <div class="participant-detail">
-          <span class="detail-label">Quota Lavoro</span>
+          <span class="detail-label">{{ tr('Quota Lavoro', 'Work Share') }}</span>
           <span class="detail-value">{{ p.work_share }}</span>
         </div>
         <div class="participant-detail">
-          <span class="detail-label">Compenso Fisso</span>
+          <span class="detail-label">{{ tr('Compenso Fisso', 'Fixed Compensation') }}</span>
           <span class="detail-value">&euro; {{ p.fixed_compensation|currency }}</span>
         </div>
         <div class="participant-detail">
-          <span class="detail-label">Quota Proporzionale</span>
+          <span class="detail-label">{{ tr('Quota Proporzionale', 'Proportional Share') }}</span>
           <span class="detail-value">&euro; {{ p.proportional_share|currency }}</span>
         </div>
       </div>
       <div class="participant-total">
-        <span class="total-label">Totale Spettante</span>
+        <span class="total-label">{{ tr('Totale Spettante', 'Total Due') }}</span>
         <span class="total-value">&euro; {{ p.total_due|currency }}</span>
       </div>
     </div>
@@ -180,8 +188,9 @@
   {% else %}
   <div class="card">
     <div class="empty-state">
-      <p>Nessun partecipante per questa attività.</p>
-      <a href="{{ url_for('activities.add_participant', id=activity.id) }}" class="btn btn-primary btn-sm">+ Aggiungi Partecipante</a>
+      <p>{{ tr('Nessun partecipante per questa attivita.', 'No participants for this activity.') }}</p>
+      <a href="{{ url_for('activities.add_participant', id=activity.id) }}" class="btn btn-primary btn-sm">+ {{
+        tr('Aggiungi Partecipante', 'Add Participant') }}</a>
     </div>
   </div>
   {% endif %}
@@ -189,7 +198,7 @@
 
 {% if activity.notes %}
 <div class="detail-section">
-  <h3>Note</h3>
+  <h3>{{ tr('Note', 'Notes') }}</h3>
   <div class="card">
     <div class="card-body">
       <p class="text-muted">{{ activity.notes }}</p>

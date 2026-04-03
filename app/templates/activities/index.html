@@ -1,24 +1,25 @@
 {% extends "base.html" %}
-{% block title %}Attività — Small ERP{% endblock %}
+{% block title %}{{ tr('Attivita', 'Activities') }} — Small ERP{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div>
-    <h1>Attività di Ricavo</h1>
-    <p class="page-subtitle">{{ activities|length }} attività totali</p>
+    <h1>{{ tr('Attivita di Ricavo', 'Revenue Activities') }}</h1>
+    <p class="page-subtitle">{{ activities|length }} {{ tr('attivita totali', 'total activities') }}</p>
   </div>
-  <a href="{{ url_for('activities.create') }}" class="btn btn-primary">+ Nuova Attività</a>
+  <a href="{{ url_for('activities.create') }}" class="btn btn-primary">+ {{ tr('Nuova Attivita', 'New Activity') }}</a>
 </div>
 
 <!-- Filters -->
 <div class="filters-bar">
   <div class="filter-group">
-    <label>Stato</label>
+    <label>{{ tr('Stato', 'Status') }}</label>
     <select class="form-control" onchange="window.location.href='?status='+this.value">
-      <option value="">Tutti gli stati</option>
-      <option value="bozza" {% if status_filter == 'bozza' %}selected{% endif %}>Bozza</option>
-      <option value="confermata" {% if status_filter == 'confermata' %}selected{% endif %}>Confermata</option>
-      <option value="chiusa" {% if status_filter == 'chiusa' %}selected{% endif %}>Chiusa</option>
+      <option value="">{{ tr('Tutti gli stati', 'All statuses') }}</option>
+      <option value="bozza" {% if status_filter=='bozza' %}selected{% endif %}>{{ status_label('bozza') }}</option>
+      <option value="confermata" {% if status_filter=='confermata' %}selected{% endif %}>{{ status_label('confermata')
+        }}</option>
+      <option value="chiusa" {% if status_filter=='chiusa' %}selected{% endif %}>{{ status_label('chiusa') }}</option>
     </select>
   </div>
 </div>
@@ -29,12 +30,12 @@
     <table>
       <thead>
         <tr>
-          <th>Titolo</th>
-          <th>Data</th>
-          <th>Stato</th>
-          <th>Agente</th>
-          <th class="num">Ricavo</th>
-          <th class="num">% Agente</th>
+          <th>{{ tr('Titolo', 'Title') }}</th>
+          <th>{{ tr('Data', 'Date') }}</th>
+          <th>{{ tr('Stato', 'Status') }}</th>
+          <th>{{ tr('Agente', 'Agent') }}</th>
+          <th class="num">{{ tr('Ricavo', 'Revenue') }}</th>
+          <th class="num">% {{ tr('Agente', 'Agent') }}</th>
           <th></th>
         </tr>
       </thead>
@@ -43,14 +44,16 @@
         <tr>
           <td><a href="{{ url_for('activities.detail', id=act.id) }}"><strong>{{ act.title }}</strong></a></td>
           <td class="text-muted text-sm nowrap">{{ act.date.strftime('%d/%m/%Y') }}</td>
-          <td><span class="badge badge-{{ act.status }} badge-dot">{{ act.status_label }}</span></td>
+          <td><span class="badge badge-{{ act.status }} badge-dot">{{ status_label(act.status) }}</span></td>
           <td>{% if act.agent %}{{ act.agent.full_name }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
           <td class="num">&euro; {{ act.total_revenue|currency }}</td>
           <td class="num">{{ act.agent_percentage|percentage }}</td>
           <td class="text-right">
             <div class="btn-group">
-              <a href="{{ url_for('activities.detail', id=act.id) }}" class="btn btn-ghost btn-sm">Dettaglio</a>
-              <a href="{{ url_for('activities.edit', id=act.id) }}" class="btn btn-ghost btn-sm">Modifica</a>
+              <a href="{{ url_for('activities.detail', id=act.id) }}" class="btn btn-ghost btn-sm">{{ tr('Dettaglio',
+                'Details') }}</a>
+              <a href="{{ url_for('activities.edit', id=act.id) }}" class="btn btn-ghost btn-sm">{{ tr('Modifica',
+                'Edit') }}</a>
             </div>
           </td>
         </tr>
@@ -63,9 +66,10 @@
 <div class="card">
   <div class="empty-state">
     <div class="empty-icon">&#9733;</div>
-    <h4>Nessuna attività trovata</h4>
-    <p>Inizia creando la prima attività di ricavo.</p>
-    <a href="{{ url_for('activities.create') }}" class="btn btn-primary">+ Nuova Attività</a>
+    <h4>{{ tr('Nessuna attivita trovata', 'No activities found') }}</h4>
+    <p>{{ tr('Inizia creando la prima attivita di ricavo.', 'Start by creating your first revenue activity.') }}</p>
+    <a href="{{ url_for('activities.create') }}" class="btn btn-primary">+ {{ tr('Nuova Attivita', 'New Activity')
+      }}</a>
   </div>
 </div>
 {% endif %}

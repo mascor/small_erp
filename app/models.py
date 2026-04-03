@@ -45,8 +45,6 @@ class Agent(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     first_name = db.Column(db.String(100), nullable=False)
-    last_name = db.Column(db.String(100), nullable=False)
-    email = db.Column(db.String(120))
     default_percentage = db.Column(db.Numeric(5, 2), default=0)
     is_active = db.Column(db.Boolean, default=True)
     notes = db.Column(db.Text)
@@ -57,7 +55,7 @@ class Agent(db.Model):
 
     @property
     def full_name(self):
-        return f'{self.first_name} {self.last_name}'
+        return self.first_name
 
     def __repr__(self):
         return f'<Agent {self.full_name}>'

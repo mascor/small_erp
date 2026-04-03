@@ -1,13 +1,13 @@
 {% extends "base.html" %}
-{% block title %}Agenti — Small ERP{% endblock %}
+{% block title %}{{ tr('Agenti', 'Agents') }} — Small ERP{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div>
-    <h1>Agenti</h1>
-    <p class="page-subtitle">{{ agents|length }} agenti registrati</p>
+    <h1>{{ tr('Agenti', 'Agents') }}</h1>
+    <p class="page-subtitle">{{ agents|length }} {{ tr('agenti registrati', 'registered agents') }}</p>
   </div>
-  <a href="{{ url_for('agents.create') }}" class="btn btn-primary">+ Nuovo Agente</a>
+  <a href="{{ url_for('agents.create') }}" class="btn btn-primary">+ {{ tr('Nuovo Agente', 'New Agent') }}</a>
 </div>
 
 {% if agents %}
@@ -16,10 +16,9 @@
     <table>
       <thead>
         <tr>
-          <th>Nome</th>
-          <th>Email</th>
-          <th class="num">% Standard</th>
-          <th>Stato</th>
+          <th>{{ tr('Nome', 'Name') }}</th>
+          <th class="num">% {{ tr('Standard', 'Default') }}</th>
+          <th>{{ tr('Stato', 'Status') }}</th>
           <th></th>
         </tr>
       </thead>
@@ -27,22 +26,22 @@
         {% for agent in agents %}
         <tr>
           <td><strong>{{ agent.full_name }}</strong></td>
-          <td class="text-muted">{{ agent.email or '—' }}</td>
           <td class="num">{{ agent.default_percentage|percentage }}</td>
           <td>
             {% if agent.is_active %}
-            <span class="badge badge-active badge-dot">Attivo</span>
+            <span class="badge badge-active badge-dot">{{ tr('Attivo', 'Active') }}</span>
             {% else %}
-            <span class="badge badge-inactive badge-dot">Inattivo</span>
+            <span class="badge badge-inactive badge-dot">{{ tr('Inattivo', 'Inactive') }}</span>
             {% endif %}
           </td>
           <td class="text-right">
             <div class="btn-group">
-              <a href="{{ url_for('agents.edit', id=agent.id) }}" class="btn btn-ghost btn-sm">Modifica</a>
-              <form method="POST" action="{{ url_for('agents.delete', id=agent.id) }}"
-                    class="confirm-delete" onsubmit="return confirm('Eliminare l\'agente {{ agent.full_name }}?')">
+              <a href="{{ url_for('agents.edit', id=agent.id) }}" class="btn btn-ghost btn-sm">{{ tr('Modifica', 'Edit')
+                }}</a>
+              <form method="POST" action="{{ url_for('agents.delete', id=agent.id) }}" class="confirm-delete"
+                onsubmit="return confirm('{{ tr('Eliminare l\'agente', 'Delete agent') }} {{ agent.full_name }}?')">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button type="submit" class="btn btn-ghost btn-sm text-danger">Elimina</button>
+                <button type="submit" class="btn btn-ghost btn-sm text-danger">{{ tr('Elimina', 'Delete') }}</button>
               </form>
             </div>
           </td>
@@ -56,9 +55,10 @@
 <div class="card">
   <div class="empty-state">
     <div class="empty-icon">&#9679;</div>
-    <h4>Nessun agente</h4>
-    <p>Aggiungi il primo agente per gestire le commissioni.</p>
-    <a href="{{ url_for('agents.create') }}" class="btn btn-primary">+ Nuovo Agente</a>
+    <h4>{{ tr('Nessun agente', 'No agents') }}</h4>
+    <p>{{ tr('Aggiungi il primo agente per gestire le commissioni.', 'Add your first agent to manage commissions.') }}
+    </p>
+    <a href="{{ url_for('agents.create') }}" class="btn btn-primary">+ {{ tr('Nuovo Agente', 'New Agent') }}</a>
   </div>
 </div>
 {% endif %}

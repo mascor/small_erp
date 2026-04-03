@@ -1,9 +1,11 @@
 {% extends "base.html" %}
-{% block title %}{% if user %}Modifica{% else %}Nuovo{% endif %} Utente — Small ERP{% endblock %}
+{% block title %}{% if user %}{{ tr('Modifica', 'Edit') }}{% else %}{{ tr('Nuovo', 'New') }}{% endif %} {{ tr('Utente',
+'User') }} — Small ERP{% endblock %}
 
 {% block content %}
 <div class="page-header">
-  <h1>{% if user %}Modifica Utente: {{ user.username }}{% else %}Nuovo Utente{% endif %}</h1>
+  <h1>{% if user %}{{ tr('Modifica Utente', 'Edit User') }}: {{ user.username }}{% else %}{{ tr('Nuovo Utente', 'New
+    User') }}{% endif %}</h1>
 </div>
 
 <div class="card">
@@ -13,61 +15,43 @@
 
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label" for="username">Username <span class="required">*</span></label>
+          <label class="form-label" for="username">{{ tr('Username', 'Username') }} <span
+              class="required">*</span></label>
           {% if user %}
           <input type="text" class="form-control" value="{{ user.username }}" disabled>
           {% else %}
-          <input type="text" id="username" name="username" class="form-control" required
-                 placeholder="nome.utente">
+          <input type="text" id="username" name="username" class="form-control" required placeholder="nome.utente">
           {% endif %}
         </div>
-        <div class="form-group">
-          <label class="form-label" for="email">Email <span class="required">*</span></label>
-          <input type="email" id="email" name="email" class="form-control"
-                 value="{{ user.email if user else '' }}" required>
-        </div>
       </div>
 
       <div class="form-row">
-        <div class="form-group">
-          <label class="form-label" for="full_name">Nome Completo <span class="required">*</span></label>
-          <input type="text" id="full_name" name="full_name" class="form-control"
-                 value="{{ user.full_name if user else '' }}" required>
-        </div>
         <div class="form-group">
           <label class="form-label" for="password">
-            Password {% if not user %}<span class="required">*</span>{% endif %}
+            {{ tr('Password', 'Password') }} {% if not user %}<span class="required">*</span>{% endif %}
           </label>
-          <input type="password" id="password" name="password" class="form-control"
-                 {% if not user %}required{% endif %} minlength="6"
-                 placeholder="{% if user %}Lascia vuoto per non modificare{% else %}Minimo 6 caratteri{% endif %}">
+          <input type="password" id="password" name="password" class="form-control" {% if not user %}required{% endif %}
+            minlength="6"
+            placeholder="{% if user %}{{ tr('Lascia vuoto per non modificare', 'Leave blank to keep current password') }}{% else %}{{ tr('Minimo 6 caratteri', 'Minimum 6 characters') }}{% endif %}">
         </div>
       </div>
 
       <div class="form-row">
-        <div class="form-group">
-          <label class="form-label" for="role">Ruolo</label>
-          <select id="role" name="role" class="form-control">
-            <option value="operatore" {% if user and user.role == 'operatore' %}selected{% endif %}>Operatore</option>
-            <option value="admin" {% if user and user.role == 'admin' %}selected{% endif %}>Admin</option>
-            {% if current_user.is_superadmin %}
-            <option value="superadmin" {% if user and user.role == 'superadmin' %}selected{% endif %}>Superadmin</option>
-            {% endif %}
-          </select>
-        </div>
         <div class="form-group">
           <label class="form-label">&nbsp;</label>
           <div class="form-check">
-            <input type="checkbox" id="is_active" name="is_active"
-                   {% if not user or user.is_active_user %}checked{% endif %}>
-            <label class="form-label" for="is_active" style="margin-bottom:0">Utente Attivo</label>
+            <input type="checkbox" id="is_active" name="is_active" {% if not user or user.is_active_user %}checked{%
+              endif %}>
+            <label class="form-label" for="is_active" style="margin-bottom:0">{{ tr('Utente Attivo', 'Active User')
+              }}</label>
           </div>
         </div>
       </div>
 
       <div class="form-actions">
-        <button type="submit" class="btn btn-primary">{% if user %}Salva{% else %}Crea Utente{% endif %}</button>
-        <a href="{{ url_for('users.index') }}" class="btn btn-secondary">Annulla</a>
+        <button type="submit" class="btn btn-primary">{% if user %}{{ tr('Salva', 'Save') }}{% else %}{{ tr('Crea
+          Utente', 'Create User') }}{% endif %}</button>
+        <a href="{{ url_for('users.index') }}" class="btn btn-secondary">{{ tr('Annulla', 'Cancel') }}</a>
       </div>
     </form>
   </div>

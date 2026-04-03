@@ -1,4 +1,4 @@
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from datetime import date
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
@@ -6,11 +6,36 @@ from . import db
 from .models import RevenueActivity, Agent, ActivityCost, ActivityParticipant, User
 from .services import calc_activity_totals
 from .audit_service import log_action, model_to_dict
+from .logging_config import get_logger
+from .i18n import tr
+
+logger = get_logger(__name__)
 
 activities_bp = Blueprint('activities', __name__, url_prefix='/activities')
 
 ACTIVITY_FIELDS = ['title', 'description', 'date', 'status', 'total_revenue',
                     'agent_id', 'agent_percentage', 'notes']
+
+
+VALID_STATUSES = {'bozza', 'confermata', 'chiusa'}
+VALID_COST_CATEGORIES = {'materiale', 'trasporto', 'consulenza', 'marketing', 'spese_vive', 'altro'}
+VALID_COST_TYPES = {'operativo', 'extra'}
+MAX_DECIMAL = Decimal('999999999.99')
+
+
+def _validate_decimal(value_str, field_name, allow_negative=False):
+    """Parse and validate a decimal value from form input."""
+    d = Decimal(value_str.replace(',', '.'))
+    if not allow_negative and d < 0:
+        raise ValueError(f'{field_name}: valore negativo non ammesso')
+    if d > MAX_DECIMAL:
+        raise ValueError(f'{field_name}: valore troppo grande')
+    return d
+
+
+def _can_modify_activity(activity):
+    """Check if current user can modify the activity."""
+    return current_user.is_admin or activity.created_by == current_user.id
 
 
 @activities_bp.route('/')
@@ -29,32 +54,38 @@ def index():
 @activities_bp.route('/new', methods=['GET', 'POST'])
 @login_required
 def create():
-    agents = Agent.query.filter_by(is_active=True).order_by(Agent.last_name).all()
+    agents = Agent.query.filter_by(is_active=True).order_by(Agent.first_name).all()
 
     if request.method == 'POST':
         try:
+            status = request.form.get('status', 'bozza')
+            if status not in VALID_STATUSES:
+                status = 'bozza'
+
             activity = RevenueActivity(
                 title=request.form['title'].strip(),
                 description=request.form.get('description', '').strip(),
                 date=date.fromisoformat(request.form['date']),
-                status=request.form.get('status', 'bozza'),
-                total_revenue=Decimal(request.form['total_revenue'].replace(',', '.')),
+                status=status,
+                total_revenue=_validate_decimal(request.form['total_revenue'], 'Ricavo totale'),
                 agent_id=int(request.form['agent_id']) if request.form.get('agent_id') else None,
-                agent_percentage=Decimal(request.form.get('agent_percentage', '0').replace(',', '.')),
+                agent_percentage=_validate_decimal(request.form.get('agent_percentage', '0'), '% agente'),
                 notes=request.form.get('notes', '').strip(),
                 created_by=current_user.id,
             )
             db.session.add(activity)
             db.session.commit()
 
+            logger.info(f'Activity created: {activity.title} (ID: {activity.id}) by user {current_user.username}')
             log_action('create', 'RevenueActivity', activity.id,
                        f'Creata attività: {activity.title}',
                        new_values=model_to_dict(activity, ACTIVITY_FIELDS))
 
-            flash('Attività creata con successo.', 'success')
+            flash(tr('Attività creata con successo.', 'Activity created successfully.'), 'success')
             return redirect(url_for('activities.detail', id=activity.id))
-        except (ValueError, KeyError) as e:
-            flash(f'Errore nei dati inseriti: {e}', 'error')
+        except (ValueError, KeyError, InvalidOperation) as e:
+            logger.error(f'Error creating activity: {str(e)}', exc_info=True)
+            flash(tr('Errore nei dati inseriti.', 'Invalid input data.'), 'error')
 
     return render_template('activities/form.html', activity=None, agents=agents)
 
@@ -71,34 +102,43 @@ def detail(id):
 @login_required
 def edit(id):
     activity = db.get_or_404(RevenueActivity, id)
-    agents = Agent.query.filter_by(is_active=True).order_by(Agent.last_name).all()
+    if not _can_modify_activity(activity):
+        flash(tr('Non autorizzato a modificare questa attività.', 'Not authorized to modify this activity.'), 'error')
+        return redirect(url_for('activities.index'))
+    agents = Agent.query.filter_by(is_active=True).order_by(Agent.first_name).all()
 
     if request.method == 'POST':
         try:
             old_values = model_to_dict(activity, ACTIVITY_FIELDS)
             old_status = activity.status
 
+            status = request.form.get('status', 'bozza')
+            if status not in VALID_STATUSES:
+                status = 'bozza'
+
             activity.title = request.form['title'].strip()
             activity.description = request.form.get('description', '').strip()
             activity.date = date.fromisoformat(request.form['date'])
-            activity.status = request.form.get('status', 'bozza')
-            activity.total_revenue = Decimal(request.form['total_revenue'].replace(',', '.'))
+            activity.status = status
+            activity.total_revenue = _validate_decimal(request.form['total_revenue'], 'Ricavo totale')
             activity.agent_id = int(request.form['agent_id']) if request.form.get('agent_id') else None
-            activity.agent_percentage = Decimal(request.form.get('agent_percentage', '0').replace(',', '.'))
+            activity.agent_percentage = _validate_decimal(request.form.get('agent_percentage', '0'), '% agente')
             activity.notes = request.form.get('notes', '').strip()
 
             db.session.commit()
 
             action = 'status_change' if old_status != activity.status else 'update'
+            logger.info(f'Activity updated: {activity.title} (ID: {activity.id}) - Action: {action} by user {current_user.username}')
             log_action(action, 'RevenueActivity', activity.id,
                        f'Modificata attività: {activity.title}',
                        old_values=old_values,
                        new_values=model_to_dict(activity, ACTIVITY_FIELDS))
 
-            flash('Attività aggiornata.', 'success')
+            flash(tr('Attività aggiornata.', 'Activity updated.'), 'success')
             return redirect(url_for('activities.detail', id=activity.id))
-        except (ValueError, KeyError) as e:
-            flash(f'Errore nei dati inseriti: {e}', 'error')
+        except (ValueError, KeyError, InvalidOperation) as e:
+            logger.error(f'Error updating activity {id}: {str(e)}', exc_info=True)
+            flash(tr('Errore nei dati inseriti.', 'Invalid input data.'), 'error')
 
     return render_template('activities/form.html', activity=activity, agents=agents)
 
@@ -107,15 +147,19 @@ def edit(id):
 @login_required
 def delete(id):
     activity = db.get_or_404(RevenueActivity, id)
+    if not _can_modify_activity(activity):
+        flash(tr('Non autorizzato a eliminare questa attività.', 'Not authorized to delete this activity.'), 'error')
+        return redirect(url_for('activities.index'))
     title = activity.title
 
+    logger.info(f'Activity deleted: {title} (ID: {id}) by user {current_user.username}')
     log_action('delete', 'RevenueActivity', activity.id,
                f'Eliminata attività: {title}',
                old_values=model_to_dict(activity, ACTIVITY_FIELDS))
 
     db.session.delete(activity)
     db.session.commit()
-    flash(f'Attività "{title}" eliminata.', 'success')
+    flash(tr(f'Attività "{title}" eliminata.', f'Activity "{title}" deleted.'), 'success')
     return redirect(url_for('activities.index'))
 
 
@@ -133,24 +177,26 @@ def add_cost(id):
         try:
             cost = ActivityCost(
                 activity_id=activity.id,
-                category=request.form['category'],
+                category=request.form['category'] if request.form['category'] in VALID_COST_CATEGORIES else 'altro',
                 description=request.form['description'].strip(),
-                amount=Decimal(request.form['amount'].replace(',', '.')),
+                amount=_validate_decimal(request.form['amount'], 'Importo'),
                 date=date.fromisoformat(request.form['date']),
-                cost_type=request.form.get('cost_type', 'operativo'),
+                cost_type=request.form.get('cost_type', 'operativo') if request.form.get('cost_type') in VALID_COST_TYPES else 'operativo',
                 notes=request.form.get('notes', '').strip(),
             )
             db.session.add(cost)
             db.session.commit()
 
+            logger.info(f'Cost added: {cost.description} ({cost.amount}) to activity {activity.title} (ID: {activity.id}) by user {current_user.username}')
             log_action('create', 'ActivityCost', cost.id,
                        f'Aggiunto costo "{cost.description}" all\'attività "{activity.title}"',
                        new_values=model_to_dict(cost, COST_FIELDS))
 
-            flash('Costo aggiunto.', 'success')
+            flash(tr('Costo aggiunto.', 'Cost added.'), 'success')
             return redirect(url_for('activities.detail', id=activity.id))
-        except (ValueError, KeyError) as e:
-            flash(f'Errore: {e}', 'error')
+        except (ValueError, KeyError, InvalidOperation) as e:
+            logger.error(f'Error adding cost to activity {id}: {str(e)}', exc_info=True)
+            flash(tr('Errore nei dati inseriti.', 'Invalid input data.'), 'error')
 
     return render_template('activities/cost_form.html', activity=activity, cost=None)
 
@@ -165,11 +211,11 @@ def edit_cost(id, cost_id):
         try:
             old_values = model_to_dict(cost, COST_FIELDS)
 
-            cost.category = request.form['category']
+            cost.category = request.form['category'] if request.form['category'] in VALID_COST_CATEGORIES else 'altro'
             cost.description = request.form['description'].strip()
-            cost.amount = Decimal(request.form['amount'].replace(',', '.'))
+            cost.amount = _validate_decimal(request.form['amount'], 'Importo')
             cost.date = date.fromisoformat(request.form['date'])
-            cost.cost_type = request.form.get('cost_type', 'operativo')
+            cost.cost_type = request.form.get('cost_type', 'operativo') if request.form.get('cost_type') in VALID_COST_TYPES else 'operativo'
             cost.notes = request.form.get('notes', '').strip()
 
             db.session.commit()
@@ -179,10 +225,10 @@ def edit_cost(id, cost_id):
                        old_values=old_values,
                        new_values=model_to_dict(cost, COST_FIELDS))
 
-            flash('Costo aggiornato.', 'success')
+            flash(tr('Costo aggiornato.', 'Cost updated.'), 'success')
             return redirect(url_for('activities.detail', id=activity.id))
-        except (ValueError, KeyError) as e:
-            flash(f'Errore: {e}', 'error')
+        except (ValueError, KeyError, InvalidOperation) as e:
+            flash(tr('Errore nei dati inseriti.', 'Invalid input data.'), 'error')
 
     return render_template('activities/cost_form.html', activity=activity, cost=cost)
 
@@ -193,13 +239,14 @@ def delete_cost(id, cost_id):
     cost = db.get_or_404(ActivityCost, cost_id)
     desc = cost.description
 
+    logger.info(f'Cost deleted: {desc} (ID: {cost_id}) from activity {id} by user {current_user.username}')
     log_action('delete', 'ActivityCost', cost.id,
                f'Eliminato costo "{desc}"',
                old_values=model_to_dict(cost, COST_FIELDS))
 
     db.session.delete(cost)
     db.session.commit()
-    flash(f'Costo "{desc}" eliminato.', 'success')
+    flash(tr(f'Costo "{desc}" eliminato.', f'Cost "{desc}" deleted.'), 'success')
     return redirect(url_for('activities.detail', id=id))
 
 
@@ -222,8 +269,8 @@ def add_participant(id):
                 participant_name=request.form['participant_name'].strip(),
                 user_id=int(request.form['user_id']) if request.form.get('user_id') else None,
                 role_description=request.form.get('role_description', '').strip(),
-                work_share=Decimal(request.form.get('work_share', '0').replace(',', '.')),
-                fixed_compensation=Decimal(request.form.get('fixed_compensation', '0').replace(',', '.')),
+                work_share=_validate_decimal(request.form.get('work_share', '0'), 'Quota lavoro'),
+                fixed_compensation=_validate_decimal(request.form.get('fixed_compensation', '0'), 'Compenso fisso'),
                 notes=request.form.get('notes', '').strip(),
             )
             db.session.add(p)
@@ -233,10 +280,10 @@ def add_participant(id):
                        f'Aggiunto partecipante "{p.participant_name}" all\'attività "{activity.title}"',
                        new_values=model_to_dict(p, PARTICIPANT_FIELDS))
 
-            flash('Partecipante aggiunto.', 'success')
+            flash(tr('Partecipante aggiunto.', 'Participant added.'), 'success')
             return redirect(url_for('activities.detail', id=activity.id))
-        except (ValueError, KeyError) as e:
-            flash(f'Errore: {e}', 'error')
+        except (ValueError, KeyError, InvalidOperation) as e:
+            flash(tr('Errore nei dati inseriti.', 'Invalid input data.'), 'error')
 
     return render_template('activities/participant_form.html', activity=activity, participant=None, users=users)
 
@@ -255,8 +302,8 @@ def edit_participant(id, pid):
             p.participant_name = request.form['participant_name'].strip()
             p.user_id = int(request.form['user_id']) if request.form.get('user_id') else None
             p.role_description = request.form.get('role_description', '').strip()
-            p.work_share = Decimal(request.form.get('work_share', '0').replace(',', '.'))
-            p.fixed_compensation = Decimal(request.form.get('fixed_compensation', '0').replace(',', '.'))
+            p.work_share = _validate_decimal(request.form.get('work_share', '0'), 'Quota lavoro')
+            p.fixed_compensation = _validate_decimal(request.form.get('fixed_compensation', '0'), 'Compenso fisso')
             p.notes = request.form.get('notes', '').strip()
 
             db.session.commit()
@@ -266,10 +313,10 @@ def edit_participant(id, pid):
                        old_values=old_values,
                        new_values=model_to_dict(p, PARTICIPANT_FIELDS))
 
-            flash('Partecipante aggiornato.', 'success')
+            flash(tr('Partecipante aggiornato.', 'Participant updated.'), 'success')
             return redirect(url_for('activities.detail', id=activity.id))
-        except (ValueError, KeyError) as e:
-            flash(f'Errore: {e}', 'error')
+        except (ValueError, KeyError, InvalidOperation) as e:
+            flash(tr('Errore nei dati inseriti.', 'Invalid input data.'), 'error')
 
     return render_template('activities/participant_form.html', activity=activity, participant=p, users=users)
 
@@ -280,11 +327,12 @@ def delete_participant(id, pid):
     p = db.get_or_404(ActivityParticipant, pid)
     name = p.participant_name
 
+    logger.info(f'Participant deleted: {name} (ID: {pid}) from activity {id} by user {current_user.username}')
     log_action('delete', 'ActivityParticipant', p.id,
                f'Eliminato partecipante "{name}"',
                old_values=model_to_dict(p, PARTICIPANT_FIELDS))
 
     db.session.delete(p)
     db.session.commit()
-    flash(f'Partecipante "{name}" rimosso.', 'success')
+    flash(tr(f'Partecipante "{name}" rimosso.', f'Participant "{name}" removed.'), 'success')
     return redirect(url_for('activities.detail', id=id))
