@@ -31,8 +31,8 @@
             {{ tr('Password', 'Password') }} {% if not user %}<span class="required">*</span>{% endif %}
           </label>
           <input type="password" id="password" name="password" class="form-control" {% if not user %}required{% endif %}
-            minlength="6"
-            placeholder="{% if user %}{{ tr('Lascia vuoto per non modificare', 'Leave blank to keep current password') }}{% else %}{{ tr('Minimo 6 caratteri', 'Minimum 6 characters') }}{% endif %}">
+            minlength="12"
+            placeholder="{% if user %}{{ tr('Lascia vuoto per non modificare', 'Leave blank to keep current password') }}{% else %}{{ tr('Minimo 12 caratteri, maiuscola, minuscola, numero', 'Min 12 chars, uppercase, lowercase, digit') }}{% endif %}">
         </div>
       </div>
 

@@ -23,14 +23,22 @@ VALID_COST_TYPES = {'operativo', 'extra'}
 MAX_DECIMAL = Decimal('999999999.99')
 
 
-def _validate_decimal(value_str, field_name, allow_negative=False):
+def _validate_decimal(value_str, field_name, allow_negative=False, max_value=None):
     """Parse and validate a decimal value from form input."""
     d = Decimal(value_str.replace(',', '.'))
     if not allow_negative and d < 0:
         raise ValueError(f'{field_name}: valore negativo non ammesso')
-    if d > MAX_DECIMAL:
+    upper = max_value if max_value is not None else MAX_DECIMAL
+    if d > upper:
         raise ValueError(f'{field_name}: valore troppo grande')
     return d
+
+
+def _require_non_empty(value, field_name):
+    """Ensure a stripped string is not empty."""
+    if not value or not value.strip():
+        raise ValueError(f'{field_name}: campo obbligatorio')
+    return value.strip()
 
 
 def _can_modify_activity(activity):
@@ -62,14 +70,17 @@ def create():
             if status not in VALID_STATUSES:
                 status = 'bozza'
 
+            title = _require_non_empty(request.form.get('title', ''), tr('Titolo', 'Title'))
+            date_str = _require_non_empty(request.form.get('date', ''), tr('Data', 'Date'))
+
             activity = RevenueActivity(
-                title=request.form['title'].strip(),
+                title=title,
                 description=request.form.get('description', '').strip(),
-                date=date.fromisoformat(request.form['date']),
+                date=date.fromisoformat(date_str),
                 status=status,
-                total_revenue=_validate_decimal(request.form['total_revenue'], 'Ricavo totale'),
+                total_revenue=_validate_decimal(request.form['total_revenue'], tr('Ricavo totale', 'Total revenue')),
                 agent_id=int(request.form['agent_id']) if request.form.get('agent_id') else None,
-                agent_percentage=_validate_decimal(request.form.get('agent_percentage', '0'), '% agente'),
+                agent_percentage=_validate_decimal(request.form.get('agent_percentage', '0'), tr('% agente', 'Agent %'), max_value=Decimal('100')),
                 notes=request.form.get('notes', '').strip(),
                 created_by=current_user.id,
             )
@@ -116,13 +127,16 @@ def edit(id):
             if status not in VALID_STATUSES:
                 status = 'bozza'
 
-            activity.title = request.form['title'].strip()
+            title = _require_non_empty(request.form.get('title', ''), tr('Titolo', 'Title'))
+            date_str = _require_non_empty(request.form.get('date', ''), tr('Data', 'Date'))
+
+            activity.title = title
             activity.description = request.form.get('description', '').strip()
-            activity.date = date.fromisoformat(request.form['date'])
+            activity.date = date.fromisoformat(date_str)
             activity.status = status
-            activity.total_revenue = _validate_decimal(request.form['total_revenue'], 'Ricavo totale')
+            activity.total_revenue = _validate_decimal(request.form['total_revenue'], tr('Ricavo totale', 'Total revenue'))
             activity.agent_id = int(request.form['agent_id']) if request.form.get('agent_id') else None
-            activity.agent_percentage = _validate_decimal(request.form.get('agent_percentage', '0'), '% agente')
+            activity.agent_percentage = _validate_decimal(request.form.get('agent_percentage', '0'), tr('% agente', 'Agent %'), max_value=Decimal('100'))
             activity.notes = request.form.get('notes', '').strip()
 
             db.session.commit()
@@ -175,12 +189,15 @@ def add_cost(id):
 
     if request.method == 'POST':
         try:
+            cost_desc = _require_non_empty(request.form.get('description', ''), tr('Descrizione', 'Description'))
+            cost_date_str = _require_non_empty(request.form.get('date', ''), tr('Data', 'Date'))
+
             cost = ActivityCost(
                 activity_id=activity.id,
                 category=request.form['category'] if request.form['category'] in VALID_COST_CATEGORIES else 'altro',
-                description=request.form['description'].strip(),
-                amount=_validate_decimal(request.form['amount'], 'Importo'),
-                date=date.fromisoformat(request.form['date']),
+                description=cost_desc,
+                amount=_validate_decimal(request.form['amount'], tr('Importo', 'Amount')),
+                date=date.fromisoformat(cost_date_str),
                 cost_type=request.form.get('cost_type', 'operativo') if request.form.get('cost_type') in VALID_COST_TYPES else 'operativo',
                 notes=request.form.get('notes', '').strip(),
             )
@@ -211,10 +228,13 @@ def edit_cost(id, cost_id):
         try:
             old_values = model_to_dict(cost, COST_FIELDS)
 
+            cost_desc = _require_non_empty(request.form.get('description', ''), tr('Descrizione', 'Description'))
+            cost_date_str = _require_non_empty(request.form.get('date', ''), tr('Data', 'Date'))
+
             cost.category = request.form['category'] if request.form['category'] in VALID_COST_CATEGORIES else 'altro'
-            cost.description = request.form['description'].strip()
-            cost.amount = _validate_decimal(request.form['amount'], 'Importo')
-            cost.date = date.fromisoformat(request.form['date'])
+            cost.description = cost_desc
+            cost.amount = _validate_decimal(request.form['amount'], tr('Importo', 'Amount'))
+            cost.date = date.fromisoformat(cost_date_str)
             cost.cost_type = request.form.get('cost_type', 'operativo') if request.form.get('cost_type') in VALID_COST_TYPES else 'operativo'
             cost.notes = request.form.get('notes', '').strip()
 
@@ -264,13 +284,15 @@ def add_participant(id):
 
     if request.method == 'POST':
         try:
+            p_name = _require_non_empty(request.form.get('participant_name', ''), tr('Nome partecipante', 'Participant name'))
+
             p = ActivityParticipant(
                 activity_id=activity.id,
-                participant_name=request.form['participant_name'].strip(),
+                participant_name=p_name,
                 user_id=int(request.form['user_id']) if request.form.get('user_id') else None,
                 role_description=request.form.get('role_description', '').strip(),
-                work_share=_validate_decimal(request.form.get('work_share', '0'), 'Quota lavoro'),
-                fixed_compensation=_validate_decimal(request.form.get('fixed_compensation', '0'), 'Compenso fisso'),
+                work_share=_validate_decimal(request.form.get('work_share', '0'), tr('Quota lavoro', 'Work share')),
+                fixed_compensation=_validate_decimal(request.form.get('fixed_compensation', '0'), tr('Compenso fisso', 'Fixed compensation')),
                 notes=request.form.get('notes', '').strip(),
             )
             db.session.add(p)
@@ -299,11 +321,13 @@ def edit_participant(id, pid):
         try:
             old_values = model_to_dict(p, PARTICIPANT_FIELDS)
 
-            p.participant_name = request.form['participant_name'].strip()
+            p_name = _require_non_empty(request.form.get('participant_name', ''), tr('Nome partecipante', 'Participant name'))
+
+            p.participant_name = p_name
             p.user_id = int(request.form['user_id']) if request.form.get('user_id') else None
             p.role_description = request.form.get('role_description', '').strip()
-            p.work_share = _validate_decimal(request.form.get('work_share', '0'), 'Quota lavoro')
-            p.fixed_compensation = _validate_decimal(request.form.get('fixed_compensation', '0'), 'Compenso fisso')
+            p.work_share = _validate_decimal(request.form.get('work_share', '0'), tr('Quota lavoro', 'Work share'))
+            p.fixed_compensation = _validate_decimal(request.form.get('fixed_compensation', '0'), tr('Compenso fisso', 'Fixed compensation'))
             p.notes = request.form.get('notes', '').strip()
 
             db.session.commit()

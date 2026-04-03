@@ -26,9 +26,17 @@ def index():
 def create():
     if request.method == 'POST':
         try:
+            agent_name = request.form.get('first_name', '').strip()
+            if not agent_name:
+                raise ValueError(tr('Il nome dell\'agente e obbligatorio.', 'Agent name is required.'))
+            pct_str = request.form.get('default_percentage', '0').replace(',', '.')
+            pct_val = Decimal(pct_str)
+            if pct_val < 0 or pct_val > Decimal('100'):
+                raise ValueError(tr('La percentuale deve essere tra 0 e 100.', 'Percentage must be between 0 and 100.'))
+
             agent = Agent(
-                first_name=request.form['first_name'].strip(),
-                default_percentage=Decimal(request.form.get('default_percentage', '0').replace(',', '.')),
+                first_name=agent_name,
+                default_percentage=pct_val,
                 is_active='is_active' in request.form,
                 notes=request.form.get('notes', '').strip(),
             )
@@ -58,8 +66,16 @@ def edit(id):
         try:
             old_values = model_to_dict(agent, AGENT_FIELDS)
 
-            agent.first_name = request.form['first_name'].strip()
-            agent.default_percentage = Decimal(request.form.get('default_percentage', '0').replace(',', '.'))
+            agent_name = request.form.get('first_name', '').strip()
+            if not agent_name:
+                raise ValueError(tr('Il nome dell\'agente e obbligatorio.', 'Agent name is required.'))
+            pct_str = request.form.get('default_percentage', '0').replace(',', '.')
+            pct_val = Decimal(pct_str)
+            if pct_val < 0 or pct_val > Decimal('100'):
+                raise ValueError(tr('La percentuale deve essere tra 0 e 100.', 'Percentage must be between 0 and 100.'))
+
+            agent.first_name = agent_name
+            agent.default_percentage = pct_val
             agent.is_active = 'is_active' in request.form
             agent.notes = request.form.get('notes', '').strip()
 

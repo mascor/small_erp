@@ -51,7 +51,11 @@ def index():
 @admin_required
 def create():
     if request.method == 'POST':
-        username = request.form['username'].strip()
+        username = request.form.get('username', '').strip()
+
+        if not username:
+            flash(tr('Lo username e obbligatorio.', 'Username is required.'), 'error')
+            return render_template('users/form.html', user=None)
 
         if User.query.filter_by(username=username).first():
             logger.warning(f'Attempt to create user with duplicate username: {username} by user {current_user.username}')
