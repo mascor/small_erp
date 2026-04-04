@@ -153,7 +153,8 @@ def agent(app):
     """Create a test agent."""
     with app.app_context():
         agent_obj = Agent(
-            first_name='Mario Rossi',
+            first_name='Mario',
+            last_name='Rossi',
             default_percentage=Decimal('10.00'),
             is_active=True,
             notes='Test agent'

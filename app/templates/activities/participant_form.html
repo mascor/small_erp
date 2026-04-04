@@ -3,6 +3,13 @@
 tr('Partecipante', 'Participant') }} — Small ERP{% endblock %}
 
 {% block content %}
+<nav class="breadcrumb">
+  <a href="{{ url_for('activities.index') }}">{{ tr('Attivita', 'Activities') }}</a>
+  <span class="separator">/</span>
+  <a href="{{ url_for('activities.detail', id=activity.id) }}">{{ activity.title }}</a>
+  <span class="separator">/</span>
+  <span class="current">{% if participant %}{{ tr('Modifica Partecipante', 'Edit Participant') }}{% else %}{{ tr('Aggiungi Partecipante', 'Add Participant') }}{% endif %}</span>
+</nav>
 <div class="page-header">
   <div>
     <h1>{% if participant %}{{ tr('Modifica Partecipante', 'Edit Participant') }}{% else %}{{ tr('Aggiungi

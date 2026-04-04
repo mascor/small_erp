@@ -3,6 +3,13 @@
 tr('Costo', 'Cost') }} — Small ERP{% endblock %}
 
 {% block content %}
+<nav class="breadcrumb">
+  <a href="{{ url_for('activities.index') }}">{{ tr('Attivita', 'Activities') }}</a>
+  <span class="separator">/</span>
+  <a href="{{ url_for('activities.detail', id=activity.id) }}">{{ activity.title }}</a>
+  <span class="separator">/</span>
+  <span class="current">{% if cost %}{{ tr('Modifica Costo', 'Edit Cost') }}{% else %}{{ tr('Aggiungi Costo', 'Add Cost') }}{% endif %}</span>
+</nav>
 <div class="page-header">
   <div>
     <h1>{% if cost %}{{ tr('Modifica Costo', 'Edit Cost') }}{% else %}{{ tr('Aggiungi Costo', 'Add Cost') }}{% endif %}
@@ -58,7 +65,7 @@ tr('Costo', 'Cost') }} — Small ERP{% endblock %}
         <div class="form-group">
           <label class="form-label" for="date">{{ tr('Data', 'Date') }} <span class="required">*</span></label>
           <input type="date" id="date" name="date" class="form-control"
-            value="{{ cost.date.isoformat() if cost else '' }}" required>
+            value="{{ cost.date.isoformat() if cost else today }}" required>
         </div>
       </div>
 

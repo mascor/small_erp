@@ -5,7 +5,7 @@
 <div class="page-header">
   <div>
     <h1>{{ tr('Agenti', 'Agents') }}</h1>
-    <p class="page-subtitle">{{ agents|length }} {{ tr('agenti registrati', 'registered agents') }}</p>
+    <p class="page-subtitle">{{ pagination.total }} {{ tr('agenti registrati', 'registered agents') }}</p>
   </div>
   <a href="{{ url_for('agents.create') }}" class="btn btn-primary">+ {{ tr('Nuovo Agente', 'New Agent') }}</a>
 </div>
@@ -17,6 +17,7 @@
       <thead>
         <tr>
           <th>{{ tr('Nome', 'Name') }}</th>
+          <th>{{ tr('Email', 'Email') }}</th>
           <th class="num">% {{ tr('Standard', 'Default') }}</th>
           <th>{{ tr('Stato', 'Status') }}</th>
           <th></th>
@@ -26,6 +27,7 @@
         {% for agent in agents %}
         <tr>
           <td><strong>{{ agent.full_name }}</strong></td>
+          <td class="text-muted text-sm">{{ agent.email or '—' }}</td>
           <td class="num">{{ agent.default_percentage|percentage }}</td>
           <td>
             {% if agent.is_active %}
@@ -51,6 +53,35 @@
     </table>
   </div>
 </div>
+
+{% if pagination.pages > 1 %}
+<div class="pagination">
+  {% if pagination.has_prev %}
+  <a href="?page={{ pagination.prev_num }}">&laquo;</a>
+  {% else %}
+  <span class="disabled">&laquo;</span>
+  {% endif %}
+
+  {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+  {% if p %}
+  {% if p == pagination.page %}
+  <span class="current">{{ p }}</span>
+  {% else %}
+  <a href="?page={{ p }}">{{ p }}</a>
+  {% endif %}
+  {% else %}
+  <span class="disabled">...</span>
+  {% endif %}
+  {% endfor %}
+
+  {% if pagination.has_next %}
+  <a href="?page={{ pagination.next_num }}">&raquo;</a>
+  {% else %}
+  <span class="disabled">&raquo;</span>
+  {% endif %}
+</div>
+{% endif %}
+
 {% else %}
 <div class="card">
   <div class="empty-state">

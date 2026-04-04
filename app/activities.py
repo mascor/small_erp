@@ -50,13 +50,41 @@ def _can_modify_activity(activity):
 @login_required
 def index():
     status_filter = request.args.get('status', '')
+    agent_filter = request.args.get('agent_id', '')
+    date_from = request.args.get('date_from', '')
+    date_to = request.args.get('date_to', '')
+    search = request.args.get('q', '').strip()
+
     query = RevenueActivity.query
 
     if status_filter:
         query = query.filter_by(status=status_filter)
+    if agent_filter:
+        query = query.filter_by(agent_id=int(agent_filter))
+    if date_from:
+        query = query.filter(RevenueActivity.date >= date_from)
+    if date_to:
+        query = query.filter(RevenueActivity.date <= date_to)
+    if search:
+        query = query.filter(RevenueActivity.title.ilike(f'%{search}%'))
 
-    activities = query.order_by(RevenueActivity.date.desc()).all()
-    return render_template('activities/index.html', activities=activities, status_filter=status_filter)
+    page = request.args.get('page', 1, type=int)
+    per_page = 20
+    pagination = query.order_by(RevenueActivity.date.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    agents = Agent.query.filter_by(is_active=True).order_by(Agent.first_name).all()
+
+    filters = {
+        'status': status_filter,
+        'agent_id': agent_filter,
+        'date_from': date_from,
+        'date_to': date_to,
+        'q': search,
+    }
+    return render_template('activities/index.html',
+                           activities=pagination.items,
+                           pagination=pagination,
+                           agents_list=agents,
+                           filters=filters)
 
 
 @activities_bp.route('/new', methods=['GET', 'POST'])
@@ -174,6 +202,36 @@ def delete(id):
     db.session.delete(activity)
     db.session.commit()
     flash(tr(f'Attività "{title}" eliminata.', f'Activity "{title}" deleted.'), 'success')
+    return redirect(url_for('activities.index'))
+
+
+@activities_bp.route('/bulk-delete', methods=['POST'])
+@login_required
+def bulk_delete():
+    ids = request.form.getlist('activity_ids')
+    if not ids:
+        flash(tr('Nessuna attività selezionata.', 'No activities selected.'), 'warning')
+        return redirect(url_for('activities.index'))
+
+    deleted = 0
+    for aid in ids:
+        try:
+            activity = db.session.get(RevenueActivity, int(aid))
+        except (ValueError, TypeError):
+            continue
+        if activity is None:
+            continue
+        if not _can_modify_activity(activity):
+            continue
+        logger.info(f'Activity bulk-deleted: {activity.title} (ID: {activity.id}) by user {current_user.username}')
+        log_action('delete', 'RevenueActivity', activity.id,
+                   f'Eliminata attività (bulk): {activity.title}',
+                   old_values=model_to_dict(activity, ACTIVITY_FIELDS))
+        db.session.delete(activity)
+        deleted += 1
+
+    db.session.commit()
+    flash(tr(f'{deleted} attività eliminate.', f'{deleted} activities deleted.'), 'success')
     return redirect(url_for('activities.index'))
 
 

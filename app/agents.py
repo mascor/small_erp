@@ -11,14 +11,16 @@ logger = get_logger(__name__)
 
 agents_bp = Blueprint('agents', __name__, url_prefix='/agents')
 
-AGENT_FIELDS = ['first_name', 'default_percentage', 'is_active', 'notes']
+AGENT_FIELDS = ['first_name', 'last_name', 'email', 'default_percentage', 'is_active', 'notes']
 
 
 @agents_bp.route('/')
 @login_required
 def index():
-    agents = Agent.query.order_by(Agent.first_name).all()
-    return render_template('agents/index.html', agents=agents)
+    page = request.args.get('page', 1, type=int)
+    per_page = 20
+    pagination = Agent.query.order_by(Agent.first_name).paginate(page=page, per_page=per_page, error_out=False)
+    return render_template('agents/index.html', agents=pagination.items, pagination=pagination)
 
 
 @agents_bp.route('/new', methods=['GET', 'POST'])
@@ -36,6 +38,8 @@ def create():
 
             agent = Agent(
                 first_name=agent_name,
+                last_name=request.form.get('last_name', '').strip(),
+                email=request.form.get('email', '').strip() or None,
                 default_percentage=pct_val,
                 is_active='is_active' in request.form,
                 notes=request.form.get('notes', '').strip(),
@@ -75,6 +79,8 @@ def edit(id):
                 raise ValueError(tr('La percentuale deve essere tra 0 e 100.', 'Percentage must be between 0 and 100.'))
 
             agent.first_name = agent_name
+            agent.last_name = request.form.get('last_name', '').strip()
+            agent.email = request.form.get('email', '').strip() or None
             agent.default_percentage = pct_val
             agent.is_active = 'is_active' in request.form
             agent.notes = request.form.get('notes', '').strip()

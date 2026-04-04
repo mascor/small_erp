@@ -3,6 +3,11 @@
 'Agent') }} — Small ERP{% endblock %}
 
 {% block content %}
+<nav class="breadcrumb">
+  <a href="{{ url_for('agents.index') }}">{{ tr('Agenti', 'Agents') }}</a>
+  <span class="separator">/</span>
+  <span class="current">{% if agent %}{{ tr('Modifica', 'Edit') }}: {{ agent.full_name }}{% else %}{{ tr('Nuovo Agente', 'New Agent') }}{% endif %}</span>
+</nav>
 <div class="page-header">
   <h1>{% if agent %}{{ tr('Modifica Agente', 'Edit Agent') }}{% else %}{{ tr('Nuovo Agente', 'New Agent') }}{% endif %}
   </h1>
@@ -15,9 +20,22 @@
 
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label" for="first_name">{{ tr('Nome', 'Name') }} <span class="required">*</span></label>
+          <label class="form-label" for="first_name">{{ tr('Nome', 'First Name') }} <span class="required">*</span></label>
           <input type="text" id="first_name" name="first_name" class="form-control"
             value="{{ agent.first_name if agent else '' }}" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="last_name">{{ tr('Cognome', 'Last Name') }}</label>
+          <input type="text" id="last_name" name="last_name" class="form-control"
+            value="{{ agent.last_name if agent else '' }}">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="email">{{ tr('Email', 'Email') }}</label>
+          <input type="email" id="email" name="email" class="form-control"
+            value="{{ agent.email or '' if agent else '' }}" placeholder="agente@esempio.it">
         </div>
         <div class="form-group">
           <label class="form-label" for="default_percentage">{{ tr('Percentuale Standard', 'Default Percentage') }}

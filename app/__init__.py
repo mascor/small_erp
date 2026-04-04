@@ -126,11 +126,13 @@ def create_app(test_config=None):
 
     @app.context_processor
     def inject_i18n_helpers():
+        from datetime import date as _date
         return {
             'current_lang': get_lang(),
             'tr': tr,
             'status_label': status_label,
             'role_label': role_label,
+            'today': _date.today().isoformat(),
         }
 
     app.jinja_env.globals.update(

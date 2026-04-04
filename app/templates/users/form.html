@@ -3,6 +3,11 @@
 'User') }} — Small ERP{% endblock %}
 
 {% block content %}
+<nav class="breadcrumb">
+  <a href="{{ url_for('users.index') }}">{{ tr('Utenti', 'Users') }}</a>
+  <span class="separator">/</span>
+  <span class="current">{% if user %}{{ tr('Modifica', 'Edit') }}: {{ user.username }}{% else %}{{ tr('Nuovo Utente', 'New User') }}{% endif %}</span>
+</nav>
 <div class="page-header">
   <h1>{% if user %}{{ tr('Modifica Utente', 'Edit User') }}: {{ user.username }}{% else %}{{ tr('Nuovo Utente', 'New
     User') }}{% endif %}</h1>

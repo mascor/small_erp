@@ -10,6 +10,32 @@
   <a href="{{ url_for('users.create') }}" class="btn btn-primary">+ {{ tr('Nuovo Utente', 'New User') }}</a>
 </div>
 
+{% if confirm_delete_user is defined and confirm_delete_user %}
+<div class="alert alert-warning" style="border-left:4px solid #d97706; background:#fffbeb; padding:1.2rem 1.5rem; border-radius:8px; margin-bottom:1.5rem;">
+  <p style="margin:0 0 .6rem; font-weight:600; color:#92400e;">
+    ⚠ {{ tr('Attenzione', 'Warning') }}
+  </p>
+  <p style="margin:0 0 .8rem; color:#78350f;">
+    {{ tr('L\'utente', 'User') }} "<strong>{{ confirm_delete_user.username }}</strong>"
+    {{ tr('ha', 'has') }}
+    <strong>{{ linked_activities }}</strong> {{ tr('attività', 'activities') }}
+    {{ tr('e', 'and') }}
+    <strong>{{ linked_participations }}</strong> {{ tr('partecipazioni collegate.', 'linked participations.') }}
+    {{ tr('Eliminando l\'utente verranno eliminati anche tutti i dati collegati. Questa operazione è irreversibile.',
+          'Deleting this user will also delete all linked data. This action is irreversible.') }}
+  </p>
+  <div style="display:flex; gap:.5rem; align-items:center;">
+    <form method="POST" action="{{ url_for('users.delete', id=confirm_delete_user.id) }}"
+      onsubmit="return confirm('{{ tr('ULTIMA CONFERMA: eliminare l\'utente e TUTTI i dati collegati?', 'FINAL CONFIRMATION: delete the user and ALL linked data?') }}');">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="confirm_force" value="1">
+      <button type="submit" class="btn btn-danger btn-sm">{{ tr('Conferma eliminazione', 'Confirm deletion') }}</button>
+    </form>
+    <a href="{{ url_for('users.index') }}" class="btn btn-secondary btn-sm">{{ tr('Annulla', 'Cancel') }}</a>
+  </div>
+</div>
+{% endif %}
+
 <div class="card">
   <div class="table-wrapper">
     <table>

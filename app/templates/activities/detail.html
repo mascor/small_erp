@@ -2,6 +2,11 @@
 {% block title %}{{ activity.title }} — Small ERP{% endblock %}
 
 {% block content %}
+<nav class="breadcrumb">
+  <a href="{{ url_for('activities.index') }}">{{ tr('Attivita', 'Activities') }}</a>
+  <span class="separator">/</span>
+  <span class="current">{{ activity.title }}</span>
+</nav>
 <div class="page-header">
   <div>
     <h1>{{ activity.title }}</h1>

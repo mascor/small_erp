@@ -163,6 +163,88 @@ class TestActivityRoutes:
             activity = RevenueActivity.query.get(activity_id)
             assert activity is not None
 
+    def test_bulk_delete_activities(self, client, app, superadmin_user, agent):
+        """Test bulk deleting multiple activities."""
+        client.post('/login', data={
+            'username': 'superadmin',
+            'password': 'password123'
+        })
+
+        # Create two activities to bulk delete
+        with app.app_context():
+            from app.models import RevenueActivity
+            a1 = RevenueActivity(
+                title='Bulk 1', date=date.today(), status='bozza',
+                total_revenue=Decimal('100'), agent_id=agent.id,
+                agent_percentage=Decimal('10'), created_by=superadmin_user.id
+            )
+            a2 = RevenueActivity(
+                title='Bulk 2', date=date.today(), status='bozza',
+                total_revenue=Decimal('200'), agent_id=agent.id,
+                agent_percentage=Decimal('10'), created_by=superadmin_user.id
+            )
+            from app import db
+            db.session.add_all([a1, a2])
+            db.session.commit()
+            id1, id2 = a1.id, a2.id
+
+        response = client.post('/activities/bulk-delete', data={
+            'activity_ids': [str(id1), str(id2)]
+        }, follow_redirects=True)
+
+        assert response.status_code == 200
+        with app.app_context():
+            from app.models import RevenueActivity
+            assert RevenueActivity.query.get(id1) is None
+            assert RevenueActivity.query.get(id2) is None
+
+    def test_bulk_delete_no_selection(self, client, superadmin_user):
+        """Test bulk delete with no activities selected shows warning."""
+        client.post('/login', data={
+            'username': 'superadmin',
+            'password': 'password123'
+        })
+
+        response = client.post('/activities/bulk-delete', data={}, follow_redirects=True)
+        assert response.status_code == 200
+        assert 'Nessuna'.encode() in response.data or b'No activities' in response.data
+
+    def test_bulk_delete_unauthorized_skips(self, client, app, superadmin_user, operator_user, agent):
+        """Test bulk delete skips activities the user cannot modify."""
+        client.post('/login', data={
+            'username': 'operator',
+            'password': 'password123'
+        })
+
+        # Activity created by superadmin — operator cannot delete
+        with app.app_context():
+            from app.models import RevenueActivity
+            from app import db
+            a = RevenueActivity(
+                title='Not Mine', date=date.today(), status='bozza',
+                total_revenue=Decimal('100'), agent_id=agent.id,
+                agent_percentage=Decimal('10'), created_by=superadmin_user.id
+            )
+            db.session.add(a)
+            db.session.commit()
+            aid = a.id
+
+        response = client.post('/activities/bulk-delete', data={
+            'activity_ids': [str(aid)]
+        }, follow_redirects=True)
+
+        assert response.status_code == 200
+        with app.app_context():
+            from app.models import RevenueActivity
+            assert RevenueActivity.query.get(aid) is not None
+
+    def test_bulk_delete_requires_login(self, client):
+        """Test bulk delete redirects when not logged in."""
+        response = client.post('/activities/bulk-delete', data={
+            'activity_ids': ['1']
+        }, follow_redirects=False)
+        assert response.status_code in (301, 302, 303, 307)
+
 
 class TestActivityCostRoutes:
     """Test activity cost management routes."""
@@ -487,6 +569,66 @@ class TestUserManagementRoutes:
             from app.models import User
             user = User.query.get(superadmin_id)
             assert user is not None
+
+    def test_delete_user_with_linked_records_shows_confirmation(self, client, app, superadmin_user, operator_user, agent):
+        """Test deleting user with linked records shows confirmation instead of deleting."""
+        client.post('/login', data={
+            'username': 'superadmin',
+            'password': 'password123'
+        })
+
+        # Create an activity owned by operator
+        with app.app_context():
+            from app.models import RevenueActivity
+            from app import db
+            a = RevenueActivity(
+                title='Operator Act', date=date.today(), status='bozza',
+                total_revenue=Decimal('100'), agent_id=agent.id,
+                agent_percentage=Decimal('10'), created_by=operator_user.id,
+            )
+            db.session.add(a)
+            db.session.commit()
+
+        user_id = operator_user.id
+        response = client.post(f'/users/{user_id}/delete', follow_redirects=True)
+        assert response.status_code == 200
+        html = response.data.decode()
+        # Should show confirmation panel, not delete
+        assert 'confirm_force' in html
+
+        with app.app_context():
+            from app.models import User
+            assert User.query.get(user_id) is not None
+
+    def test_delete_user_force_with_linked_records(self, client, app, superadmin_user, operator_user, agent):
+        """Test force-deleting user with linked records removes user and data."""
+        client.post('/login', data={
+            'username': 'superadmin',
+            'password': 'password123'
+        })
+
+        with app.app_context():
+            from app.models import RevenueActivity
+            from app import db
+            a = RevenueActivity(
+                title='To Delete', date=date.today(), status='bozza',
+                total_revenue=Decimal('100'), agent_id=agent.id,
+                agent_percentage=Decimal('10'), created_by=operator_user.id,
+            )
+            db.session.add(a)
+            db.session.commit()
+            act_id = a.id
+
+        user_id = operator_user.id
+        response = client.post(f'/users/{user_id}/delete', data={
+            'confirm_force': '1'
+        }, follow_redirects=True)
+        assert response.status_code == 200
+
+        with app.app_context():
+            from app.models import User, RevenueActivity
+            assert User.query.get(user_id) is None
+            assert RevenueActivity.query.get(act_id) is None
 
 
 class TestReportRoutes:

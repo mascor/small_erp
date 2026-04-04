@@ -145,9 +145,10 @@ class TestModelToDict:
         with app.app_context():
             from app.audit_service import model_to_dict
             
-            result = model_to_dict(agent, ['first_name', 'default_percentage', 'is_active'])
-            
-            assert result['first_name'] == 'Mario Rossi'
+            result = model_to_dict(agent, ['first_name', 'last_name', 'default_percentage', 'is_active'])
+
+            assert result['first_name'] == 'Mario'
+            assert result['last_name'] == 'Rossi'
             assert result['is_active'] is True
 
     def test_model_to_dict_decimal_fields(self, app, agent):

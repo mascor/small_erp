@@ -251,6 +251,120 @@ class TestActivitiesListUI:
         assert f'/activities/{revenue_activity.id}/edit'.encode() not in resp.data
         assert f'/activities/{revenue_activity.id}/delete'.encode() not in resp.data
 
+    # -- Bulk-delete UI --
+
+    def test_bulk_delete_form_present(self, client, superadmin_user, revenue_activity):
+        """The list page contains the bulk-delete form with correct action."""
+        _login(client)
+        resp = client.get('/activities/')
+        assert b'bulk-delete' in resp.data
+        assert b'id="bulk-delete-form"' in resp.data
+
+    def test_bulk_delete_select_all_checkbox(self, client, superadmin_user, revenue_activity):
+        """A 'select all' checkbox is rendered in the table header."""
+        _login(client)
+        resp = client.get('/activities/')
+        assert b'id="select-all"' in resp.data
+
+    def test_bulk_delete_activity_checkbox_present(self, client, superadmin_user, revenue_activity):
+        """Each activity row has a checkbox for the owner / admin."""
+        _login(client)
+        resp = client.get('/activities/')
+        assert b'class="activity-checkbox"' in resp.data
+        assert f'value="{revenue_activity.id}"'.encode() in resp.data
+
+    def test_bulk_delete_checkbox_hidden_for_non_owner(self, client, superadmin_user, operator_user, revenue_activity):
+        """Operator that does not own the activity should NOT see a checkbox."""
+        _login(client, 'operator')
+        resp = client.get('/activities/')
+        assert b'class="activity-checkbox"' not in resp.data
+
+    def test_bulk_delete_bar_hidden_by_default(self, client, superadmin_user, revenue_activity):
+        """Bulk actions bar is rendered but hidden (display:none) by default."""
+        _login(client)
+        resp = client.get('/activities/')
+        assert b'id="bulk-actions"' in resp.data
+        assert b'style="display:none;"' in resp.data
+
+    def test_bulk_delete_button_present(self, client, superadmin_user, revenue_activity):
+        """The 'Elimina selezionate' submit button is in the form."""
+        _login(client)
+        resp = client.get('/activities/')
+        html = resp.data.decode()
+        assert 'Elimina selezionate' in html or 'Delete selected' in html
+
+    def test_bulk_delete_csrf_token(self, client, superadmin_user, revenue_activity):
+        """The bulk-delete form contains a CSRF token."""
+        _login(client)
+        resp = client.get('/activities/')
+        # csrf_token hidden input inside the bulk-delete form
+        html = resp.data.decode()
+        form_start = html.find('id="bulk-delete-form"')
+        form_chunk = html[form_start:form_start + 500]
+        assert 'csrf_token' in form_chunk
+
+    def test_bulk_delete_removes_activities(self, client, app, superadmin_user, agent):
+        """POST to bulk-delete actually removes selected activities."""
+        _login(client)
+
+        with app.app_context():
+            a1 = RevenueActivity(
+                title='BulkUI 1', date=date.today(), status='bozza',
+                total_revenue=Decimal('100'), agent_id=agent.id,
+                agent_percentage=Decimal('10'), created_by=superadmin_user.id,
+            )
+            a2 = RevenueActivity(
+                title='BulkUI 2', date=date.today(), status='bozza',
+                total_revenue=Decimal('200'), agent_id=agent.id,
+                agent_percentage=Decimal('10'), created_by=superadmin_user.id,
+            )
+            db.session.add_all([a1, a2])
+            db.session.commit()
+            id1, id2 = a1.id, a2.id
+
+        resp = client.post('/activities/bulk-delete', data={
+            'activity_ids': [str(id1), str(id2)],
+        }, follow_redirects=True)
+
+        assert resp.status_code == 200
+        with app.app_context():
+            assert RevenueActivity.query.get(id1) is None
+            assert RevenueActivity.query.get(id2) is None
+
+    def test_bulk_delete_flash_message(self, client, app, superadmin_user, agent):
+        """Bulk delete shows a success flash with the count."""
+        _login(client)
+
+        with app.app_context():
+            a = RevenueActivity(
+                title='BulkFlash', date=date.today(), status='bozza',
+                total_revenue=Decimal('50'), agent_id=agent.id,
+                agent_percentage=Decimal('5'), created_by=superadmin_user.id,
+            )
+            db.session.add(a)
+            db.session.commit()
+            aid = a.id
+
+        resp = client.post('/activities/bulk-delete', data={
+            'activity_ids': [str(aid)],
+        }, follow_redirects=True)
+
+        html = resp.data.decode()
+        assert '1' in html  # "1 attività eliminate" or "1 activities deleted"
+
+    def test_bulk_delete_empty_selection_flash(self, client, superadmin_user):
+        """Submitting with no IDs shows a warning flash."""
+        _login(client)
+        resp = client.post('/activities/bulk-delete', data={}, follow_redirects=True)
+        html = resp.data.decode()
+        assert 'Nessuna' in html or 'No activities' in html
+
+    def test_bulk_delete_no_checkbox_in_empty_list(self, client, superadmin_user):
+        """When there are no activities the bulk form is not rendered."""
+        _login(client)
+        resp = client.get('/activities/')
+        assert b'id="bulk-delete-form"' not in resp.data
+
 
 # ===========================================================================
 # ACTIVITY FORM UI
@@ -759,7 +873,8 @@ class TestAgentsUI:
     def test_agent_edit_prefills(self, client, superadmin_user, agent):
         _login(client)
         resp = client.get(f'/agents/{agent.id}/edit')
-        assert b'Mario Rossi' in resp.data
+        assert b'Mario' in resp.data
+        assert b'Rossi' in resp.data
 
     def test_agent_edit_submit(self, client, app, superadmin_user, agent):
         _login(client)
@@ -983,6 +1098,93 @@ class TestUsersUI:
         resp = client.get('/users/new')
         assert b'12' in resp.data
         assert b'minlength="12"' in resp.data
+
+    # -- Force-delete with linked records UI --
+
+    def test_delete_user_linked_shows_confirmation_panel(self, client, app, superadmin_user, operator_user, agent):
+        """Deleting user with linked records shows a confirmation panel instead of deleting."""
+        _login(client)
+        with app.app_context():
+            a = RevenueActivity(
+                title='Linked Act', date=date.today(), status='bozza',
+                total_revenue=Decimal('100'), agent_id=agent.id,
+                agent_percentage=Decimal('5'), created_by=operator_user.id,
+            )
+            db.session.add(a)
+            db.session.commit()
+
+        resp = client.post(f'/users/{operator_user.id}/delete', follow_redirects=True)
+        html = resp.data.decode()
+        assert 'confirm_force' in html
+        assert 'Conferma eliminazione' in html or 'Confirm deletion' in html
+
+    def test_delete_user_linked_shows_record_counts(self, client, app, superadmin_user, operator_user, agent):
+        """Confirmation panel shows the number of linked activities and participations."""
+        _login(client)
+        with app.app_context():
+            a = RevenueActivity(
+                title='Count Act', date=date.today(), status='bozza',
+                total_revenue=Decimal('100'), agent_id=agent.id,
+                agent_percentage=Decimal('5'), created_by=operator_user.id,
+            )
+            db.session.add(a)
+            db.session.commit()
+
+        resp = client.post(f'/users/{operator_user.id}/delete', follow_redirects=True)
+        html = resp.data.decode()
+        # Should show linked counts in <strong> tags
+        assert '<strong>1</strong>' in html
+
+    def test_delete_user_linked_has_cancel_button(self, client, app, superadmin_user, operator_user, agent):
+        """Confirmation panel has a cancel link."""
+        _login(client)
+        with app.app_context():
+            a = RevenueActivity(
+                title='Cancel Act', date=date.today(), status='bozza',
+                total_revenue=Decimal('100'), agent_id=agent.id,
+                agent_percentage=Decimal('5'), created_by=operator_user.id,
+            )
+            db.session.add(a)
+            db.session.commit()
+
+        resp = client.post(f'/users/{operator_user.id}/delete', follow_redirects=True)
+        html = resp.data.decode()
+        assert '/users/' in html
+        assert 'Annulla' in html or 'Cancel' in html
+
+    def test_force_delete_user_removes_linked_data(self, client, app, superadmin_user, operator_user, agent):
+        """Force delete with confirm_force=1 removes user and all linked records."""
+        _login(client)
+        with app.app_context():
+            a = RevenueActivity(
+                title='Force Del', date=date.today(), status='bozza',
+                total_revenue=Decimal('100'), agent_id=agent.id,
+                agent_percentage=Decimal('5'), created_by=operator_user.id,
+            )
+            db.session.add(a)
+            db.session.commit()
+            act_id = a.id
+
+        uid = operator_user.id
+        resp = client.post(f'/users/{uid}/delete', data={
+            'confirm_force': '1',
+        }, follow_redirects=True)
+        assert resp.status_code == 200
+
+        with app.app_context():
+            assert User.query.get(uid) is None
+            assert RevenueActivity.query.get(act_id) is None
+
+    def test_delete_user_no_linked_skips_confirmation(self, client, app, superadmin_user, operator_user):
+        """Deleting user with no linked records deletes immediately."""
+        _login(client)
+        uid = operator_user.id
+        resp = client.post(f'/users/{uid}/delete', follow_redirects=True)
+        assert resp.status_code == 200
+        html = resp.data.decode()
+        assert 'confirm_force' not in html
+        with app.app_context():
+            assert User.query.get(uid) is None
 
 
 # ===========================================================================

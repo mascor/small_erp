@@ -182,7 +182,7 @@ h4 {
 .page-header h1::after {
   content: '';
   position: absolute;
-  bottom: -calc(var(--space-lg) + 2px);
+  bottom: calc(-1 * (var(--space-lg) + 2px));
   left: 0;
   width: 48px;
   height: 2px;
@@ -403,13 +403,23 @@ h4 {
   border-color: var(--teal-500);
 }
 
+.sidebar-logout-form {
+  margin: 0;
+  padding: 0;
+}
+
 .sidebar-logout {
+  background: none;
+  border: none;
   color: var(--navy-500);
+  font-family: var(--font-body);
   font-size: 0.78rem;
   display: inline-flex;
   align-items: center;
   gap: 4px;
   margin-top: var(--space-xs);
+  padding: 0;
+  cursor: pointer;
   transition: color var(--duration-fast) ease;
 }
 
@@ -1204,6 +1214,36 @@ textarea.form-control {
   color: var(--teal-700);
 }
 
+/* ── Breadcrumb ───────────────────────────────────────── */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: 0.82rem;
+  color: var(--navy-500);
+  margin-bottom: var(--space-lg);
+}
+
+.breadcrumb a {
+  color: var(--navy-500);
+  text-decoration: none;
+  transition: color var(--duration-fast) ease;
+}
+
+.breadcrumb a:hover {
+  color: var(--teal-600);
+}
+
+.breadcrumb .separator {
+  color: var(--navy-300);
+  margin: 0 2px;
+}
+
+.breadcrumb .current {
+  color: var(--navy-700);
+  font-weight: 500;
+}
+
 /* ── Detail Sections ───────────────────────────────────── */
 .detail-section {
   margin-bottom: var(--space-xl);
@@ -1255,6 +1295,21 @@ textarea.form-control {
   border-radius: var(--radius-md);
   margin-bottom: var(--space-lg);
   border: 1px solid var(--navy-100);
+}
+
+/* ── Bulk Actions ──────────────────────────────────────── */
+.bulk-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-lg);
+  background: var(--amber-50, #fffbeb);
+  border: 1px solid var(--amber-200, #fde68a);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-sm);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--navy-700);
 }
 
 .filter-group {

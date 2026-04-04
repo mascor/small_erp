@@ -146,16 +146,26 @@ def delete(id):
         flash(tr('Non puoi eliminare il tuo utente.', 'You cannot delete your own user.'), 'error')
         return redirect(url_for('users.index'))
 
-    if len(user.created_activities) > 0 or len(user.participations) > 0:
-        logger.warning(f'Attempt to delete user {user.username} (ID: {id}) with linked records by user {current_user.username}')
-        flash(
-            tr(
-                f'Impossibile eliminare l\'utente "{user.username}": ha dati collegati.',
-                f'Cannot delete user "{user.username}": linked records exist.'
-            ),
-            'error'
-        )
-        return redirect(url_for('users.index'))
+    num_activities = len(user.created_activities)
+    num_participations = len(user.participations)
+    has_linked = num_activities > 0 or num_participations > 0
+    confirm_force = request.form.get('confirm_force') == '1'
+
+    if has_linked and not confirm_force:
+        logger.info(f'User {user.username} (ID: {id}) has linked records, asking for force-delete confirmation')
+        return render_template('users/index.html',
+                               users=User.query.order_by(User.username).all(),
+                               confirm_delete_user=user,
+                               linked_activities=num_activities,
+                               linked_participations=num_participations)
+
+    if has_linked:
+        from .models import RevenueActivity, ActivityParticipant
+        for p in list(user.participations):
+            db.session.delete(p)
+        for a in list(user.created_activities):
+            db.session.delete(a)
+        logger.info(f'Force-deleted {num_activities} activities and {num_participations} participations for user {user.username}')
 
     username = user.username
     logger.info(f'User deleted: {username} (ID: {id}) by user {current_user.username}')
