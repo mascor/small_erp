@@ -94,6 +94,7 @@ def create_app(test_config=None):
     from .users import users_bp
     from .reports import reports_bp
     from .audit import audit_bp
+    from .manual import manual_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
@@ -102,6 +103,7 @@ def create_app(test_config=None):
     app.register_blueprint(users_bp)
     app.register_blueprint(reports_bp)
     app.register_blueprint(audit_bp)
+    app.register_blueprint(manual_bp)
 
     @app.after_request
     def set_security_headers(response):

@@ -44,6 +44,10 @@
           class="nav-link {% if request.endpoint and request.endpoint.startswith('reports.') %}active{% endif %}">
           <span class="nav-icon">&#9776;</span> {{ tr('Report Mensili', 'Monthly Reports') }}
         </a>
+        <a href="{{ url_for('manual.index') }}"
+          class="nav-link {% if request.endpoint and request.endpoint.startswith('manual.') %}active{% endif %}">
+          <span class="nav-icon">&#128214;</span> {{ tr('Manuale', 'Manual') }}
+        </a>
 
         {% if current_user.is_admin %}
         <div class="nav-section">{{ tr('Amministrazione', 'Administration') }}</div>

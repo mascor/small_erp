@@ -688,3 +688,49 @@ class TestAuditRoutes:
         
         response = client.get(f'/audit/{audit_log.id}')
         assert response.status_code == 200
+
+
+class TestManualRoutes:
+    """Test manual page routes."""
+
+    def test_manual_not_logged_in(self, client):
+        """Test manual page redirects when not logged in."""
+        response = client.get('/manual', follow_redirects=False)
+        assert response.status_code in (301, 302, 303, 307)
+
+    def test_manual_logged_in_italian(self, client, superadmin_user):
+        """Test manual page loads in Italian."""
+        client.post('/login', data={
+            'username': 'superadmin',
+            'password': 'password123'
+        })
+
+        response = client.get('/manual')
+        assert response.status_code == 200
+        assert 'Manuale Utente'.encode() in response.data
+        assert 'Cos\'è Small ERP'.encode() in response.data
+
+    def test_manual_logged_in_english(self, client, superadmin_user):
+        """Test manual page loads in English."""
+        client.post('/login', data={
+            'username': 'superadmin',
+            'password': 'password123'
+        })
+
+        # Switch language to English
+        client.post('/set-language', data={'lang': 'en', 'next': '/manual'})
+
+        response = client.get('/manual')
+        assert response.status_code == 200
+        assert b'User Manual' in response.data
+        assert b'What is Small ERP' in response.data
+
+    def test_manual_accessible_by_operator(self, client, operator_user):
+        """Test manual page is accessible by operator role."""
+        client.post('/login', data={
+            'username': 'operator',
+            'password': 'password123'
+        })
+
+        response = client.get('/manual')
+        assert response.status_code == 200
