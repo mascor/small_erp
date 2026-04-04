@@ -11,101 +11,97 @@
 {% if current_lang == 'it' %}
 
 <div class="card" style="margin-bottom:1.5rem;">
-  <h2>Cos'è Small ERP</h2>
-  <p>
-    Small ERP è un'applicazione web pensata per la gestione semplificata delle <strong>attività a ricavo</strong>.
-    Permette di tracciare ricavi, costi, agenti commerciali e partecipanti coinvolti in ogni attività,
-    calcolando automaticamente margini, compensi agente e quote di lavoro.
-  </p>
+  <div class="card-body">
+    <h2>Cos'è Small ERP</h2>
+    <p>
+      Small ERP è un'applicazione web pensata per la gestione semplificata delle <strong>attività a ricavo</strong>.
+      Permette di tracciare ricavi, costi, agenti commerciali e partecipanti coinvolti in ogni attività,
+      calcolando automaticamente margini, compensi agente e quote di lavoro.
+    </p>
+  </div>
 </div>
 
 <div class="card" style="margin-bottom:1.5rem;">
-  <h2>Funzionalità principali</h2>
-  <ul>
-    <li><strong>Gestione Attività:</strong> crea, modifica e chiudi attività a ricavo. Ogni attività ha un titolo, un ricavo totale, una data e uno stato (bozza, confermata, chiusa).</li>
-    <li><strong>Costi:</strong> registra i costi associati a ciascuna attività, suddivisi per categoria (materiale, trasporto, consulenza, marketing, spese vive, altro) e per tipo (operativo o extra).</li>
-    <li><strong>Partecipanti:</strong> assegna partecipanti alle attività, indicando ruolo, quota di lavoro e compenso fisso.</li>
-    <li><strong>Agenti:</strong> gestisci l'anagrafica degli agenti commerciali e associali alle attività con una percentuale di provvigione personalizzabile.</li>
-    <li><strong>Report Mensili:</strong> visualizza un riepilogo mensile con ricavi, costi, margine e compensi calcolati.</li>
-    <li><strong>Dashboard:</strong> una panoramica immediata con i principali indicatori dell'attività corrente.</li>
-  </ul>
+  <div class="card-body">
+    <h2>Funzionalità principali</h2>
+    <ul>
+      <li><strong>Gestione Attività:</strong> crea, modifica e chiudi attività a ricavo. Ogni attività ha un titolo, un ricavo totale, una data e uno stato (bozza, confermata, chiusa).</li>
+      <li><strong>Costi:</strong> registra i costi associati a ciascuna attività, suddivisi per categoria (materiale, trasporto, consulenza, marketing, spese vive, altro) e per tipo (operativo o extra).</li>
+      <li><strong>Partecipanti:</strong> assegna partecipanti alle attività, indicando ruolo, quota di lavoro e compenso fisso.</li>
+      <li><strong>Agenti:</strong> gestisci l'anagrafica degli agenti commerciali e associali alle attività con una percentuale di provvigione personalizzabile.</li>
+      <li><strong>Report Mensili:</strong> visualizza un riepilogo mensile con ricavi, costi, margine e compensi calcolati.</li>
+      <li><strong>Dashboard:</strong> una panoramica immediata con i principali indicatori dell'attività corrente.</li>
+    </ul>
+  </div>
 </div>
 
 <div class="card" style="margin-bottom:1.5rem;">
-  <h2>Ruoli utente</h2>
-  <p>Il sistema prevede tre ruoli con permessi differenziati:</p>
-  <ul>
-    <li><strong>Operatore:</strong> può visualizzare e gestire attività, costi e partecipanti.</li>
-    <li><strong>Admin:</strong> ha in aggiunta la possibilità di gestire gli utenti del sistema.</li>
-    <li><strong>Superadmin:</strong> può inoltre consultare l'audit log completo di tutte le operazioni.</li>
-  </ul>
+  <div class="card-body">
+    <h2>Audit e Sicurezza</h2>
+    <p>
+      Ogni operazione (creazione, modifica, cancellazione) viene registrata automaticamente nell'<strong>audit log</strong>,
+      con dettaglio di chi ha eseguito l'azione, quando e quali dati sono stati modificati.
+      L'applicazione supporta l'autenticazione utente, la protezione CSRF e le sessioni sicure.
+    </p>
+  </div>
 </div>
 
 <div class="card" style="margin-bottom:1.5rem;">
-  <h2>Audit e Sicurezza</h2>
-  <p>
-    Ogni operazione (creazione, modifica, cancellazione) viene registrata automaticamente nell'<strong>audit log</strong>,
-    con dettaglio di chi ha eseguito l'azione, quando e quali dati sono stati modificati.
-    L'applicazione supporta l'autenticazione utente, la protezione CSRF e le sessioni sicure.
-  </p>
-</div>
-
-<div class="card" style="margin-bottom:1.5rem;">
-  <h2>Lingue supportate</h2>
-  <p>
-    L'interfaccia è disponibile in <strong>italiano</strong> e <strong>inglese</strong>.
-    Puoi cambiare lingua in qualsiasi momento dal selettore nella barra laterale.
-  </p>
+  <div class="card-body">
+    <h2>Lingue supportate</h2>
+    <p>
+      L'interfaccia è disponibile in <strong>italiano</strong> e <strong>inglese</strong>.
+      Puoi cambiare lingua in qualsiasi momento dal selettore nella barra laterale.
+    </p>
+  </div>
 </div>
 
 {% else %}
 
 <div class="card" style="margin-bottom:1.5rem;">
-  <h2>What is Small ERP</h2>
-  <p>
-    Small ERP is a web application designed for simplified management of <strong>revenue activities</strong>.
-    It lets you track revenues, costs, sales agents and participants involved in each activity,
-    automatically calculating margins, agent commissions and work shares.
-  </p>
+  <div class="card-body">
+    <h2>What is Small ERP</h2>
+    <p>
+      Small ERP is a web application designed for simplified management of <strong>revenue activities</strong>.
+      It lets you track revenues, costs, sales agents and participants involved in each activity,
+      automatically calculating margins, agent commissions and work shares.
+    </p>
+  </div>
 </div>
 
 <div class="card" style="margin-bottom:1.5rem;">
-  <h2>Key Features</h2>
-  <ul>
-    <li><strong>Activity Management:</strong> create, edit and close revenue activities. Each activity has a title, total revenue, date and status (draft, confirmed, closed).</li>
-    <li><strong>Costs:</strong> record costs associated with each activity, broken down by category (material, transport, consulting, marketing, out-of-pocket, other) and type (operational or extra).</li>
-    <li><strong>Participants:</strong> assign participants to activities, specifying their role, work share and fixed compensation.</li>
-    <li><strong>Agents:</strong> manage sales agent records and link them to activities with a customisable commission percentage.</li>
-    <li><strong>Monthly Reports:</strong> view a monthly summary of revenues, costs, margin and calculated commissions.</li>
-    <li><strong>Dashboard:</strong> an at-a-glance overview with key indicators of current activity.</li>
-  </ul>
+  <div class="card-body">
+    <h2>Key Features</h2>
+    <ul>
+      <li><strong>Activity Management:</strong> create, edit and close revenue activities. Each activity has a title, total revenue, date and status (draft, confirmed, closed).</li>
+      <li><strong>Costs:</strong> record costs associated with each activity, broken down by category (material, transport, consulting, marketing, out-of-pocket, other) and type (operational or extra).</li>
+      <li><strong>Participants:</strong> assign participants to activities, specifying their role, work share and fixed compensation.</li>
+      <li><strong>Agents:</strong> manage sales agent records and link them to activities with a customisable commission percentage.</li>
+      <li><strong>Monthly Reports:</strong> view a monthly summary of revenues, costs, margin and calculated commissions.</li>
+      <li><strong>Dashboard:</strong> an at-a-glance overview with key indicators of current activity.</li>
+    </ul>
+  </div>
 </div>
 
 <div class="card" style="margin-bottom:1.5rem;">
-  <h2>User Roles</h2>
-  <p>The system provides three roles with different permissions:</p>
-  <ul>
-    <li><strong>Operator:</strong> can view and manage activities, costs and participants.</li>
-    <li><strong>Admin:</strong> can additionally manage system users.</li>
-    <li><strong>Superadmin:</strong> can also access the full audit log of all operations.</li>
-  </ul>
+  <div class="card-body">
+    <h2>Audit &amp; Security</h2>
+    <p>
+      Every operation (create, update, delete) is automatically recorded in the <strong>audit log</strong>,
+      detailing who performed the action, when, and what data was changed.
+      The application supports user authentication, CSRF protection and secure sessions.
+    </p>
+  </div>
 </div>
 
 <div class="card" style="margin-bottom:1.5rem;">
-  <h2>Audit &amp; Security</h2>
-  <p>
-    Every operation (create, update, delete) is automatically recorded in the <strong>audit log</strong>,
-    detailing who performed the action, when, and what data was changed.
-    The application supports user authentication, CSRF protection and secure sessions.
-  </p>
-</div>
-
-<div class="card" style="margin-bottom:1.5rem;">
-  <h2>Supported Languages</h2>
-  <p>
-    The interface is available in <strong>Italian</strong> and <strong>English</strong>.
-    You can switch language at any time from the selector in the sidebar.
-  </p>
+  <div class="card-body">
+    <h2>Supported Languages</h2>
+    <p>
+      The interface is available in <strong>Italian</strong> and <strong>English</strong>.
+      You can switch language at any time from the selector in the sidebar.
+    </p>
+  </div>
 </div>
 
 {% endif %}

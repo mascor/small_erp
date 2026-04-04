@@ -99,7 +99,7 @@ def superadmin_user(app):
             username='superadmin',
             email='superadmin@test.com',
             full_name='Super Admin',
-            role='superadmin'
+            is_superadmin=True
         )
         user.set_password('password123')
         db.session.add(user)
@@ -112,13 +112,12 @@ def superadmin_user(app):
 
 @pytest.fixture
 def admin_user(app):
-    """Create an admin user."""
+    """Create a regular user (legacy alias)."""
     with app.app_context():
         user = User(
             username='admin',
             email='admin@test.com',
             full_name='Admin User',
-            role='admin'
         )
         user.set_password('password123')
         db.session.add(user)
@@ -131,13 +130,12 @@ def admin_user(app):
 
 @pytest.fixture
 def operator_user(app):
-    """Create a regular operator user."""
+    """Create a regular user."""
     with app.app_context():
         user = User(
             username='operator',
             email='operator@test.com',
             full_name='Operator User',
-            role='operatore'
         )
         user.set_password('password123')
         db.session.add(user)
@@ -242,7 +240,7 @@ def audit_log(app, superadmin_user):
             entity_id=1,
             description='Test audit log',
             old_values=None,
-            new_values='{"username": "testuser", "role": "operatore"}'
+            new_values='{"username": "testuser"}'
         )
         db.session.add(log)
         db.session.commit()

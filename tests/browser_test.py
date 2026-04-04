@@ -580,7 +580,7 @@ r = post_with_csrf(s, f'{BASE}/activities/new', {
 check('<script>alert(1)</script>' not in r.text, 'XSS in activity title escaped')
 
 # =========================================================================
-print('\n--- 15. ROLE-BASED ACCESS ---')
+print('\n--- 15. ACCESS CONTROL ---')
 
 # Create operator session
 s_op = requests.Session()

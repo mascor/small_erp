@@ -26,7 +26,7 @@ def init():
                     username='admin',
                     email='admin@erp.local',
                     full_name='Super Admin',
-                    role='superadmin',
+                    is_superadmin=True,
                     is_active_user=True,
                 )
                 superadmin.set_password(password)

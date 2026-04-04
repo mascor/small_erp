@@ -16,7 +16,6 @@ class TestUserModel:
                 username='testuser',
                 email='test@example.com',
                 full_name='Test User',
-                role='operatore'
             )
             user.set_password('password123')
             db.session.add(user)
@@ -48,20 +47,10 @@ class TestUserModel:
         with app.app_context():
             assert superadmin_user.is_superadmin is True
 
-    def test_is_admin_property_superadmin(self, app, superadmin_user):
-        """Test is_admin property for superadmin."""
+    def test_is_superadmin_false_for_regular_user(self, app, operator_user):
+        """Test is_superadmin is False for regular user."""
         with app.app_context():
-            assert superadmin_user.is_admin is True
-
-    def test_is_admin_property_admin(self, app, admin_user):
-        """Test is_admin property for admin."""
-        with app.app_context():
-            assert admin_user.is_admin is True
-
-    def test_is_admin_property_operator(self, app, operator_user):
-        """Test is_admin property for operator."""
-        with app.app_context():
-            assert operator_user.is_admin is False
+            assert operator_user.is_superadmin is False
 
     def test_is_active_property(self, app, superadmin_user):
         """Test is_active property for Flask-Login compatibility."""

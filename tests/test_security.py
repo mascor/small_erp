@@ -193,11 +193,11 @@ class TestActivityIDOR:
             act = db.session.get(RevenueActivity, revenue_activity.id)
             assert act is not None
 
-    def test_admin_can_edit_any_activity(self, client, app, admin_user, revenue_activity):
-        """Admin users should be able to edit any activity."""
-        _login(client, 'admin', 'password123')
+    def test_superadmin_can_edit_any_activity(self, client, app, superadmin_user, revenue_activity):
+        """Superadmin users should be able to edit any activity."""
+        _login(client, 'superadmin', 'password123')
         resp = client.post(f'/activities/{revenue_activity.id}/edit', data={
-            'title': 'Admin Edit',
+            'title': 'Superadmin Edit',
             'date': str(date.today()),
             'status': 'bozza',
             'total_revenue': '1000',
@@ -207,7 +207,7 @@ class TestActivityIDOR:
 
         with app.app_context():
             act = db.session.get(RevenueActivity, revenue_activity.id)
-            assert act.title == 'Admin Edit'
+            assert act.title == 'Superadmin Edit'
 
 
 # ===========================================================================

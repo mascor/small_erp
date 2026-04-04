@@ -80,29 +80,35 @@ Small ERP è un'applicazione web Flask per la gestione di attività a ricavo, ag
 ## Modelli Dati
 
 ### User
-- Campi: `id`, `username` (unico), `email` (unico), `password_hash`, `full_name`, `role`, `is_active_user`, `created_at`, `updated_at`
-- Ruoli: `superadmin`, `admin`, `operatore`
-- Proprietà: `is_active`, `is_admin`, `is_superadmin`
+
+- Campi: `id`, `username` (unico), `email` (unico), `password_hash`, `full_name`, `is_superadmin`, `is_active_user`, `created_at`, `updated_at`
+- `is_superadmin`: boolean, True solo per l'utente superadmin (creato da `.env`)
+- Proprietà: `is_active`
 - Metodi: `set_password()`, `check_password()`
 
 ### Agent
+
 - Campi: `id`, `first_name`, `default_percentage` (Numeric 5,2), `is_active`, `notes`, `created_at`, `updated_at`
 - Proprietà: `full_name` (restituisce `first_name`)
 
 ### RevenueActivity
+
 - Campi: `id`, `title`, `description`, `date`, `status`, `total_revenue`, `agent_id`, `agent_percentage`, `notes`, `created_by`, `created_at`, `updated_at`
 - Stati: `bozza`, `confermata`, `chiusa`
 - Relazioni: `costs`, `participants`, `creator` (cascade delete su costs e participants)
 
 ### ActivityCost
+
 - Campi: `id`, `activity_id`, `category`, `description`, `amount`, `date`, `cost_type`, `notes`, `created_at`
 - Categorie: `materiale`, `trasporto`, `consulenza`, `marketing`, `spese_vive`, `altro`
 - Tipi costo: `operativo`, `extra`
 
 ### ActivityParticipant
+
 - Campi: `id`, `activity_id`, `participant_name`, `user_id` (nullable), `role_description`, `work_share`, `fixed_compensation`, `notes`, `created_at`
 
 ### AuditLog
+
 - Campi: `id`, `user_id`, `username`, `timestamp`, `action_type`, `entity_type`, `entity_id`, `description`, `old_values` (JSON), `new_values` (JSON), `ip_address`
 - Tipi azione: `login`, `logout`, `create`, `update`, `delete`, `status_change`, `user_create`, `user_update`
 
@@ -111,35 +117,39 @@ Small ERP è un'applicazione web Flask per la gestione di attività a ricavo, ag
 ## Convenzioni di Codice
 
 ### Calcoli Finanziari
+
 - Usare SEMPRE `Decimal` da `decimal` (mai `float`) per calcoli monetari
 - Arrotondamento: `ROUND_HALF_UP` con 2 decimali
 - Usare `to_decimal()` da `app/services.py` per conversioni sicure
 - Formule principali in `calc_activity_totals()` e `calc_agent_compensation()`
 
 ### Accesso al Database
+
 - Usare `db.session` per tutte le operazioni
 - `db.session.commit()` dopo ogni modifica
 - `db.session.rollback()` in caso di errore
 - `get_or_404()` per lookup per ID nelle route
 
 ### Audit Logging
+
 - Ogni operazione CRUD DEVE registrare un audit log tramite `log_action()` da `app/audit_service.py`
 - Usare `model_to_dict()` per catturare old/new values
 - Campi da tracciare definiti come lista per ogni modello
 
 ### Autenticazione e Autorizzazione
+
 - Route protette con `@login_required`
-- Route admin con decorator `@admin_required`
-- Route superadmin con decorator `@superadmin_required`
+- Route superadmin (utenti e audit) con decorator `@superadmin_required`
 - I decoratori sono definiti localmente in `app/users.py` e `app/audit.py`
 
 ### Internazionalizzazione
+
 - Usare `tr('testo italiano', 'english text')` per testi bilingui
 - Label di stato: `status_label(status)` da `app/i18n.py`
-- Label di ruolo: `role_label(role)` da `app/i18n.py`
 - Lingue supportate: `it`, `en`
 
 ### Blueprint e Route
+
 - Ogni modulo funzionale è un Blueprint Flask separato
 - URL prefix coerente per ogni blueprint: `/activities`, `/agents`, `/users`, `/reports`, `/audit`
 - Filtri template registrati nell'app factory: `currency()`, `percentage()`
@@ -152,10 +162,10 @@ Small ERP è un'applicazione web Flask per la gestione di attività a ricavo, ag
 
 I test DEVONO seguire la struttura esistente in `tests/`:
 
-- **`tests/conftest.py`** — Fixture condivise: `app`, `client`, `superadmin_user`, `admin_user`, `operator_user`, `agent`, `revenue_activity`, `activity_cost`, `activity_participant`, `audit_log`
+- **`tests/conftest.py`** — Fixture condivise: `app`, `client`, `superadmin_user`, `admin_user` (utente normale), `operator_user` (utente normale), `agent`, `revenue_activity`, `activity_cost`, `activity_participant`, `audit_log`
 - **`tests/test_models.py`** — Test dei modelli: creazione, proprietà, relazioni, cascade
 - **`tests/test_services.py`** — Test dei servizi: calcoli finanziari, edge cases, arrotondamenti
-- **`tests/test_auth.py`** — Test autenticazione: login, logout, decoratori, ruoli
+- **`tests/test_auth.py`** — Test autenticazione: login, logout, decoratori, permessi
 - **`tests/test_routes.py`** — Test delle route HTTP: CRUD completo, filtri, permessi
 - **`tests/test_audit_service.py`** — Test audit: logging, serializzazione, query
 
@@ -173,6 +183,7 @@ def test_nome_descrittivo(client, agent, revenue_activity):
 ```
 
 ### Marker Disponibili
+
 - `unit` — Test unitari
 - `integration` — Test di integrazione
 - `auth` — Test autenticazione
@@ -182,6 +193,7 @@ def test_nome_descrittivo(client, agent, revenue_activity):
 - `slow` — Test lenti
 
 ### Login nei Test
+
 ```python
 # Per autenticarsi nei test delle route
 client.post('/login', data={
@@ -191,6 +203,7 @@ client.post('/login', data={
 ```
 
 ### Fixture del Database
+
 - L'app di test usa SQLite in-memory (`sqlite://`)
 - CSRF disabilitato in testing (`WTF_CSRF_ENABLED = False`)
 - Ogni test ha un DB pulito grazie alle fixture

@@ -85,21 +85,10 @@ class TestLogoutRoute:
 
 
 class TestAuthorizationDecorators:
-    """Test authorization decorators and role checking."""
+    """Test authorization decorators."""
 
-    def test_admin_required_with_admin(self, client, admin_user):
-        """Test admin routes are accessible to admins."""
-        client.post('/login', data={
-            'username': 'admin',
-            'password': 'password123'
-        })
-        
-        response = client.get('/users/')
-        # Should not redirect to login
-        assert response.status_code != 401
-
-    def test_admin_required_with_superadmin(self, client, superadmin_user):
-        """Test admin routes are accessible to superadmins."""
+    def test_superadmin_required_with_superadmin(self, client, superadmin_user):
+        """Test superadmin routes are accessible to superadmins."""
         client.post('/login', data={
             'username': 'superadmin',
             'password': 'password123'
@@ -108,8 +97,8 @@ class TestAuthorizationDecorators:
         response = client.get('/users/')
         assert response.status_code != 401
 
-    def test_admin_required_with_operator(self, client, operator_user):
-        """Test admin routes deny access to operators."""
+    def test_superadmin_required_with_regular_user_denied(self, client, operator_user):
+        """Test superadmin routes deny access to regular users."""
         client.post('/login', data={
             'username': 'operator',
             'password': 'password123'
@@ -119,8 +108,8 @@ class TestAuthorizationDecorators:
         # Should be denied
         assert response.status_code in (301, 302, 303, 307, 401, 403)
 
-    def test_superadmin_required_with_superadmin(self, client, superadmin_user):
-        """Test superadmin routes are accessible to superadmins."""
+    def test_audit_superadmin_required_with_superadmin(self, client, superadmin_user):
+        """Test audit routes are accessible to superadmins."""
         client.post('/login', data={
             'username': 'superadmin',
             'password': 'password123'
@@ -129,10 +118,10 @@ class TestAuthorizationDecorators:
         response = client.get('/audit/')
         assert response.status_code != 401
 
-    def test_superadmin_required_with_admin_denied(self, client, admin_user):
-        """Test superadmin routes deny access to admins."""
+    def test_audit_superadmin_required_with_regular_user_denied(self, client, operator_user):
+        """Test audit routes deny access to regular users."""
         client.post('/login', data={
-            'username': 'admin',
+            'username': 'operator',
             'password': 'password123'
         })
         
@@ -177,38 +166,14 @@ class TestUserModel:
             
             assert user.check_password('') is False
 
-    def test_is_admin_superadmin(self, app, superadmin_user):
-        """Test is_admin returns True for superadmin."""
-        with app.app_context():
-            user = User.query.filter_by(username='superadmin').first()
-            assert user.is_admin is True
-
-    def test_is_admin_admin(self, app, admin_user):
-        """Test is_admin returns True for admin."""
-        with app.app_context():
-            user = User.query.filter_by(username='admin').first()
-            assert user.is_admin is True
-
-    def test_is_admin_operator(self, app, operator_user):
-        """Test is_admin returns False for operator."""
-        with app.app_context():
-            user = User.query.filter_by(username='operator').first()
-            assert user.is_admin is False
-
     def test_is_superadmin_true(self, app, superadmin_user):
         """Test is_superadmin returns True for superadmin."""
         with app.app_context():
             user = User.query.filter_by(username='superadmin').first()
             assert user.is_superadmin is True
 
-    def test_is_superadmin_false_admin(self, app, admin_user):
-        """Test is_superadmin returns False for admin."""
-        with app.app_context():
-            user = User.query.filter_by(username='admin').first()
-            assert user.is_superadmin is False
-
-    def test_is_superadmin_false_operator(self, app, operator_user):
-        """Test is_superadmin returns False for operator."""
+    def test_is_superadmin_false_regular_user(self, app, operator_user):
+        """Test is_superadmin returns False for regular user."""
         with app.app_context():
             user = User.query.filter_by(username='operator').first()
             assert user.is_superadmin is False

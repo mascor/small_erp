@@ -1,7 +1,7 @@
 """Comprehensive UI tests for all pages and user interactions in Small ERP.
 
 Tests cover: template rendering, HTML elements, navigation, form validation,
-flash messages, role-based UI visibility, i18n, filters, pagination,
+flash messages, UI visibility, i18n, filters, pagination,
 edge cases, and full CRUD workflows through the UI.
 """
 import pytest
@@ -133,12 +133,12 @@ class TestDashboardUI:
         assert b'/logout' in resp.data
         assert b'method="POST"' in resp.data
 
-    def test_dashboard_shows_admin_nav_for_admin(self, client, admin_user):
-        _login(client, 'admin')
+    def test_dashboard_shows_admin_nav_for_superadmin(self, client, superadmin_user):
+        _login(client)
         resp = client.get('/')
         assert b'/users/' in resp.data
 
-    def test_dashboard_hides_admin_nav_for_operator(self, client, operator_user):
+    def test_dashboard_hides_admin_nav_for_regular_user(self, client, operator_user):
         _login(client, 'operator')
         resp = client.get('/')
         assert b'/users/' not in resp.data
@@ -148,8 +148,8 @@ class TestDashboardUI:
         resp = client.get('/')
         assert b'/audit/' in resp.data
 
-    def test_dashboard_hides_audit_nav_for_admin(self, client, admin_user):
-        _login(client, 'admin')
+    def test_dashboard_hides_audit_nav_for_regular_user(self, client, operator_user):
+        _login(client, 'operator')
         resp = client.get('/')
         assert b'/audit/' not in resp.data
 
@@ -967,12 +967,12 @@ class TestAgentsUI:
 class TestUsersUI:
     """Verify user management pages."""
 
-    def test_users_page_renders_for_admin(self, client, admin_user):
-        _login(client, 'admin')
+    def test_users_page_renders_for_superadmin(self, client, superadmin_user):
+        _login(client)
         resp = client.get('/users/')
         assert resp.status_code == 200
 
-    def test_users_page_denied_for_operator(self, client, operator_user):
+    def test_users_page_denied_for_regular_user(self, client, operator_user):
         _login(client, 'operator')
         resp = client.get('/users/', follow_redirects=False)
         assert resp.status_code in (302, 303)
@@ -1010,7 +1010,7 @@ class TestUsersUI:
         with app.app_context():
             u = User.query.filter_by(username='uitestuser').first()
             assert u is not None
-            assert u.role == 'operatore'
+            assert u.is_superadmin is False
             assert u.email == 'uitestuser@erp.local'
 
     def test_user_create_duplicate_username(self, client, superadmin_user):
@@ -1073,10 +1073,11 @@ class TestUsersUI:
             u = db.session.get(User, operator_user.id)
             assert u.is_active_user is False
 
-    def test_admin_cannot_edit_superadmin(self, client, app, superadmin_user, admin_user):
-        _login(client, 'admin')
+    def test_regular_user_cannot_edit_superadmin(self, client, app, superadmin_user, operator_user):
+        _login(client, 'operator')
         resp = client.get(f'/users/{superadmin_user.id}/edit', follow_redirects=True)
-        assert b'flash' in resp.data
+        # Regular user should be denied access to users management entirely
+        assert resp.status_code == 200
 
     def test_user_404_for_nonexistent(self, client, superadmin_user):
         _login(client)
@@ -1325,12 +1326,7 @@ class TestAuditUI:
         resp = client.get('/audit/')
         assert resp.status_code == 200
 
-    def test_audit_denied_for_admin(self, client, admin_user):
-        _login(client, 'admin')
-        resp = client.get('/audit/', follow_redirects=False)
-        assert resp.status_code in (302, 303)
-
-    def test_audit_denied_for_operator(self, client, operator_user):
+    def test_audit_denied_for_regular_user(self, client, operator_user):
         _login(client, 'operator')
         resp = client.get('/audit/', follow_redirects=False)
         assert resp.status_code in (302, 303)

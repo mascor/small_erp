@@ -49,15 +49,12 @@
           <span class="nav-icon">&#128214;</span> {{ tr('Manuale', 'Manual') }}
         </a>
 
-        {% if current_user.is_admin %}
+        {% if current_user.is_superadmin %}
         <div class="nav-section">{{ tr('Amministrazione', 'Administration') }}</div>
         <a href="{{ url_for('users.index') }}"
           class="nav-link {% if request.endpoint and request.endpoint.startswith('users.') %}active{% endif %}">
           <span class="nav-icon">&#9823;</span> {{ tr('Utenti', 'Users') }}
         </a>
-        {% endif %}
-
-        {% if current_user.is_superadmin %}
         <a href="{{ url_for('audit.index') }}"
           class="nav-link {% if request.endpoint and request.endpoint.startswith('audit.') %}active{% endif %}">
           <span class="nav-icon">&#9881;</span> {{ tr('Audit Log', 'Audit Log') }}
@@ -70,7 +67,6 @@
           <div class="user-avatar">{{ current_user.full_name[:2]|upper }}</div>
           <div class="user-info">
             <div class="user-name">{{ current_user.full_name }}</div>
-            <div class="user-role">{{ role_label(current_user.role) }}</div>
           </div>
         </div>
         <form method="POST" action="{{ url_for('set_language') }}" class="language-switch">

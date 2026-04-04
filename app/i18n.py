@@ -23,11 +23,6 @@ STATUS_LABELS = {
 }
 
 
-ROLE_LABELS = {
-    'operatore': ('Operatore', 'Operator'),
-    'admin': ('Admin', 'Admin'),
-    'superadmin': ('Superadmin', 'Superadmin'),
-}
 
 
 def get_lang():
@@ -56,6 +51,3 @@ def status_label(status):
     return tr(it_text, en_text)
 
 
-def role_label(role):
-    it_text, en_text = ROLE_LABELS.get(role, (role, role))
-    return tr(it_text, en_text)

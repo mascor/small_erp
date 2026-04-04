@@ -22,11 +22,11 @@ def seed():
 
         # Create demo users
         op1 = User(username='mario.rossi', email='mario@erp.local',
-                    full_name='Mario Rossi', role='operatore', is_active_user=True)
+                    full_name='Mario Rossi', is_active_user=True)
         op1.set_password('demo123')
 
         op2 = User(username='laura.bianchi', email='laura@erp.local',
-                    full_name='Laura Bianchi', role='admin', is_active_user=True)
+                    full_name='Laura Bianchi', is_active_user=True)
         op2.set_password('demo123')
 
         db.session.add_all([op1, op2])

@@ -6,16 +6,15 @@ CREATE TABLE users (
 	email VARCHAR(120) NOT NULL, 
 	password_hash VARCHAR(256) NOT NULL, 
 	full_name VARCHAR(200) NOT NULL, 
-	role VARCHAR(20) NOT NULL, 
 	is_active_user BOOLEAN, 
 	created_at DATETIME, 
-	updated_at DATETIME, 
+	updated_at DATETIME, is_superadmin BOOLEAN NOT NULL DEFAULT 0, 
 	PRIMARY KEY (id), 
 	UNIQUE (username), 
 	UNIQUE (email)
 );
-INSERT INTO users VALUES(1,'admin','admin@erp.local','scrypt:32768:8:1$QyNE66QARkeKxWTW$17c5524a73dc7c921e6f786fb81ea285d454f157fc025b46399a839a5d604f9c2035bc678e73688fa35376ba0bf13bf7b25762a67dcc6500a8eae97fc4c02c1c','Super Admin','superadmin',1,'2026-04-03 18:23:22.738539','2026-04-03 18:23:22.738543');
-INSERT INTO users VALUES(3,'laura.bianchi','laura@erp.local','scrypt:32768:8:1$kh4rzYBICiTb99G2$413b7c060c8538ffc65ac9edf91df58711cb3279924af179117f89bc8fe92559b280997e2a3ae7c853d6b8ce57eba246e6712ace6fdc9128b58e42f675abf178','Laura Bianchi','admin',1,'2026-04-03 18:23:23.033513','2026-04-03 18:23:23.033514');
+INSERT INTO users VALUES(1,'admin','admin@erp.local','scrypt:32768:8:1$QyNE66QARkeKxWTW$17c5524a73dc7c921e6f786fb81ea285d454f157fc025b46399a839a5d604f9c2035bc678e73688fa35376ba0bf13bf7b25762a67dcc6500a8eae97fc4c02c1c','Super Admin',1,'2026-04-03 18:23:22.738539','2026-04-03 18:23:22.738543',1);
+INSERT INTO users VALUES(3,'laura.bianchi','laura@erp.local','scrypt:32768:8:1$kh4rzYBICiTb99G2$413b7c060c8538ffc65ac9edf91df58711cb3279924af179117f89bc8fe92559b280997e2a3ae7c853d6b8ce57eba246e6712ace6fdc9128b58e42f675abf178','Laura Bianchi',1,'2026-04-03 18:23:23.033513','2026-04-03 18:23:23.033514',0);
 CREATE TABLE agents (
 	id INTEGER NOT NULL, 
 	first_name VARCHAR(100) NOT NULL, 

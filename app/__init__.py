@@ -6,7 +6,7 @@ from flask_wtf.csrf import CSRFProtect
 from sqlalchemy.exc import SQLAlchemyError
 from dotenv import load_dotenv
 from .logging_config import configure_logging
-from .i18n import get_lang, tr, status_label, role_label, SUPPORTED_LANGS
+from .i18n import get_lang, tr, status_label, SUPPORTED_LANGS
 
 load_dotenv()
 
@@ -133,14 +133,12 @@ def create_app(test_config=None):
             'current_lang': get_lang(),
             'tr': tr,
             'status_label': status_label,
-            'role_label': role_label,
             'today': _date.today().isoformat(),
         }
 
     app.jinja_env.globals.update(
         tr=tr,
         status_label=status_label,
-        role_label=role_label,
     )
 
     @app.template_filter('currency')

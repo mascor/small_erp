@@ -43,7 +43,7 @@ def _require_non_empty(value, field_name):
 
 def _can_modify_activity(activity):
     """Check if current user can modify the activity."""
-    return current_user.is_admin or activity.created_by == current_user.id
+    return current_user.is_superadmin or activity.created_by == current_user.id
 
 
 @activities_bp.route('/')

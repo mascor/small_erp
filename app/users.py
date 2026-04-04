@@ -28,10 +28,10 @@ def _validate_password(password):
     return None
 
 
-def admin_required(f):
+def superadmin_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        if not current_user.is_admin:
+        if not current_user.is_superadmin:
             flash(tr('Accesso non autorizzato.', 'Unauthorized access.'), 'error')
             return redirect(url_for('dashboard.index'))
         return f(*args, **kwargs)
@@ -40,7 +40,7 @@ def admin_required(f):
 
 @users_bp.route('/')
 @login_required
-@admin_required
+@superadmin_required
 def index():
     users = User.query.order_by(User.username).all()
     return render_template('users/index.html', users=users)
@@ -48,7 +48,7 @@ def index():
 
 @users_bp.route('/new', methods=['GET', 'POST'])
 @login_required
-@admin_required
+@superadmin_required
 def create():
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
@@ -73,7 +73,6 @@ def create():
             # Keep required legacy fields populated while hiding them from UI.
             email=f'{username}@erp.local',
             full_name=username,
-            role='operatore',
             is_active_user='is_active' in request.form,
         )
         user.set_password(password)
@@ -93,12 +92,11 @@ def create():
 
 @users_bp.route('/<int:id>/edit', methods=['GET', 'POST'])
 @login_required
-@admin_required
+@superadmin_required
 def edit(id):
     user = db.get_or_404(User, id)
 
-    if user.is_superadmin and not current_user.is_superadmin:
-        logger.warning(f'Attempt to edit superadmin by non-superadmin user: {current_user.username}')
+    if user.is_superadmin:
         flash(tr('Non puoi modificare il superadmin.', 'You cannot edit the superadmin.'), 'error')
         return redirect(url_for('users.index'))
 
@@ -132,7 +130,7 @@ def edit(id):
 
 @users_bp.route('/<int:id>/delete', methods=['POST'])
 @login_required
-@admin_required
+@superadmin_required
 def delete(id):
     user = db.get_or_404(User, id)
 

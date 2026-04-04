@@ -134,11 +134,10 @@ class TestModelToDict:
         with app.app_context():
             from app.audit_service import model_to_dict
             
-            result = model_to_dict(superadmin_user, ['username', 'email', 'role'])
+            result = model_to_dict(superadmin_user, ['username', 'email'])
             
             assert result['username'] == 'superadmin'
             assert result['email'] == 'superadmin@test.com'
-            assert result['role'] == 'superadmin'
 
     def test_model_to_dict_agent(self, app, agent):
         """Test converting Agent model to dict."""
@@ -186,10 +185,10 @@ class TestModelToDict:
         with app.app_context():
             from app.audit_service import model_to_dict
             
-            result = model_to_dict(superadmin_user, ['username', 'role'])
+            result = model_to_dict(superadmin_user, ['username', 'is_superadmin'])
             
             assert 'username' in result
-            assert 'role' in result
+            assert 'is_superadmin' in result
             assert 'email' not in result
 
 

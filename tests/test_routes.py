@@ -455,10 +455,10 @@ class TestAgentRoutes:
 class TestUserManagementRoutes:
     """Test user management routes."""
 
-    def test_users_list_admin_only(self, client, admin_user):
-        """Test users list is admin-only."""
+    def test_users_list_superadmin_only(self, client, superadmin_user):
+        """Test users list is superadmin-only."""
         client.post('/login', data={
-            'username': 'admin',
+            'username': 'superadmin',
             'password': 'password123'
         })
         
@@ -497,7 +497,6 @@ class TestUserManagementRoutes:
             assert user is not None
             assert user.email == 'newuser@erp.local'
             assert user.full_name == 'newuser'
-            assert user.role == 'operatore'
 
     def test_edit_user_post(self, client, app, superadmin_user, operator_user):
         """Test POST to edit user."""
@@ -516,7 +515,6 @@ class TestUserManagementRoutes:
             user = User.query.get(operator_user.id)
             assert user.email == 'operator@test.com'
             assert user.full_name == 'Operator User'
-            assert user.role == 'operatore'
             assert user.check_password('N3wStr0ngPass!') is True
 
     def test_delete_user_post(self, client, app, superadmin_user, operator_user):
@@ -553,10 +551,11 @@ class TestUserManagementRoutes:
             user = User.query.get(user_id)
             assert user is not None
 
-    def test_delete_superadmin_denied_for_admin(self, client, app, superadmin_user, admin_user):
-        """Test deleting superadmin is denied for admin users."""
+    def test_delete_superadmin_denied(self, client, app, superadmin_user, operator_user):
+        """Test deleting superadmin is denied."""
+        # Create a second superadmin to attempt deletion (superadmin cannot delete itself)
         client.post('/login', data={
-            'username': 'admin',
+            'username': 'superadmin',
             'password': 'password123'
         })
 
@@ -669,10 +668,10 @@ class TestAuditRoutes:
         response = client.get('/audit/')
         assert response.status_code == 200
 
-    def test_audit_list_admin_denied(self, client, admin_user):
-        """Test audit list denies access to admins."""
+    def test_audit_list_regular_user_denied(self, client, operator_user):
+        """Test audit list denies access to regular users."""
         client.post('/login', data={
-            'username': 'admin',
+            'username': 'operator',
             'password': 'password123'
         })
         
@@ -725,8 +724,8 @@ class TestManualRoutes:
         assert b'User Manual' in response.data
         assert b'What is Small ERP' in response.data
 
-    def test_manual_accessible_by_operator(self, client, operator_user):
-        """Test manual page is accessible by operator role."""
+    def test_manual_accessible_by_regular_user(self, client, operator_user):
+        """Test manual page is accessible by regular user."""
         client.post('/login', data={
             'username': 'operator',
             'password': 'password123'

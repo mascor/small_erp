@@ -74,7 +74,7 @@
         {% for act in activities %}
         <tr>
           <td>
-            {% if current_user.is_admin or act.created_by == current_user.id %}
+            {% if current_user.is_superadmin or act.created_by == current_user.id %}
             <input type="checkbox" name="activity_ids" value="{{ act.id }}" class="activity-checkbox">
             {% endif %}
           </td>
@@ -88,7 +88,7 @@
             <div class="btn-group">
               <a href="{{ url_for('activities.detail', id=act.id) }}" class="btn btn-ghost btn-sm">{{ tr('Dettaglio',
                 'Details') }}</a>
-              {% if current_user.is_admin or act.created_by == current_user.id %}
+              {% if current_user.is_superadmin or act.created_by == current_user.id %}
               <a href="{{ url_for('activities.edit', id=act.id) }}" class="btn btn-ghost btn-sm">{{ tr('Modifica',
                 'Edit') }}</a>
               <form method="POST" action="{{ url_for('activities.delete', id=act.id) }}" class="confirm-delete"
