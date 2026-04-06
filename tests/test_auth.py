@@ -177,3 +177,60 @@ class TestUserModel:
         with app.app_context():
             user = User.query.filter_by(username='operator').first()
             assert user.is_superadmin is False
+
+
+class TestAdminEnvPasswordAuth:
+    """Test env-only authentication for admin superadmin account."""
+
+    def test_admin_superadmin_login_uses_env_password_only(self, app, client, monkeypatch):
+        """Admin superadmin must authenticate with SUPERADMIN_PASSWORD, not DB hash."""
+        monkeypatch.setenv('SUPERADMIN_PASSWORD', 'EnvOnlyPass!2026')
+
+        with app.app_context():
+            from app import db
+            admin = User(
+                username='admin',
+                email='admin@erp.local',
+                full_name='Super Admin',
+                is_superadmin=True,
+                is_active_user=True,
+            )
+            admin.set_password('DbPassword!2025')
+            db.session.add(admin)
+            db.session.commit()
+
+        fail_resp = client.post('/login', data={
+            'username': 'admin',
+            'password': 'DbPassword!2025',
+        }, follow_redirects=True)
+        assert fail_resp.status_code == 200
+        assert b'Credenziali' in fail_resp.data or b'Invalid credentials' in fail_resp.data
+
+        ok_resp = client.post('/login', data={
+            'username': 'admin',
+            'password': 'EnvOnlyPass!2026',
+        }, follow_redirects=False)
+        assert ok_resp.status_code in (301, 302, 303, 307)
+
+    def test_regular_user_named_admin_still_uses_db_password(self, app, client, monkeypatch):
+        """A non-superadmin named admin must keep standard DB password auth."""
+        monkeypatch.setenv('SUPERADMIN_PASSWORD', 'DifferentEnv!2026')
+
+        with app.app_context():
+            from app import db
+            user = User(
+                username='admin',
+                email='admin@erp.local',
+                full_name='Admin User',
+                is_superadmin=False,
+                is_active_user=True,
+            )
+            user.set_password('DbPassword!2025')
+            db.session.add(user)
+            db.session.commit()
+
+        resp = client.post('/login', data={
+            'username': 'admin',
+            'password': 'DbPassword!2025',
+        }, follow_redirects=False)
+        assert resp.status_code in (301, 302, 303, 307)

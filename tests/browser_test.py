@@ -4,11 +4,13 @@ Browser-style navigation test for Small ERP.
 Tests every page and function by making real HTTP requests to the running server.
 """
 import sys
+import os
 import requests
 from datetime import date
 from urllib.parse import urlparse
 
 BASE = 'http://127.0.0.1:5099'
+SUPERADMIN_PASSWORD = os.environ.get('SUPERADMIN_PASSWORD', '')
 PASS = 0
 FAIL = 0
 ERRORS = []
@@ -37,8 +39,11 @@ def check(condition, test_name, detail=''):
         fail(test_name, detail)
 
 
-def login(session, username='admin', password='admin123'):
+def login(session, username='admin', password=None):
     """Login and return the response."""
+    if password is None:
+        password = SUPERADMIN_PASSWORD
+
     # Get CSRF token from login page
     r = session.get(f'{BASE}/login')
     # Extract csrf_token from form
@@ -535,7 +540,7 @@ csrf, _ = get_csrf(s, f'{BASE}/login')
 s3 = requests.Session()
 csrf3, _ = get_csrf(s3, f'{BASE}/login')
 r = s3.post(f'{BASE}/login?next=https://evil.com', data={
-    'username': 'admin', 'password': 'admin123', 'csrf_token': csrf3,
+    'username': 'admin', 'password': SUPERADMIN_PASSWORD, 'csrf_token': csrf3,
 }, allow_redirects=False)
 location = r.headers.get('Location', '')
 check('evil.com' not in location, 'Open redirect on login blocked')
@@ -544,7 +549,7 @@ check('evil.com' not in location, 'Open redirect on login blocked')
 s4 = requests.Session()
 csrf4, _ = get_csrf(s4, f'{BASE}/login')
 r = s4.post(f'{BASE}/login?next=//evil.com', data={
-    'username': 'admin', 'password': 'admin123', 'csrf_token': csrf4,
+    'username': 'admin', 'password': SUPERADMIN_PASSWORD, 'csrf_token': csrf4,
 }, allow_redirects=False)
 location = r.headers.get('Location', '')
 check('evil.com' not in location, 'Protocol-relative redirect blocked')

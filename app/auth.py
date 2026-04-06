@@ -1,3 +1,5 @@
+import hmac
+import os
 from urllib.parse import urlparse
 from flask import Blueprint, render_template, redirect, url_for, flash, request, session
 from flask_login import login_user, logout_user, login_required, current_user
@@ -19,6 +21,21 @@ def _is_safe_url(target):
     return not parsed.netloc and not parsed.scheme
 
 
+def _is_valid_login(user, password):
+    """Validate credentials, using .env for the admin superadmin account."""
+    if not user or not user.is_active_user:
+        return False
+
+    if user.is_superadmin and user.username == 'admin':
+        env_password = os.environ.get('SUPERADMIN_PASSWORD')
+        if not env_password:
+            logger.error('SUPERADMIN_PASSWORD is not configured; admin login is disabled')
+            return False
+        return hmac.compare_digest(password, env_password)
+
+    return user.check_password(password)
+
+
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
@@ -32,7 +49,7 @@ def login():
 
         user = User.query.filter_by(username=username).first()
 
-        if user and user.check_password(password) and user.is_active_user:
+        if _is_valid_login(user, password):
             session.clear()  # Prevent session fixation
             login_user(user)
             session.permanent = True

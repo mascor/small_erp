@@ -43,7 +43,8 @@ cp .env.example .env
 python init_db.py
 ```
 
-Questo crea il database SQLite e il superadmin con le credenziali configurate in `.env`.
+Questo crea il database SQLite e il superadmin `admin`.
+La password reale del superadmin viene letta da `.env` (`SUPERADMIN_PASSWORD`) al login e non viene salvata nel database.
 
 ### 5. (Opzionale) Inserisci dati demo
 
@@ -64,6 +65,7 @@ L'applicazione sarà disponibile su **http://127.0.0.1:5000**
 ## Credenziali Default
 
 Le credenziali del superadmin sono configurate nel file `.env` (variabile `SUPERADMIN_PASSWORD`).
+Per sicurezza, l'hash della password del superadmin nel DB e solo un placeholder tecnico e non rappresenta la password reale.
 Gli utenti demo (`mario.rossi`, `laura.bianchi`) vengono creati solo eseguendo `seed_demo.py`.
 
 > **Importante:** cambiare le password al primo accesso. Non usare le credenziali di default in produzione.

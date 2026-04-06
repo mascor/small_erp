@@ -1,0 +1,578 @@
+[2026-04-03 23:02:37] ERROR    [app:log_exception:875] Exception on /users/new [POST]
+Traceback (most recent call last):
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlite3.OperationalError: no such table: users
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/opt/small_erp/env/lib/python3.12/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/flask_login/utils.py", line 284, in decorated_view
+    elif not current_user.is_authenticated:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/werkzeug/local.py", line 318, in __get__
+    obj = instance._get_current_object()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/werkzeug/local.py", line 526, in _get_current_object
+    return get_name(local())
+                    ^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/flask_login/utils.py", line 25, in <lambda>
+    current_user = LocalProxy(lambda: _get_user())
+                                      ^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/flask_login/utils.py", line 370, in _get_user
+    current_app.login_manager._load_user()
+  File "/opt/small_erp/env/lib/python3.12/site-packages/flask_login/login_manager.py", line 364, in _load_user
+    user = self._user_callback(user_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/__init__.py", line 64, in load_user
+    csrf.init_app(app)
+               ^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/orm/scoping.py", line 1044, in get
+    return self._proxied.get(
+           ^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 3680, in get
+    return self._get_impl(
+           ^^^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 3859, in _get_impl
+    return db_load_fn(
+           ^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/orm/loading.py", line 695, in load_on_pk_identity
+    session.execute(
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 2351, in execute
+    return self._execute_internal(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 2249, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/orm/context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+             ^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1419, in execute
+    return meth(
+           ^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/sql/elements.py", line 527, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 2363, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: users
+[SQL: SELECT users.id AS users_id, users.username AS users_username, users.email AS users_email, users.password_hash AS users_password_hash, users.full_name AS users_full_name, users.role AS users_role, users.is_active_user AS users_is_active_user, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
+FROM users 
+WHERE users.id = ?]
+[parameters: (1,)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+[2026-04-03 23:02:39] ERROR    [app:log_exception:875] Exception on /users/new [GET]
+Traceback (most recent call last):
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlite3.OperationalError: no such table: users
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/opt/small_erp/env/lib/python3.12/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/flask_login/utils.py", line 284, in decorated_view
+    elif not current_user.is_authenticated:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/werkzeug/local.py", line 318, in __get__
+    obj = instance._get_current_object()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/werkzeug/local.py", line 526, in _get_current_object
+    return get_name(local())
+                    ^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/flask_login/utils.py", line 25, in <lambda>
+    current_user = LocalProxy(lambda: _get_user())
+                                      ^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/flask_login/utils.py", line 370, in _get_user
+    current_app.login_manager._load_user()
+  File "/opt/small_erp/env/lib/python3.12/site-packages/flask_login/login_manager.py", line 364, in _load_user
+    user = self._user_callback(user_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/__init__.py", line 64, in load_user
+    csrf.init_app(app)
+               ^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/orm/scoping.py", line 1044, in get
+    return self._proxied.get(
+           ^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 3680, in get
+    return self._get_impl(
+           ^^^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 3859, in _get_impl
+    return db_load_fn(
+           ^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/orm/loading.py", line 695, in load_on_pk_identity
+    session.execute(
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 2351, in execute
+    return self._execute_internal(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 2249, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/orm/context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+             ^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1419, in execute
+    return meth(
+           ^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/sql/elements.py", line 527, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 2363, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: users
+[SQL: SELECT users.id AS users_id, users.username AS users_username, users.email AS users_email, users.password_hash AS users_password_hash, users.full_name AS users_full_name, users.role AS users_role, users.is_active_user AS users_is_active_user, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
+FROM users 
+WHERE users.id = ?]
+[parameters: (1,)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+[2026-04-03 23:04:11] ERROR    [app:log_exception:875] Exception on /login [POST]
+Traceback (most recent call last):
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlite3.OperationalError: no such table: users
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/opt/small_erp/env/lib/python3.12/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/auth.py", line 15, in login
+    """Validate that redirect target is a safe, relative URL."""
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/werkzeug/local.py", line 318, in __get__
+    obj = instance._get_current_object()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/werkzeug/local.py", line 526, in _get_current_object
+    return get_name(local())
+                    ^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/flask_login/utils.py", line 25, in <lambda>
+    current_user = LocalProxy(lambda: _get_user())
+                                      ^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/flask_login/utils.py", line 370, in _get_user
+    current_app.login_manager._load_user()
+  File "/opt/small_erp/env/lib/python3.12/site-packages/flask_login/login_manager.py", line 364, in _load_user
+    user = self._user_callback(user_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/__init__.py", line 64, in load_user
+    csrf.init_app(app)
+               ^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/orm/scoping.py", line 1044, in get
+    return self._proxied.get(
+           ^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 3680, in get
+    return self._get_impl(
+           ^^^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 3859, in _get_impl
+    return db_load_fn(
+           ^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/orm/loading.py", line 695, in load_on_pk_identity
+    session.execute(
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 2351, in execute
+    return self._execute_internal(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 2249, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/orm/context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+             ^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1419, in execute
+    return meth(
+           ^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/sql/elements.py", line 527, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 2363, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/opt/small_erp/env/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: users
+[SQL: SELECT users.id AS users_id, users.username AS users_username, users.email AS users_email, users.password_hash AS users_password_hash, users.full_name AS users_full_name, users.role AS users_role, users.is_active_user AS users_is_active_user, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
+FROM users 
+WHERE users.id = ?]
+[parameters: (1,)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+[2026-04-03 23:05:44] ERROR    [app.activities:create:87] Error creating activity: [<class 'decimal.ConversionSyntax'>]
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 70, in create
+    total_revenue=_validate_decimal(request.form['total_revenue'], 'Ricavo totale'),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 28, in _validate_decimal
+    d = Decimal(value_str.replace(',', '.'))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+decimal.InvalidOperation: [<class 'decimal.ConversionSyntax'>]
+[2026-04-03 23:05:44] ERROR    [app.activities:create:87] Error creating activity: Ricavo totale: valore negativo non ammesso
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 70, in create
+    total_revenue=_validate_decimal(request.form['total_revenue'], 'Ricavo totale'),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 30, in _validate_decimal
+    raise ValueError(f'{field_name}: valore negativo non ammesso')
+ValueError: Ricavo totale: valore negativo non ammesso
+[2026-04-03 23:05:45] ERROR    [app.activities:create:87] Error creating activity: Ricavo totale: valore troppo grande
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 70, in create
+    total_revenue=_validate_decimal(request.form['total_revenue'], 'Ricavo totale'),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 32, in _validate_decimal
+    raise ValueError(f'{field_name}: valore troppo grande')
+ValueError: Ricavo totale: valore troppo grande
+[2026-04-03 23:07:41] ERROR    [app.activities:create:87] Error creating activity: [<class 'decimal.ConversionSyntax'>]
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 70, in create
+    total_revenue=_validate_decimal(request.form['total_revenue'], 'Ricavo totale'),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 28, in _validate_decimal
+    d = Decimal(value_str.replace(',', '.'))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+decimal.InvalidOperation: [<class 'decimal.ConversionSyntax'>]
+[2026-04-03 23:07:41] ERROR    [app.activities:create:87] Error creating activity: Ricavo totale: valore negativo non ammesso
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 70, in create
+    total_revenue=_validate_decimal(request.form['total_revenue'], 'Ricavo totale'),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 30, in _validate_decimal
+    raise ValueError(f'{field_name}: valore negativo non ammesso')
+ValueError: Ricavo totale: valore negativo non ammesso
+[2026-04-03 23:07:42] ERROR    [app.activities:create:87] Error creating activity: Ricavo totale: valore troppo grande
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 70, in create
+    total_revenue=_validate_decimal(request.form['total_revenue'], 'Ricavo totale'),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 32, in _validate_decimal
+    raise ValueError(f'{field_name}: valore troppo grande')
+ValueError: Ricavo totale: valore troppo grande
+[2026-04-03 23:09:23] ERROR    [app.activities:create:87] Error creating activity: [<class 'decimal.ConversionSyntax'>]
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 70, in create
+    total_revenue=_validate_decimal(request.form['total_revenue'], 'Ricavo totale'),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 28, in _validate_decimal
+    d = Decimal(value_str.replace(',', '.'))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+decimal.InvalidOperation: [<class 'decimal.ConversionSyntax'>]
+[2026-04-03 23:09:23] ERROR    [app.activities:create:87] Error creating activity: Ricavo totale: valore negativo non ammesso
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 70, in create
+    total_revenue=_validate_decimal(request.form['total_revenue'], 'Ricavo totale'),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 30, in _validate_decimal
+    raise ValueError(f'{field_name}: valore negativo non ammesso')
+ValueError: Ricavo totale: valore negativo non ammesso
+[2026-04-03 23:09:24] ERROR    [app.activities:create:87] Error creating activity: Ricavo totale: valore troppo grande
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 70, in create
+    total_revenue=_validate_decimal(request.form['total_revenue'], 'Ricavo totale'),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 32, in _validate_decimal
+    raise ValueError(f'{field_name}: valore troppo grande')
+ValueError: Ricavo totale: valore troppo grande
+[2026-04-03 23:39:46] ERROR    [app.activities:create:98] Error creating activity: [<class 'decimal.ConversionSyntax'>]
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 81, in create
+    total_revenue=_validate_decimal(request.form['total_revenue'], tr('Ricavo totale', 'Total revenue')),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 28, in _validate_decimal
+    d = Decimal(value_str.replace(',', '.'))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+decimal.InvalidOperation: [<class 'decimal.ConversionSyntax'>]
+[2026-04-03 23:39:46] ERROR    [app.activities:create:98] Error creating activity: Ricavo totale: valore negativo non ammesso
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 81, in create
+    total_revenue=_validate_decimal(request.form['total_revenue'], tr('Ricavo totale', 'Total revenue')),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 30, in _validate_decimal
+    raise ValueError(f'{field_name}: valore negativo non ammesso')
+ValueError: Ricavo totale: valore negativo non ammesso
+[2026-04-03 23:39:46] ERROR    [app.activities:create:98] Error creating activity: Ricavo totale: valore troppo grande
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 81, in create
+    total_revenue=_validate_decimal(request.form['total_revenue'], tr('Ricavo totale', 'Total revenue')),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 33, in _validate_decimal
+    raise ValueError(f'{field_name}: valore troppo grande')
+ValueError: Ricavo totale: valore troppo grande
+[2026-04-03 23:40:02] ERROR    [app.activities:create:98] Error creating activity: [<class 'decimal.ConversionSyntax'>]
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 81, in create
+    total_revenue=_validate_decimal(request.form['total_revenue'], tr('Ricavo totale', 'Total revenue')),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 28, in _validate_decimal
+    d = Decimal(value_str.replace(',', '.'))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+decimal.InvalidOperation: [<class 'decimal.ConversionSyntax'>]
+[2026-04-03 23:40:02] ERROR    [app.activities:create:98] Error creating activity: Titolo: campo obbligatorio
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 73, in create
+    title = _require_non_empty(request.form.get('title', ''), tr('Titolo', 'Title'))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 40, in _require_non_empty
+    raise ValueError(f'{field_name}: campo obbligatorio')
+ValueError: Titolo: campo obbligatorio
+[2026-04-03 23:40:03] ERROR    [app.activities:create:98] Error creating activity: Titolo: campo obbligatorio
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 73, in create
+    title = _require_non_empty(request.form.get('title', ''), tr('Titolo', 'Title'))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 40, in _require_non_empty
+    raise ValueError(f'{field_name}: campo obbligatorio')
+ValueError: Titolo: campo obbligatorio
+[2026-04-03 23:40:03] ERROR    [app.activities:create:98] Error creating activity: % agente: valore troppo grande
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 83, in create
+    agent_percentage=_validate_decimal(request.form.get('agent_percentage', '0'), tr('% agente', 'Agent %'), max_value=Decimal('100')),
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 33, in _validate_decimal
+    raise ValueError(f'{field_name}: valore troppo grande')
+ValueError: % agente: valore troppo grande
+[2026-04-03 23:40:03] ERROR    [app.activities:create:98] Error creating activity: Data: campo obbligatorio
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 74, in create
+    date_str = _require_non_empty(request.form.get('date', ''), tr('Data', 'Date'))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 40, in _require_non_empty
+    raise ValueError(f'{field_name}: campo obbligatorio')
+ValueError: Data: campo obbligatorio
+[2026-04-03 23:40:14] ERROR    [app.activities:add_cost:215] Error adding cost to activity 1: [<class 'decimal.ConversionSyntax'>]
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 199, in add_cost
+    amount=_validate_decimal(request.form['amount'], tr('Importo', 'Amount')),
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 28, in _validate_decimal
+    d = Decimal(value_str.replace(',', '.'))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+decimal.InvalidOperation: [<class 'decimal.ConversionSyntax'>]
+[2026-04-03 23:40:14] ERROR    [app.activities:add_cost:215] Error adding cost to activity 1: Descrizione: campo obbligatorio
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 192, in add_cost
+    cost_desc = _require_non_empty(request.form.get('description', ''), tr('Descrizione', 'Description'))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 40, in _require_non_empty
+    raise ValueError(f'{field_name}: campo obbligatorio')
+ValueError: Descrizione: campo obbligatorio
+[2026-04-03 23:40:15] ERROR    [app.activities:add_cost:215] Error adding cost to activity 1: Data: campo obbligatorio
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 193, in add_cost
+    cost_date_str = _require_non_empty(request.form.get('date', ''), tr('Data', 'Date'))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 40, in _require_non_empty
+    raise ValueError(f'{field_name}: campo obbligatorio')
+ValueError: Data: campo obbligatorio
+[2026-04-03 23:40:24] ERROR    [app.agents:create:54] Error creating agent: Il nome dell'agente e obbligatorio.
+Traceback (most recent call last):
+  File "/opt/small_erp/app/agents.py", line 31, in create
+    raise ValueError(tr('Il nome dell\'agente e obbligatorio.', 'Agent name is required.'))
+ValueError: Il nome dell'agente e obbligatorio.
+[2026-04-03 23:40:24] ERROR    [app.agents:create:54] Error creating agent: La percentuale deve essere tra 0 e 100.
+Traceback (most recent call last):
+  File "/opt/small_erp/app/agents.py", line 35, in create
+    raise ValueError(tr('La percentuale deve essere tra 0 e 100.', 'Percentage must be between 0 and 100.'))
+ValueError: La percentuale deve essere tra 0 e 100.
+[2026-04-03 23:40:25] ERROR    [app.agents:create:54] Error creating agent: La percentuale deve essere tra 0 e 100.
+Traceback (most recent call last):
+  File "/opt/small_erp/app/agents.py", line 35, in create
+    raise ValueError(tr('La percentuale deve essere tra 0 e 100.', 'Percentage must be between 0 and 100.'))
+ValueError: La percentuale deve essere tra 0 e 100.
+[2026-04-03 23:40:39] ERROR    [app.audit:detail:106] Error accessing audit log detail 99999: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "/opt/small_erp/app/audit.py", line 96, in detail
+    log = db.get_or_404(AuditLog, id)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/flask_sqlalchemy/extension.py", line 763, in get_or_404
+    abort(404, description=description)
+  File "/opt/small_erp/env/lib/python3.12/site-packages/flask/helpers.py", line 284, in abort
+    current_app.aborter(code, *args, **kwargs)
+  File "/opt/small_erp/env/lib/python3.12/site-packages/werkzeug/exceptions.py", line 887, in __call__
+    raise self.mapping[code](*args, **kwargs)
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+[2026-04-03 23:52:22] ERROR    [app.activities:create:98] Error creating activity: [<class 'decimal.ConversionSyntax'>]
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 81, in create
+    total_revenue=_validate_decimal(request.form['total_revenue'], tr('Ricavo totale', 'Total revenue')),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 28, in _validate_decimal
+    d = Decimal(value_str.replace(',', '.'))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+decimal.InvalidOperation: [<class 'decimal.ConversionSyntax'>]
+[2026-04-03 23:52:23] ERROR    [app.activities:create:98] Error creating activity: Ricavo totale: valore negativo non ammesso
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 81, in create
+    total_revenue=_validate_decimal(request.form['total_revenue'], tr('Ricavo totale', 'Total revenue')),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 30, in _validate_decimal
+    raise ValueError(f'{field_name}: valore negativo non ammesso')
+ValueError: Ricavo totale: valore negativo non ammesso
+[2026-04-03 23:52:23] ERROR    [app.activities:create:98] Error creating activity: Ricavo totale: valore troppo grande
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 81, in create
+    total_revenue=_validate_decimal(request.form['total_revenue'], tr('Ricavo totale', 'Total revenue')),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 33, in _validate_decimal
+    raise ValueError(f'{field_name}: valore troppo grande')
+ValueError: Ricavo totale: valore troppo grande
+[2026-04-03 23:52:41] ERROR    [app.activities:create:98] Error creating activity: [<class 'decimal.ConversionSyntax'>]
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 81, in create
+    total_revenue=_validate_decimal(request.form['total_revenue'], tr('Ricavo totale', 'Total revenue')),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 28, in _validate_decimal
+    d = Decimal(value_str.replace(',', '.'))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+decimal.InvalidOperation: [<class 'decimal.ConversionSyntax'>]
+[2026-04-03 23:52:41] ERROR    [app.activities:create:98] Error creating activity: Titolo: campo obbligatorio
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 73, in create
+    title = _require_non_empty(request.form.get('title', ''), tr('Titolo', 'Title'))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 40, in _require_non_empty
+    raise ValueError(f'{field_name}: campo obbligatorio')
+ValueError: Titolo: campo obbligatorio
+[2026-04-03 23:52:41] ERROR    [app.activities:create:98] Error creating activity: Titolo: campo obbligatorio
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 73, in create
+    title = _require_non_empty(request.form.get('title', ''), tr('Titolo', 'Title'))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 40, in _require_non_empty
+    raise ValueError(f'{field_name}: campo obbligatorio')
+ValueError: Titolo: campo obbligatorio
+[2026-04-03 23:52:42] ERROR    [app.activities:create:98] Error creating activity: % agente: valore troppo grande
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 83, in create
+    agent_percentage=_validate_decimal(request.form.get('agent_percentage', '0'), tr('% agente', 'Agent %'), max_value=Decimal('100')),
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 33, in _validate_decimal
+    raise ValueError(f'{field_name}: valore troppo grande')
+ValueError: % agente: valore troppo grande
+[2026-04-03 23:52:42] ERROR    [app.activities:create:98] Error creating activity: Data: campo obbligatorio
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 74, in create
+    date_str = _require_non_empty(request.form.get('date', ''), tr('Data', 'Date'))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 40, in _require_non_empty
+    raise ValueError(f'{field_name}: campo obbligatorio')
+ValueError: Data: campo obbligatorio
+[2026-04-03 23:52:54] ERROR    [app.activities:add_cost:215] Error adding cost to activity 1: [<class 'decimal.ConversionSyntax'>]
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 199, in add_cost
+    amount=_validate_decimal(request.form['amount'], tr('Importo', 'Amount')),
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 28, in _validate_decimal
+    d = Decimal(value_str.replace(',', '.'))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+decimal.InvalidOperation: [<class 'decimal.ConversionSyntax'>]
+[2026-04-03 23:52:54] ERROR    [app.activities:add_cost:215] Error adding cost to activity 1: Descrizione: campo obbligatorio
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 192, in add_cost
+    cost_desc = _require_non_empty(request.form.get('description', ''), tr('Descrizione', 'Description'))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 40, in _require_non_empty
+    raise ValueError(f'{field_name}: campo obbligatorio')
+ValueError: Descrizione: campo obbligatorio
+[2026-04-03 23:52:54] ERROR    [app.activities:add_cost:215] Error adding cost to activity 1: Data: campo obbligatorio
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 193, in add_cost
+    cost_date_str = _require_non_empty(request.form.get('date', ''), tr('Data', 'Date'))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 40, in _require_non_empty
+    raise ValueError(f'{field_name}: campo obbligatorio')
+ValueError: Data: campo obbligatorio
+[2026-04-03 23:53:03] ERROR    [app.agents:create:54] Error creating agent: Il nome dell'agente e obbligatorio.
+Traceback (most recent call last):
+  File "/opt/small_erp/app/agents.py", line 31, in create
+    raise ValueError(tr('Il nome dell\'agente e obbligatorio.', 'Agent name is required.'))
+ValueError: Il nome dell'agente e obbligatorio.
+[2026-04-03 23:53:04] ERROR    [app.agents:create:54] Error creating agent: La percentuale deve essere tra 0 e 100.
+Traceback (most recent call last):
+  File "/opt/small_erp/app/agents.py", line 35, in create
+    raise ValueError(tr('La percentuale deve essere tra 0 e 100.', 'Percentage must be between 0 and 100.'))
+ValueError: La percentuale deve essere tra 0 e 100.
+[2026-04-03 23:53:04] ERROR    [app.agents:create:54] Error creating agent: La percentuale deve essere tra 0 e 100.
+Traceback (most recent call last):
+  File "/opt/small_erp/app/agents.py", line 35, in create
+    raise ValueError(tr('La percentuale deve essere tra 0 e 100.', 'Percentage must be between 0 and 100.'))
+ValueError: La percentuale deve essere tra 0 e 100.
+[2026-04-03 23:53:20] ERROR    [app.audit:detail:106] Error accessing audit log detail 99999: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "/opt/small_erp/app/audit.py", line 96, in detail
+    log = db.get_or_404(AuditLog, id)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/flask_sqlalchemy/extension.py", line 763, in get_or_404
+    abort(404, description=description)
+  File "/opt/small_erp/env/lib/python3.12/site-packages/flask/helpers.py", line 284, in abort
+    current_app.aborter(code, *args, **kwargs)
+  File "/opt/small_erp/env/lib/python3.12/site-packages/werkzeug/exceptions.py", line 887, in __call__
+    raise self.mapping[code](*args, **kwargs)
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.

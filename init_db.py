@@ -1,6 +1,7 @@
 """Initialize the database and create superadmin if not exists."""
 import os
 import logging
+import secrets
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -19,9 +20,15 @@ def init():
             logger.info('Database created successfully')
             print('Database creato con successo.')
 
+            env_password = os.environ.get('SUPERADMIN_PASSWORD')
+            if not env_password:
+                raise ValueError('SUPERADMIN_PASSWORD must be set in .env')
+
+            # The real superadmin password is read from .env at login time.
+            # Store only a random non-recoverable hash in DB.
+            placeholder_password = secrets.token_urlsafe(64)
             superadmin = User.query.filter_by(username='admin').first()
             if not superadmin:
-                password = os.environ.get('SUPERADMIN_PASSWORD', 'admin123')
                 superadmin = User(
                     username='admin',
                     email='admin@erp.local',
@@ -29,14 +36,30 @@ def init():
                     is_superadmin=True,
                     is_active_user=True,
                 )
-                superadmin.set_password(password)
+                superadmin.set_password(placeholder_password)
                 db.session.add(superadmin)
                 db.session.commit()
                 logger.info(f'Superadmin created: username=admin')
-                print(f'Superadmin creato: username=admin, password={password}')
+                print('Superadmin creato: username=admin (password gestita da .env).')
             else:
-                logger.info('Superadmin already exists')
-                print('Superadmin già esistente.')
+                changed = False
+                if not superadmin.is_superadmin:
+                    superadmin.is_superadmin = True
+                    changed = True
+                if not superadmin.is_active_user:
+                    superadmin.is_active_user = True
+                    changed = True
+
+                superadmin.set_password(placeholder_password)
+                changed = True
+
+                if changed:
+                    db.session.commit()
+                    logger.info('Superadmin account realigned: credentials managed by environment')
+                else:
+                    logger.info('Superadmin already exists')
+
+                print('Superadmin già esistente (password gestita da .env).')
         except Exception as e:
             logger.error(f'Error initializing database: {str(e)}', exc_info=True)
             raise
