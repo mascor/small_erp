@@ -20,7 +20,7 @@
     <a href="{{ url_for('activities.edit', id=activity.id) }}" class="btn btn-secondary">{{ tr('Modifica', 'Edit')
       }}</a>
     <form method="POST" action="{{ url_for('activities.delete', id=activity.id) }}" class="confirm-delete"
-      onsubmit="return confirm('{{ tr('Eliminare questa attivita e tutti i dati collegati?', 'Delete this activity and all linked data?') }}')">
+              data-confirm="{{ tr('Eliminare questa attivita e tutti i dati collegati?', 'Delete this activity and all linked data?') }}">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <button type="submit" class="btn btn-danger btn-sm">{{ tr('Elimina', 'Delete') }}</button>
     </form>
@@ -33,6 +33,7 @@
 {% endif %}
 
 <!-- Financial Breakdown -->
+{% if current_user.is_superadmin %}
 <div class="breakdown mb-xl">
   <div class="breakdown-header">
     <h3>{{ tr('Riepilogo Economico', 'Financial Summary') }}</h3>
@@ -57,6 +58,21 @@
       <span class="label">{{ tr('Spese Extra', 'Extra Costs') }}</span>
       <span class="value negative">&minus; &euro; {{ totals.total_extra_costs|currency }}</span>
     </div>
+    {% if totals.total_internal_consultant_costs > 0 %}
+    <div class="breakdown-row" style="padding-left:1.5rem;">
+      <span class="label text-muted text-sm">
+        ↳ {{ tr('di cui Consulenti Interni', 'of which Internal Consultants') }}
+        ({{ totals.total_internal_hours }} h)
+      </span>
+      <span class="value text-muted text-sm">&euro; {{ totals.total_internal_consultant_costs|currency }}</span>
+    </div>
+    {% endif %}
+    {% if totals.total_external_consultant_costs > 0 %}
+    <div class="breakdown-row" style="padding-left:1.5rem;">
+      <span class="label text-muted text-sm">↳ {{ tr('di cui Consulenti Esterni', 'of which External Consultants') }}</span>
+      <span class="value text-muted text-sm">&euro; {{ totals.total_external_consultant_costs|currency }}</span>
+    </div>
+    {% endif %}
     <hr class="breakdown-divider">
     <div class="breakdown-row subtotal">
       <span class="label"><strong>{{ tr('Margine Netto', 'Net Margin') }}</strong></span>
@@ -75,6 +91,74 @@
       </span>
     </div>
   </div>
+</div>
+{% endif %}
+
+<!-- Timesheets Section -->
+<div class="detail-section">
+  <div class="d-flex justify-between align-center mb-md">
+    <h3>{{ tr('Timesheets', 'Timesheets') }} ({{ timesheets|length }})</h3>
+    <a href="{{ url_for('activities.add_timesheet', id=activity.id) }}" class="btn btn-primary btn-sm">
+      + {{ tr('Aggiungi Timesheet', 'Add Timesheet') }}
+    </a>
+  </div>
+
+  {% if timesheets %}
+  <div class="card">
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>{{ tr('Data', 'Date') }}</th>
+            <th>{{ tr('Consulente', 'Consultant') }}</th>
+            <th class="num">{{ tr('Ore', 'Hours') }}</th>
+            <th>{{ tr('Descrizione', 'Description') }}</th>
+            <th class="num">{{ tr('Tariffa', 'Rate') }}</th>
+            <th class="num">{{ tr('Costo', 'Cost') }}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ts in timesheets %}
+          {% set ts_cost = ts.hours|float * ts.hourly_rate_snapshot|float %}
+          <tr>
+            <td class="text-sm">{{ ts.work_date.strftime('%d/%m/%Y') }}</td>
+            <td>{{ ts.user.full_name if ts.user else '—' }}</td>
+            <td class="num">{{ ts.hours }}</td>
+            <td class="text-muted text-sm">{{ ts.description }}</td>
+            <td class="num text-sm">&euro; {{ ts.hourly_rate_snapshot|currency }}</td>
+            <td class="num">&euro; {{ ts_cost|currency }}</td>
+            <td class="text-right">
+              {% if current_user.is_superadmin or ts.user_id == current_user.id %}
+              <div class="btn-group">
+                <a href="{{ url_for('activities.edit_timesheet', id=activity.id, entry_id=ts.id) }}"
+                  class="btn btn-ghost btn-sm">{{ tr('Modifica', 'Edit') }}</a>
+                <form method="POST"
+                  action="{{ url_for('activities.delete_timesheet', id=activity.id, entry_id=ts.id) }}"
+                  class="confirm-delete"
+              data-confirm="{{ tr('Eliminare questo timesheet?', 'Delete this timesheet?') }}">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="btn btn-ghost btn-sm text-danger">{{ tr('Elimina', 'Delete') }}</button>
+                </form>
+              </div>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% else %}
+  <div class="card">
+    <div class="empty-state">
+      <p>{{ tr('Nessun timesheet per questa attivita.', 'No timesheets for this activity.') }}</p>
+      <a href="{{ url_for('activities.add_timesheet', id=activity.id) }}" class="btn btn-primary btn-sm">
+        + {{ tr('Aggiungi Timesheet', 'Add Timesheet') }}
+      </a>
+    </div>
+  </div>
+  {% endif %}
 </div>
 
 <!-- Costs Section -->
@@ -103,7 +187,19 @@
         <tbody>
           {% for cost in costs %}
           <tr>
-            <td>{{ cost.description }}</td>
+            <td>
+              {{ cost.description }}
+              {% if cost.is_auto_generated %}
+              <span class="badge badge-bozza text-sm" title="{{ tr('Generato automaticamente dai timesheet', 'Auto-generated from timesheets') }}">
+                Auto
+              </span>
+              {% endif %}
+              {% if cost.line_type == 'internal_consultant' %}
+              <span class="badge badge-confermata text-sm">{{ tr('Interno', 'Internal') }}</span>
+              {% elif cost.line_type == 'external_consultant' %}
+              <span class="badge" style="background:#e8f4fd;color:#1a6fa8;" class="text-sm">{{ tr('Esterno', 'External') }}</span>
+              {% endif %}
+            </td>
             <td><span class="text-sm">{{ cost.category|capitalize }}</span></td>
             <td>
               {% if cost.cost_type == 'operativo' %}
@@ -113,18 +209,27 @@
               {% endif %}
             </td>
             <td class="text-muted text-sm">{{ cost.date.strftime('%d/%m/%Y') }}</td>
-            <td class="num">&euro; {{ cost.amount|currency }}</td>
+            <td class="num">
+              &euro; {{ cost.amount|currency }}
+              {% if cost.hours_total %}
+              <div class="text-muted text-sm">{{ cost.hours_total }} h</div>
+              {% endif %}
+            </td>
             <td class="text-right">
+              {% if cost.is_auto_generated %}
+              <span class="text-muted text-sm">{{ tr('Da timesheet', 'From timesheets') }}</span>
+              {% else %}
               <div class="btn-group">
                 <a href="{{ url_for('activities.edit_cost', id=activity.id, cost_id=cost.id) }}"
                   class="btn btn-ghost btn-sm">{{ tr('Modifica', 'Edit') }}</a>
                 <form method="POST" action="{{ url_for('activities.delete_cost', id=activity.id, cost_id=cost.id) }}"
                   class="confirm-delete"
-                  onsubmit="return confirm('{{ tr('Eliminare questo costo?', 'Delete this cost?') }}')">
+              data-confirm="{{ tr('Eliminare questo costo?', 'Delete this cost?') }}">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                   <button type="submit" class="btn btn-ghost btn-sm text-danger">{{ tr('Elimina', 'Delete') }}</button>
                 </form>
               </div>
+              {% endif %}
             </td>
           </tr>
           {% endfor %}
@@ -165,7 +270,7 @@
             class="btn btn-ghost btn-sm">{{ tr('Modifica', 'Edit') }}</a>
           <form method="POST" action="{{ url_for('activities.delete_participant', id=activity.id, pid=p.id) }}"
             class="confirm-delete"
-            onsubmit="return confirm('{{ tr('Rimuovere questo partecipante?', 'Remove this participant?') }}')">
+              data-confirm="{{ tr('Rimuovere questo partecipante?', 'Remove this participant?') }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="btn btn-ghost btn-sm text-danger">&times;</button>
           </form>

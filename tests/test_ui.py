@@ -1288,7 +1288,7 @@ class TestReportsUI:
     def test_reports_has_print_button(self, client, superadmin_user):
         _login(client)
         resp = client.get('/reports/')
-        assert b'window.print()' in resp.data
+        assert b'print-report-btn' in resp.data
 
     def test_reports_different_month(self, client, superadmin_user):
         _login(client)

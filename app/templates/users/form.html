@@ -43,6 +43,19 @@
 
       <div class="form-row">
         <div class="form-group">
+          <label class="form-label" for="hourly_cost_rate">
+            {{ tr('Tariffa oraria interna (€/h)', 'Internal hourly rate (€/h)') }}
+          </label>
+          <input type="number" id="hourly_cost_rate" name="hourly_cost_rate" class="form-control"
+            min="0" step="0.01"
+            value="{{ user.hourly_cost_rate if user and user.hourly_cost_rate else '0' }}"
+            placeholder="0.00">
+          <small class="text-muted">{{ tr('Usata per il calcolo automatico dei costi nei timesheet.', 'Used for automatic cost calculation in timesheets.') }}</small>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
           <label class="form-label">&nbsp;</label>
           <div class="form-check">
             <input type="checkbox" id="is_active" name="is_active" {% if not user or user.is_active_user %}checked{%

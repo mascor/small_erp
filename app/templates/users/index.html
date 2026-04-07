@@ -26,7 +26,7 @@
   </p>
   <div style="display:flex; gap:.5rem; align-items:center;">
     <form method="POST" action="{{ url_for('users.delete', id=confirm_delete_user.id) }}"
-      onsubmit="return confirm('{{ tr('ULTIMA CONFERMA: eliminare l\'utente e TUTTI i dati collegati?', 'FINAL CONFIRMATION: delete the user and ALL linked data?') }}');">
+      data-confirm="{{ tr('ULTIMA CONFERMA: eliminare l\'utente e TUTTI i dati collegati?', 'FINAL CONFIRMATION: delete the user and ALL linked data?') }}">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <input type="hidden" name="confirm_force" value="1">
       <button type="submit" class="btn btn-danger btn-sm">{{ tr('Conferma eliminazione', 'Confirm deletion') }}</button>
@@ -62,7 +62,7 @@
               }}</a>
             {% if not user.is_superadmin and user.id != current_user.id %}
             <form method="POST" action="{{ url_for('users.delete', id=user.id) }}" style="display:inline;"
-              onsubmit="return confirm('{{ tr('Confermi eliminazione utente?', 'Confirm user deletion?') }}');">
+              data-confirm="{{ tr('Confermi eliminazione utente?', 'Confirm user deletion?') }}">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <button type="submit" class="btn btn-danger btn-sm">{{ tr('Elimina', 'Delete') }}</button>
             </form>

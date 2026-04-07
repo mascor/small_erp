@@ -5,14 +5,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}Small ERP{% endblock %}</title>
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+  <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.svg') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 
 <body>
   <div class="app-layout">
     <!-- Mobile toggle -->
-    <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Menu">&#9776;</button>
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    <button class="sidebar-toggle" aria-label="Menu">&#9776;</button>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
@@ -40,10 +42,16 @@
         </a>
 
         <div class="nav-section">{{ tr('Analisi', 'Insights') }}</div>
+        <a href="{{ url_for('timesheets.my_timesheets') }}"
+          class="nav-link {% if request.endpoint and request.endpoint.startswith('timesheets.') %}active{% endif %}">
+          <span class="nav-icon">&#9201;</span> {{ tr('I miei Timesheets', 'My Timesheets') }}
+        </a>
+        {% if current_user.is_superadmin %}
         <a href="{{ url_for('reports.index') }}"
           class="nav-link {% if request.endpoint and request.endpoint.startswith('reports.') %}active{% endif %}">
           <span class="nav-icon">&#9776;</span> {{ tr('Report Mensili', 'Monthly Reports') }}
         </a>
+        {% endif %}
         <a href="{{ url_for('manual.index') }}"
           class="nav-link {% if request.endpoint and request.endpoint.startswith('manual.') %}active{% endif %}">
           <span class="nav-icon">&#128214;</span> {{ tr('Manuale', 'Manual') }}
@@ -74,7 +82,7 @@
           <input type="hidden" name="next"
             value="{% if request.query_string %}{{ request.full_path }}{% else %}{{ request.path }}{% endif %}">
           <label for="lang-switch">{{ tr('Lingua', 'Language') }}</label>
-          <select id="lang-switch" name="lang" class="lang-select" onchange="this.form.submit()">
+          <select id="lang-switch" name="lang" class="lang-select">
             <option value="it" {% if current_lang=='it' %}selected{% endif %}>Italiano</option>
             <option value="en" {% if current_lang=='en' %}selected{% endif %}>English</option>
           </select>
@@ -95,7 +103,7 @@
           {% for category, message in messages %}
           <div class="flash flash-{{ category }}">
             {{ message }}
-            <button class="flash-close" onclick="this.parentElement.remove()">&times;</button>
+            <button class="flash-close" type="button">&times;</button>
           </div>
           {% endfor %}
         </div>
@@ -107,22 +115,7 @@
     </main>
   </div>
 
-  <script>
-    function toggleSidebar() {
-      document.getElementById('sidebar').classList.toggle('open');
-      document.getElementById('sidebarOverlay').classList.toggle('visible');
-    }
-
-    // Auto-dismiss flash messages
-    document.querySelectorAll('.flash').forEach(el => {
-      setTimeout(() => {
-        el.style.opacity = '0';
-        el.style.transform = 'translateY(-8px)';
-        el.style.transition = 'all 0.3s ease';
-        setTimeout(() => el.remove(), 300);
-      }, 5000);
-    });
-  </script>
+  <script src="{{ url_for('static', filename='js/base.js') }}"></script>
   {% block scripts %}{% endblock %}
 </body>
 

@@ -1,3 +1,4 @@
+from decimal import Decimal, InvalidOperation
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from . import db
@@ -12,7 +13,7 @@ logger = get_logger(__name__)
 
 users_bp = Blueprint('users', __name__, url_prefix='/users')
 
-USER_FIELDS = ['username', 'is_active_user']
+USER_FIELDS = ['username', 'is_active_user', 'hourly_cost_rate']
 
 
 def _validate_password(password):
@@ -68,12 +69,23 @@ def create():
             flash(pw_err, 'error')
             return render_template('users/form.html', user=None)
 
+        hourly_rate_str = request.form.get('hourly_cost_rate', '0').strip()
+        try:
+            hourly_rate = Decimal(hourly_rate_str.replace(',', '.')) if hourly_rate_str else Decimal('0')
+            if hourly_rate < 0:
+                raise ValueError('negative')
+        except (InvalidOperation, ValueError):
+            flash(tr('Tariffa oraria non valida.', 'Invalid hourly rate.'), 'error')
+            return render_template('users/form.html', user=None)
+
         user = User(
             username=username,
             # Keep required legacy fields populated while hiding them from UI.
             email=f'{username}@erp.local',
             full_name=username,
             is_active_user='is_active' in request.form,
+            hourly_cost_rate=hourly_rate,
+            must_change_password=True,
         )
         user.set_password(password)
         db.session.add(user)
@@ -104,6 +116,16 @@ def edit(id):
         old_values = model_to_dict(user, USER_FIELDS)
 
         user.is_active_user = 'is_active' in request.form
+
+        hourly_rate_str = request.form.get('hourly_cost_rate', '0').strip()
+        try:
+            hourly_rate = Decimal(hourly_rate_str.replace(',', '.')) if hourly_rate_str else Decimal('0')
+            if hourly_rate < 0:
+                raise ValueError('negative')
+            user.hourly_cost_rate = hourly_rate
+        except (InvalidOperation, ValueError):
+            flash(tr('Tariffa oraria non valida.', 'Invalid hourly rate.'), 'error')
+            return render_template('users/form.html', user=user)
 
         new_password = request.form.get('password', '').strip()
         if new_password:

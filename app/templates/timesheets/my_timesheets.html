@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}{{ tr('I miei Timesheets', 'My Timesheets') }} — Small ERP{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>{{ tr('I miei Timesheets', 'My Timesheets') }}</h1>
+</div>
+
+<!-- Filters -->
+<div class="card mb-lg timesheets-filters-card">
+  <div class="card-body">
+    <form method="GET" class="timesheets-filters-form">
+      <div class="form-group timesheets-filter-field">
+        <label class="form-label text-sm">{{ tr('Mese', 'Month') }}</label>
+        <select name="month" class="form-control form-control-sm">
+          {% for m in range(1,13) %}
+          <option value="{{ m }}" {% if m==filter_month %}selected{% endif %}>{{ m }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group timesheets-filter-field">
+        <label class="form-label text-sm">{{ tr('Anno', 'Year') }}</label>
+        <select name="year" class="form-control form-control-sm">
+          {% for y in years %}
+          <option value="{{ y }}" {% if y==filter_year %}selected{% endif %}>{{ y }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group timesheets-filter-field timesheets-filter-activity">
+        <label class="form-label text-sm">{{ tr('Attivita', 'Activity') }}</label>
+        <select name="activity_id" class="form-control form-control-sm">
+          <option value="">— {{ tr('Tutte', 'All') }} —</option>
+          {% for a in activities %}
+          <option value="{{ a.id }}" {% if filter_activity_id==a.id|string %}selected{% endif %}>{{ a.title }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% if current_user.is_superadmin and users %}
+      <div class="form-group timesheets-filter-field timesheets-filter-user">
+        <label class="form-label text-sm">{{ tr('Utente', 'User') }}</label>
+        <select name="user_id" class="form-control form-control-sm">
+          <option value="">— {{ tr('Tutti', 'All') }} —</option>
+          {% for u in users %}
+          <option value="{{ u.id }}" {% if filter_user_id==u.id|string %}selected{% endif %}>{{ u.full_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% endif %}
+      <div class="timesheets-filter-action">
+        <button type="submit" class="btn btn-primary btn-sm">{{ tr('Filtra', 'Filter') }}</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Summary -->
+<div class="timesheets-summary mb-lg">
+  <div class="card timesheets-summary-card">
+    <div class="text-muted text-sm">{{ tr('Ore totali', 'Total hours') }}</div>
+    <div class="timesheets-summary-value">{{ total_hours }}</div>
+  </div>
+  <div class="card timesheets-summary-card">
+    <div class="text-muted text-sm">{{ tr('Costo totale', 'Total cost') }}</div>
+    <div class="timesheets-summary-value">&euro; {{ total_cost|currency }}</div>
+  </div>
+  <div class="card timesheets-summary-card">
+    <div class="text-muted text-sm">{{ tr('Voci', 'Entries') }}</div>
+    <div class="timesheets-summary-value">{{ entries|length }}</div>
+  </div>
+</div>
+
+<!-- Entries table -->
+{% if entries %}
+<div class="card timesheets-entries-card">
+  <div class="table-wrapper">
+    <table class="timesheets-entries-table">
+      <thead>
+        <tr>
+          <th>{{ tr('Data', 'Date') }}</th>
+          {% if current_user.is_superadmin %}
+          <th>{{ tr('Utente', 'User') }}</th>
+          {% endif %}
+          <th>{{ tr('Attivita', 'Activity') }}</th>
+          <th class="num">{{ tr('Ore', 'Hours') }}</th>
+          <th>{{ tr('Descrizione', 'Description') }}</th>
+          <th class="num">{{ tr('Tariffa', 'Rate') }}</th>
+          <th class="num">{{ tr('Costo', 'Cost') }}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ts in entries %}
+        {% set ts_cost = ts.hours|float * ts.hourly_rate_snapshot|float %}
+        <tr>
+          <td class="text-sm">{{ ts.work_date.strftime('%d/%m/%Y') }}</td>
+          {% if current_user.is_superadmin %}
+          <td class="text-sm">{{ ts.user.full_name if ts.user else '—' }}</td>
+          {% endif %}
+          <td>
+            <a href="{{ url_for('activities.detail', id=ts.activity_id) }}" class="text-sm">
+              {{ ts.activity.title if ts.activity else '—' }}
+            </a>
+          </td>
+          <td class="num">{{ ts.hours }}</td>
+          <td class="text-muted text-sm">{{ ts.description }}</td>
+          <td class="num text-sm">&euro; {{ ts.hourly_rate_snapshot|currency }}</td>
+          <td class="num">&euro; {{ ts_cost|currency }}</td>
+          <td class="text-right">
+            {% if current_user.is_superadmin or ts.user_id == current_user.id %}
+            <div class="btn-group">
+              <a href="{{ url_for('activities.edit_timesheet', id=ts.activity_id, entry_id=ts.id) }}"
+                class="btn btn-ghost btn-sm">{{ tr('Modifica', 'Edit') }}</a>
+              <form method="POST"
+                action="{{ url_for('activities.delete_timesheet', id=ts.activity_id, entry_id=ts.id) }}"
+                class="confirm-delete" data-confirm="{{ tr('Eliminare questo timesheet?', 'Delete this timesheet?') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-ghost btn-sm text-danger">{{ tr('Elimina', 'Delete') }}</button>
+              </form>
+            </div>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card">
+  <div class="empty-state">
+    <p>{{ tr('Nessun timesheet trovato per i filtri selezionati.', 'No timesheets found for the selected filters.') }}
+    </p>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

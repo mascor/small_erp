@@ -1,0 +1,479 @@
+[2026-04-06 06:41:59] ERROR    [app.activities:create:132] Error creating activity: [<class 'decimal.ConversionSyntax'>]
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 115, in create
+    total_revenue=_validate_decimal(request.form['total_revenue'], tr('Ricavo totale', 'Total revenue')),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 34, in _validate_decimal
+    d = Decimal(value_str.replace(',', '.'))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+decimal.InvalidOperation: [<class 'decimal.ConversionSyntax'>]
+[2026-04-06 06:41:59] ERROR    [app.activities:create:132] Error creating activity: Ricavo totale: valore negativo non ammesso
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 115, in create
+    total_revenue=_validate_decimal(request.form['total_revenue'], tr('Ricavo totale', 'Total revenue')),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 36, in _validate_decimal
+    raise ValueError(f'{field_name}: valore negativo non ammesso')
+ValueError: Ricavo totale: valore negativo non ammesso
+[2026-04-06 06:42:00] ERROR    [app.activities:create:132] Error creating activity: Ricavo totale: valore troppo grande
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 115, in create
+    total_revenue=_validate_decimal(request.form['total_revenue'], tr('Ricavo totale', 'Total revenue')),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 39, in _validate_decimal
+    raise ValueError(f'{field_name}: valore troppo grande')
+ValueError: Ricavo totale: valore troppo grande
+[2026-04-06 06:43:41] ERROR    [app.activities:create:132] Error creating activity: [<class 'decimal.ConversionSyntax'>]
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 115, in create
+    total_revenue=_validate_decimal(request.form['total_revenue'], tr('Ricavo totale', 'Total revenue')),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 34, in _validate_decimal
+    d = Decimal(value_str.replace(',', '.'))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+decimal.InvalidOperation: [<class 'decimal.ConversionSyntax'>]
+[2026-04-06 06:43:41] ERROR    [app.activities:create:132] Error creating activity: Ricavo totale: valore negativo non ammesso
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 115, in create
+    total_revenue=_validate_decimal(request.form['total_revenue'], tr('Ricavo totale', 'Total revenue')),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 36, in _validate_decimal
+    raise ValueError(f'{field_name}: valore negativo non ammesso')
+ValueError: Ricavo totale: valore negativo non ammesso
+[2026-04-06 06:43:41] ERROR    [app.activities:create:132] Error creating activity: Ricavo totale: valore troppo grande
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 115, in create
+    total_revenue=_validate_decimal(request.form['total_revenue'], tr('Ricavo totale', 'Total revenue')),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 39, in _validate_decimal
+    raise ValueError(f'{field_name}: valore troppo grande')
+ValueError: Ricavo totale: valore troppo grande
+[2026-04-06 06:44:11] ERROR    [app.activities:create:132] Error creating activity: [<class 'decimal.ConversionSyntax'>]
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 115, in create
+    total_revenue=_validate_decimal(request.form['total_revenue'], tr('Ricavo totale', 'Total revenue')),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 34, in _validate_decimal
+    d = Decimal(value_str.replace(',', '.'))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+decimal.InvalidOperation: [<class 'decimal.ConversionSyntax'>]
+[2026-04-06 06:44:11] ERROR    [app.activities:create:132] Error creating activity: Titolo: campo obbligatorio
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 107, in create
+    title = _require_non_empty(request.form.get('title', ''), tr('Titolo', 'Title'))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 46, in _require_non_empty
+    raise ValueError(f'{field_name}: campo obbligatorio')
+ValueError: Titolo: campo obbligatorio
+[2026-04-06 06:44:11] ERROR    [app.activities:create:132] Error creating activity: Titolo: campo obbligatorio
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 107, in create
+    title = _require_non_empty(request.form.get('title', ''), tr('Titolo', 'Title'))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 46, in _require_non_empty
+    raise ValueError(f'{field_name}: campo obbligatorio')
+ValueError: Titolo: campo obbligatorio
+[2026-04-06 06:44:11] ERROR    [app.activities:create:132] Error creating activity: % agente: valore troppo grande
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 117, in create
+    agent_percentage=_validate_decimal(request.form.get('agent_percentage', '0'), tr('% agente', 'Agent %'), max_value=Decimal('100')),
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 39, in _validate_decimal
+    raise ValueError(f'{field_name}: valore troppo grande')
+ValueError: % agente: valore troppo grande
+[2026-04-06 06:44:12] ERROR    [app.activities:create:132] Error creating activity: Data: campo obbligatorio
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 108, in create
+    date_str = _require_non_empty(request.form.get('date', ''), tr('Data', 'Date'))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 46, in _require_non_empty
+    raise ValueError(f'{field_name}: campo obbligatorio')
+ValueError: Data: campo obbligatorio
+[2026-04-06 06:44:23] ERROR    [app.activities:add_cost:303] Error adding cost to activity 1: [<class 'decimal.ConversionSyntax'>]
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 283, in add_cost
+    amount=_validate_decimal(request.form['amount'], tr('Importo', 'Amount')),
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 34, in _validate_decimal
+    d = Decimal(value_str.replace(',', '.'))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+decimal.InvalidOperation: [<class 'decimal.ConversionSyntax'>]
+[2026-04-06 06:44:24] ERROR    [app.activities:add_cost:303] Error adding cost to activity 1: Descrizione: campo obbligatorio
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 270, in add_cost
+    cost_desc = _require_non_empty(request.form.get('description', ''), tr('Descrizione', 'Description'))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 46, in _require_non_empty
+    raise ValueError(f'{field_name}: campo obbligatorio')
+ValueError: Descrizione: campo obbligatorio
+[2026-04-06 06:44:24] ERROR    [app.activities:add_cost:303] Error adding cost to activity 1: Data: campo obbligatorio
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 271, in add_cost
+    cost_date_str = _require_non_empty(request.form.get('date', ''), tr('Data', 'Date'))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 46, in _require_non_empty
+    raise ValueError(f'{field_name}: campo obbligatorio')
+ValueError: Data: campo obbligatorio
+[2026-04-06 06:44:33] ERROR    [app.agents:create:58] Error creating agent: Il nome dell'agente e obbligatorio.
+Traceback (most recent call last):
+  File "/opt/small_erp/app/agents.py", line 33, in create
+    raise ValueError(tr('Il nome dell\'agente e obbligatorio.', 'Agent name is required.'))
+ValueError: Il nome dell'agente e obbligatorio.
+[2026-04-06 06:44:33] ERROR    [app.agents:create:58] Error creating agent: La percentuale deve essere tra 0 e 100.
+Traceback (most recent call last):
+  File "/opt/small_erp/app/agents.py", line 37, in create
+    raise ValueError(tr('La percentuale deve essere tra 0 e 100.', 'Percentage must be between 0 and 100.'))
+ValueError: La percentuale deve essere tra 0 e 100.
+[2026-04-06 06:44:34] ERROR    [app.agents:create:58] Error creating agent: La percentuale deve essere tra 0 e 100.
+Traceback (most recent call last):
+  File "/opt/small_erp/app/agents.py", line 37, in create
+    raise ValueError(tr('La percentuale deve essere tra 0 e 100.', 'Percentage must be between 0 and 100.'))
+ValueError: La percentuale deve essere tra 0 e 100.
+[2026-04-06 06:44:50] ERROR    [app.audit:detail:106] Error accessing audit log detail 99999: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "/opt/small_erp/app/audit.py", line 96, in detail
+    log = db.get_or_404(AuditLog, id)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/flask_sqlalchemy/extension.py", line 763, in get_or_404
+    abort(404, description=description)
+  File "/opt/small_erp/env/lib/python3.12/site-packages/flask/helpers.py", line 284, in abort
+    current_app.aborter(code, *args, **kwargs)
+  File "/opt/small_erp/env/lib/python3.12/site-packages/werkzeug/exceptions.py", line 887, in __call__
+    raise self.mapping[code](*args, **kwargs)
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+[2026-04-06 06:48:14] ERROR    [app.activities:create:132] Error creating activity: [<class 'decimal.ConversionSyntax'>]
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 115, in create
+    total_revenue=_validate_decimal(request.form['total_revenue'], tr('Ricavo totale', 'Total revenue')),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 34, in _validate_decimal
+    d = Decimal(value_str.replace(',', '.'))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+decimal.InvalidOperation: [<class 'decimal.ConversionSyntax'>]
+[2026-04-06 06:48:14] ERROR    [app.activities:create:132] Error creating activity: Ricavo totale: valore negativo non ammesso
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 115, in create
+    total_revenue=_validate_decimal(request.form['total_revenue'], tr('Ricavo totale', 'Total revenue')),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 36, in _validate_decimal
+    raise ValueError(f'{field_name}: valore negativo non ammesso')
+ValueError: Ricavo totale: valore negativo non ammesso
+[2026-04-06 06:48:14] ERROR    [app.activities:create:132] Error creating activity: Ricavo totale: valore troppo grande
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 115, in create
+    total_revenue=_validate_decimal(request.form['total_revenue'], tr('Ricavo totale', 'Total revenue')),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 39, in _validate_decimal
+    raise ValueError(f'{field_name}: valore troppo grande')
+ValueError: Ricavo totale: valore troppo grande
+[2026-04-06 06:48:44] ERROR    [app.activities:create:132] Error creating activity: [<class 'decimal.ConversionSyntax'>]
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 115, in create
+    total_revenue=_validate_decimal(request.form['total_revenue'], tr('Ricavo totale', 'Total revenue')),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 34, in _validate_decimal
+    d = Decimal(value_str.replace(',', '.'))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+decimal.InvalidOperation: [<class 'decimal.ConversionSyntax'>]
+[2026-04-06 06:48:45] ERROR    [app.activities:create:132] Error creating activity: Titolo: campo obbligatorio
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 107, in create
+    title = _require_non_empty(request.form.get('title', ''), tr('Titolo', 'Title'))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 46, in _require_non_empty
+    raise ValueError(f'{field_name}: campo obbligatorio')
+ValueError: Titolo: campo obbligatorio
+[2026-04-06 06:48:45] ERROR    [app.activities:create:132] Error creating activity: Titolo: campo obbligatorio
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 107, in create
+    title = _require_non_empty(request.form.get('title', ''), tr('Titolo', 'Title'))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 46, in _require_non_empty
+    raise ValueError(f'{field_name}: campo obbligatorio')
+ValueError: Titolo: campo obbligatorio
+[2026-04-06 06:48:45] ERROR    [app.activities:create:132] Error creating activity: % agente: valore troppo grande
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 117, in create
+    agent_percentage=_validate_decimal(request.form.get('agent_percentage', '0'), tr('% agente', 'Agent %'), max_value=Decimal('100')),
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 39, in _validate_decimal
+    raise ValueError(f'{field_name}: valore troppo grande')
+ValueError: % agente: valore troppo grande
+[2026-04-06 06:48:46] ERROR    [app.activities:create:132] Error creating activity: Data: campo obbligatorio
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 108, in create
+    date_str = _require_non_empty(request.form.get('date', ''), tr('Data', 'Date'))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 46, in _require_non_empty
+    raise ValueError(f'{field_name}: campo obbligatorio')
+ValueError: Data: campo obbligatorio
+[2026-04-06 06:48:57] ERROR    [app.activities:add_cost:303] Error adding cost to activity 1: [<class 'decimal.ConversionSyntax'>]
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 283, in add_cost
+    amount=_validate_decimal(request.form['amount'], tr('Importo', 'Amount')),
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 34, in _validate_decimal
+    d = Decimal(value_str.replace(',', '.'))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+decimal.InvalidOperation: [<class 'decimal.ConversionSyntax'>]
+[2026-04-06 06:48:58] ERROR    [app.activities:add_cost:303] Error adding cost to activity 1: Descrizione: campo obbligatorio
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 270, in add_cost
+    cost_desc = _require_non_empty(request.form.get('description', ''), tr('Descrizione', 'Description'))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 46, in _require_non_empty
+    raise ValueError(f'{field_name}: campo obbligatorio')
+ValueError: Descrizione: campo obbligatorio
+[2026-04-06 06:48:58] ERROR    [app.activities:add_cost:303] Error adding cost to activity 1: Data: campo obbligatorio
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 271, in add_cost
+    cost_date_str = _require_non_empty(request.form.get('date', ''), tr('Data', 'Date'))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 46, in _require_non_empty
+    raise ValueError(f'{field_name}: campo obbligatorio')
+ValueError: Data: campo obbligatorio
+[2026-04-06 06:49:07] ERROR    [app.agents:create:58] Error creating agent: Il nome dell'agente e obbligatorio.
+Traceback (most recent call last):
+  File "/opt/small_erp/app/agents.py", line 33, in create
+    raise ValueError(tr('Il nome dell\'agente e obbligatorio.', 'Agent name is required.'))
+ValueError: Il nome dell'agente e obbligatorio.
+[2026-04-06 06:49:07] ERROR    [app.agents:create:58] Error creating agent: La percentuale deve essere tra 0 e 100.
+Traceback (most recent call last):
+  File "/opt/small_erp/app/agents.py", line 37, in create
+    raise ValueError(tr('La percentuale deve essere tra 0 e 100.', 'Percentage must be between 0 and 100.'))
+ValueError: La percentuale deve essere tra 0 e 100.
+[2026-04-06 06:49:08] ERROR    [app.agents:create:58] Error creating agent: La percentuale deve essere tra 0 e 100.
+Traceback (most recent call last):
+  File "/opt/small_erp/app/agents.py", line 37, in create
+    raise ValueError(tr('La percentuale deve essere tra 0 e 100.', 'Percentage must be between 0 and 100.'))
+ValueError: La percentuale deve essere tra 0 e 100.
+[2026-04-06 06:49:24] ERROR    [app.audit:detail:106] Error accessing audit log detail 99999: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "/opt/small_erp/app/audit.py", line 96, in detail
+    log = db.get_or_404(AuditLog, id)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/flask_sqlalchemy/extension.py", line 763, in get_or_404
+    abort(404, description=description)
+  File "/opt/small_erp/env/lib/python3.12/site-packages/flask/helpers.py", line 284, in abort
+    current_app.aborter(code, *args, **kwargs)
+  File "/opt/small_erp/env/lib/python3.12/site-packages/werkzeug/exceptions.py", line 887, in __call__
+    raise self.mapping[code](*args, **kwargs)
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+[2026-04-06 06:54:35] ERROR    [app.activities:create:132] Error creating activity: Titolo: campo obbligatorio
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 107, in create
+    title = _require_non_empty(request.form.get('title', ''), tr('Titolo', 'Title'))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 46, in _require_non_empty
+    raise ValueError(f'{field_name}: campo obbligatorio')
+ValueError: Titolo: campo obbligatorio
+[2026-04-06 06:54:35] ERROR    [app.activities:create:132] Error creating activity: [<class 'decimal.ConversionSyntax'>]
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 115, in create
+    total_revenue=_validate_decimal(request.form['total_revenue'], tr('Ricavo totale', 'Total revenue')),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 34, in _validate_decimal
+    d = Decimal(value_str.replace(',', '.'))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+decimal.InvalidOperation: [<class 'decimal.ConversionSyntax'>]
+[2026-04-06 06:54:35] ERROR    [app.activities:create:132] Error creating activity: % agente: valore troppo grande
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 117, in create
+    agent_percentage=_validate_decimal(request.form.get('agent_percentage', '0'), tr('% agente', 'Agent %'), max_value=Decimal('100')),
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 39, in _validate_decimal
+    raise ValueError(f'{field_name}: valore troppo grande')
+ValueError: % agente: valore troppo grande
+[2026-04-06 06:54:35] ERROR    [app.activities:create:132] Error creating activity: Ricavo totale: valore negativo non ammesso
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 115, in create
+    total_revenue=_validate_decimal(request.form['total_revenue'], tr('Ricavo totale', 'Total revenue')),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 36, in _validate_decimal
+    raise ValueError(f'{field_name}: valore negativo non ammesso')
+ValueError: Ricavo totale: valore negativo non ammesso
+[2026-04-06 06:54:35] ERROR    [app.activities:add_cost:303] Error adding cost to activity 6: Descrizione: campo obbligatorio
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 270, in add_cost
+    cost_desc = _require_non_empty(request.form.get('description', ''), tr('Descrizione', 'Description'))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 46, in _require_non_empty
+    raise ValueError(f'{field_name}: campo obbligatorio')
+ValueError: Descrizione: campo obbligatorio
+[2026-04-06 06:54:35] ERROR    [app.agents:create:58] Error creating agent: Il nome dell'agente e obbligatorio.
+Traceback (most recent call last):
+  File "/opt/small_erp/app/agents.py", line 33, in create
+    raise ValueError(tr('Il nome dell\'agente e obbligatorio.', 'Agent name is required.'))
+ValueError: Il nome dell'agente e obbligatorio.
+[2026-04-06 06:54:35] ERROR    [app.agents:create:58] Error creating agent: La percentuale deve essere tra 0 e 100.
+Traceback (most recent call last):
+  File "/opt/small_erp/app/agents.py", line 37, in create
+    raise ValueError(tr('La percentuale deve essere tra 0 e 100.', 'Percentage must be between 0 and 100.'))
+ValueError: La percentuale deve essere tra 0 e 100.
+[2026-04-06 06:54:35] ERROR    [app.agents:create:58] Error creating agent: La percentuale deve essere tra 0 e 100.
+Traceback (most recent call last):
+  File "/opt/small_erp/app/agents.py", line 37, in create
+    raise ValueError(tr('La percentuale deve essere tra 0 e 100.', 'Percentage must be between 0 and 100.'))
+ValueError: La percentuale deve essere tra 0 e 100.
+[2026-04-06 06:54:36] ERROR    [app.audit:detail:106] Error accessing audit log detail 99999: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "/opt/small_erp/app/audit.py", line 96, in detail
+    log = db.get_or_404(AuditLog, id)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/flask_sqlalchemy/extension.py", line 763, in get_or_404
+    abort(404, description=description)
+  File "/opt/small_erp/env/lib/python3.12/site-packages/flask/helpers.py", line 284, in abort
+    current_app.aborter(code, *args, **kwargs)
+  File "/opt/small_erp/env/lib/python3.12/site-packages/werkzeug/exceptions.py", line 887, in __call__
+    raise self.mapping[code](*args, **kwargs)
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+[2026-04-06 06:54:48] ERROR    [app.activities:add_timesheet:520] Error adding timesheet to activity 9: Descrizione: campo obbligatorio
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 487, in add_timesheet
+    description = _require_non_empty(request.form.get('description', ''), tr('Descrizione', 'Description'))
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 46, in _require_non_empty
+    raise ValueError(f'{field_name}: campo obbligatorio')
+ValueError: Descrizione: campo obbligatorio
+[2026-04-06 07:00:58] ERROR    [app.activities:add_timesheet:520] Error adding timesheet to activity 10: Descrizione: campo obbligatorio
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 487, in add_timesheet
+    description = _require_non_empty(request.form.get('description', ''), tr('Descrizione', 'Description'))
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 46, in _require_non_empty
+    raise ValueError(f'{field_name}: campo obbligatorio')
+ValueError: Descrizione: campo obbligatorio
+[2026-04-06 07:25:28] ERROR    [app.activities:add_timesheet:520] Error adding timesheet to activity 11: Descrizione: campo obbligatorio
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 487, in add_timesheet
+    description = _require_non_empty(request.form.get('description', ''), tr('Descrizione', 'Description'))
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 46, in _require_non_empty
+    raise ValueError(f'{field_name}: campo obbligatorio')
+ValueError: Descrizione: campo obbligatorio
+[2026-04-06 07:32:36] ERROR    [app.activities:add_timesheet:520] Error adding timesheet to activity 12: Descrizione: campo obbligatorio
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 487, in add_timesheet
+    description = _require_non_empty(request.form.get('description', ''), tr('Descrizione', 'Description'))
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 46, in _require_non_empty
+    raise ValueError(f'{field_name}: campo obbligatorio')
+ValueError: Descrizione: campo obbligatorio
+[2026-04-06 07:37:57] ERROR    [app.activities:create:132] Error creating activity: [<class 'decimal.ConversionSyntax'>]
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 115, in create
+    total_revenue=_validate_decimal(request.form['total_revenue'], tr('Ricavo totale', 'Total revenue')),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 34, in _validate_decimal
+    d = Decimal(value_str.replace(',', '.'))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+decimal.InvalidOperation: [<class 'decimal.ConversionSyntax'>]
+[2026-04-06 07:37:58] ERROR    [app.activities:create:132] Error creating activity: Ricavo totale: valore negativo non ammesso
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 115, in create
+    total_revenue=_validate_decimal(request.form['total_revenue'], tr('Ricavo totale', 'Total revenue')),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 36, in _validate_decimal
+    raise ValueError(f'{field_name}: valore negativo non ammesso')
+ValueError: Ricavo totale: valore negativo non ammesso
+[2026-04-06 07:37:58] ERROR    [app.activities:create:132] Error creating activity: Ricavo totale: valore troppo grande
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 115, in create
+    total_revenue=_validate_decimal(request.form['total_revenue'], tr('Ricavo totale', 'Total revenue')),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 39, in _validate_decimal
+    raise ValueError(f'{field_name}: valore troppo grande')
+ValueError: Ricavo totale: valore troppo grande
+[2026-04-06 07:38:27] ERROR    [app.activities:create:132] Error creating activity: [<class 'decimal.ConversionSyntax'>]
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 115, in create
+    total_revenue=_validate_decimal(request.form['total_revenue'], tr('Ricavo totale', 'Total revenue')),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 34, in _validate_decimal
+    d = Decimal(value_str.replace(',', '.'))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+decimal.InvalidOperation: [<class 'decimal.ConversionSyntax'>]
+[2026-04-06 07:38:27] ERROR    [app.activities:create:132] Error creating activity: Titolo: campo obbligatorio
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 107, in create
+    title = _require_non_empty(request.form.get('title', ''), tr('Titolo', 'Title'))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 46, in _require_non_empty
+    raise ValueError(f'{field_name}: campo obbligatorio')
+ValueError: Titolo: campo obbligatorio
+[2026-04-06 07:38:28] ERROR    [app.activities:create:132] Error creating activity: Titolo: campo obbligatorio
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 107, in create
+    title = _require_non_empty(request.form.get('title', ''), tr('Titolo', 'Title'))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 46, in _require_non_empty
+    raise ValueError(f'{field_name}: campo obbligatorio')
+ValueError: Titolo: campo obbligatorio
+[2026-04-06 07:38:28] ERROR    [app.activities:create:132] Error creating activity: % agente: valore troppo grande
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 117, in create
+    agent_percentage=_validate_decimal(request.form.get('agent_percentage', '0'), tr('% agente', 'Agent %'), max_value=Decimal('100')),
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 39, in _validate_decimal
+    raise ValueError(f'{field_name}: valore troppo grande')
+ValueError: % agente: valore troppo grande
+[2026-04-06 07:38:28] ERROR    [app.activities:create:132] Error creating activity: Data: campo obbligatorio
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 108, in create
+    date_str = _require_non_empty(request.form.get('date', ''), tr('Data', 'Date'))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 46, in _require_non_empty
+    raise ValueError(f'{field_name}: campo obbligatorio')
+ValueError: Data: campo obbligatorio
+[2026-04-06 07:38:40] ERROR    [app.activities:add_cost:303] Error adding cost to activity 1: [<class 'decimal.ConversionSyntax'>]
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 283, in add_cost
+    amount=_validate_decimal(request.form['amount'], tr('Importo', 'Amount')),
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 34, in _validate_decimal
+    d = Decimal(value_str.replace(',', '.'))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+decimal.InvalidOperation: [<class 'decimal.ConversionSyntax'>]
+[2026-04-06 07:38:40] ERROR    [app.activities:add_cost:303] Error adding cost to activity 1: Descrizione: campo obbligatorio
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 270, in add_cost
+    cost_desc = _require_non_empty(request.form.get('description', ''), tr('Descrizione', 'Description'))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 46, in _require_non_empty
+    raise ValueError(f'{field_name}: campo obbligatorio')
+ValueError: Descrizione: campo obbligatorio
+[2026-04-06 07:38:41] ERROR    [app.activities:add_cost:303] Error adding cost to activity 1: Data: campo obbligatorio
+Traceback (most recent call last):
+  File "/opt/small_erp/app/activities.py", line 271, in add_cost
+    cost_date_str = _require_non_empty(request.form.get('date', ''), tr('Data', 'Date'))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/app/activities.py", line 46, in _require_non_empty
+    raise ValueError(f'{field_name}: campo obbligatorio')
+ValueError: Data: campo obbligatorio
+[2026-04-06 07:38:49] ERROR    [app.agents:create:58] Error creating agent: Il nome dell'agente e obbligatorio.
+Traceback (most recent call last):
+  File "/opt/small_erp/app/agents.py", line 33, in create
+    raise ValueError(tr('Il nome dell\'agente e obbligatorio.', 'Agent name is required.'))
+ValueError: Il nome dell'agente e obbligatorio.
+[2026-04-06 07:38:50] ERROR    [app.agents:create:58] Error creating agent: La percentuale deve essere tra 0 e 100.
+Traceback (most recent call last):
+  File "/opt/small_erp/app/agents.py", line 37, in create
+    raise ValueError(tr('La percentuale deve essere tra 0 e 100.', 'Percentage must be between 0 and 100.'))
+ValueError: La percentuale deve essere tra 0 e 100.
+[2026-04-06 07:38:50] ERROR    [app.agents:create:58] Error creating agent: La percentuale deve essere tra 0 e 100.
+Traceback (most recent call last):
+  File "/opt/small_erp/app/agents.py", line 37, in create
+    raise ValueError(tr('La percentuale deve essere tra 0 e 100.', 'Percentage must be between 0 and 100.'))
+ValueError: La percentuale deve essere tra 0 e 100.
+[2026-04-06 07:39:07] ERROR    [app.audit:detail:106] Error accessing audit log detail 99999: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "/opt/small_erp/app/audit.py", line 96, in detail
+    log = db.get_or_404(AuditLog, id)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/small_erp/env/lib/python3.12/site-packages/flask_sqlalchemy/extension.py", line 763, in get_or_404
+    abort(404, description=description)
+  File "/opt/small_erp/env/lib/python3.12/site-packages/flask/helpers.py", line 284, in abort
+    current_app.aborter(code, *args, **kwargs)
+  File "/opt/small_erp/env/lib/python3.12/site-packages/werkzeug/exceptions.py", line 887, in __call__
+    raise self.mapping[code](*args, **kwargs)
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.

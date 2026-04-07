@@ -41,7 +41,7 @@
               <a href="{{ url_for('agents.edit', id=agent.id) }}" class="btn btn-ghost btn-sm">{{ tr('Modifica', 'Edit')
                 }}</a>
               <form method="POST" action="{{ url_for('agents.delete', id=agent.id) }}" class="confirm-delete"
-                onsubmit="return confirm('{{ tr('Eliminare l\'agente', 'Delete agent') }} {{ agent.full_name }}?')">
+              data-confirm="{{ tr('Eliminare l\'agente', 'Delete agent') }} {{ agent.full_name }}?">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button type="submit" class="btn btn-ghost btn-sm text-danger">{{ tr('Elimina', 'Delete') }}</button>
               </form>

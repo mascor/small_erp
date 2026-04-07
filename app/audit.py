@@ -66,7 +66,7 @@ def index():
             page=page, per_page=PER_PAGE, error_out=False
         )
 
-        action_types = ['login', 'logout', 'create', 'update', 'delete',
+        action_types = ['login', 'logout', 'read', 'create', 'update', 'delete',
                         'status_change', 'user_create', 'user_update']
         entity_types = ['User', 'Agent', 'RevenueActivity', 'ActivityCost', 'ActivityParticipant']
 

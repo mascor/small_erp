@@ -1336,6 +1336,69 @@ textarea.form-control {
   min-width: 170px;
 }
 
+/* ── Timesheets Page ───────────────────────────────────── */
+.timesheets-filters-card .card-body {
+  padding: var(--space-xl);
+}
+
+.timesheets-filters-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--space-md);
+  align-items: end;
+}
+
+.timesheets-filter-field {
+  margin: 0;
+  min-width: 0;
+}
+
+.timesheets-filter-field .form-control {
+  min-width: 0;
+}
+
+.timesheets-filter-activity,
+.timesheets-filter-user {
+  min-width: 180px;
+}
+
+.timesheets-filter-action {
+  margin: 0;
+  display: flex;
+  align-items: end;
+  justify-self: start;
+}
+
+.timesheets-filter-action .btn {
+  height: 38px;
+}
+
+.timesheets-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-md);
+}
+
+.timesheets-summary-card {
+  padding: var(--space-md) var(--space-lg);
+  text-align: center;
+  border-top: 3px solid var(--teal-500);
+}
+
+.timesheets-summary-value {
+  font-family: var(--font-display);
+  font-size: 1.55rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-top: 2px;
+  color: var(--navy-900);
+}
+
+.timesheets-entries-table td:last-child,
+.timesheets-entries-table th:last-child {
+  white-space: nowrap;
+}
+
 /* ── Pagination ────────────────────────────────────────── */
 .pagination {
   display: flex;
@@ -1841,6 +1904,28 @@ textarea.form-control {
 
   .report-summary-grid {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .timesheets-filters-card .card-body {
+    padding: var(--space-lg);
+  }
+
+  .timesheets-filters-form {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .timesheets-filter-action {
+    grid-column: 1 / -1;
+  }
+
+  .timesheets-filter-action .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .timesheets-summary {
+    grid-template-columns: 1fr;
+    gap: var(--space-sm);
   }
 }
 

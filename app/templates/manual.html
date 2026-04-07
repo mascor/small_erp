@@ -15,22 +15,77 @@
     <h2>Cos'è Small ERP</h2>
     <p>
       Small ERP è un'applicazione web pensata per la gestione semplificata delle <strong>attività a ricavo</strong>.
-      Permette di tracciare ricavi, costi, agenti commerciali e partecipanti coinvolti in ogni attività,
-      calcolando automaticamente margini, compensi agente e quote di lavoro.
+      Permette di tracciare ricavi, costi, agenti commerciali, partecipanti e ore lavorate,
+      calcolando automaticamente margini, compensi agente, costi interni e ripartizione compensi.
     </p>
   </div>
 </div>
 
 <div class="card" style="margin-bottom:1.5rem;">
   <div class="card-body">
-    <h2>Funzionalità principali</h2>
+    <h2>Flusso operativo consigliato</h2>
     <ul>
-      <li><strong>Gestione Attività:</strong> crea, modifica e chiudi attività a ricavo. Ogni attività ha un titolo, un ricavo totale, una data e uno stato (bozza, confermata, chiusa).</li>
-      <li><strong>Costi:</strong> registra i costi associati a ciascuna attività, suddivisi per categoria (materiale, trasporto, consulenza, marketing, spese vive, altro) e per tipo (operativo o extra).</li>
-      <li><strong>Partecipanti:</strong> assegna partecipanti alle attività, indicando ruolo, quota di lavoro e compenso fisso.</li>
-      <li><strong>Agenti:</strong> gestisci l'anagrafica degli agenti commerciali e associali alle attività con una percentuale di provvigione personalizzabile.</li>
-      <li><strong>Report Mensili:</strong> visualizza un riepilogo mensile con ricavi, costi, margine e compensi calcolati.</li>
-      <li><strong>Dashboard:</strong> una panoramica immediata con i principali indicatori dell'attività corrente.</li>
+      <li><strong>1) Configura utenti e agenti:</strong> il superadmin crea utenti operativi (con tariffa oraria) e
+        gestisce l'anagrafica agenti.</li>
+      <li><strong>2) Crea l'attività:</strong> inserisci titolo, data, ricavo totale, stato (bozza/confermata/chiusa) e
+        agente con percentuale.</li>
+      <li><strong>3) Aggiungi costi e partecipanti:</strong> registra costi manuali e definisci quota lavoro + compenso
+        fisso per ogni partecipante.</li>
+      <li><strong>4) Registra timesheet:</strong> le ore dei consulenti interni generano automaticamente il relativo
+        costo operativo.</li>
+      <li><strong>5) Verifica dettaglio e report:</strong> controlla margini e ripartizioni nella scheda attività e nel
+        report mensile.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:1.5rem;">
+  <div class="card-body">
+    <h2>Attività a ricavo</h2>
+    <ul>
+      <li>La lista attività supporta filtri per stato, agente, intervallo date e ricerca per titolo.</li>
+      <li>Le operazioni disponibili sono: creazione, modifica, cancellazione singola e cancellazione multipla.</li>
+      <li>Gli utenti normali possono modificare/eliminare solo le attività di cui sono creatori; il superadmin può
+        operare su tutte.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:1.5rem;">
+  <div class="card-body">
+    <h2>Costi, partecipanti e calcoli</h2>
+    <ul>
+      <li>I costi manuali sono classificati per categoria (materiale, trasporto, consulenza, marketing, spese vive,
+        altro) e tipo (operativo/extra).</li>
+      <li>I costi auto-generati da timesheet (consulenza interna) non sono modificabili manualmente.</li>
+      <li>Il calcolo economico include: provvigione agente, totale costi, margine netto, compensi fissi e quota
+        variabile per partecipante.</li>
+      <li>La quota variabile viene ripartita in base alla quota lavoro inserita sui partecipanti.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:1.5rem;">
+  <div class="card-body">
+    <h2>Timesheet e costi automatici</h2>
+    <ul>
+      <li>Dal dettaglio attività puoi inserire ore, data e descrizione della prestazione.</li>
+      <li>Il sistema salva la tariffa oraria dell'utente al momento dell'inserimento (snapshot storico).</li>
+      <li>Su ogni modifica/eliminazione timesheet, il costo interno aggregato viene ricalcolato automaticamente.</li>
+      <li>Nella sezione <strong>Miei Timesheet</strong> puoi filtrare per mese, anno e attività; il superadmin può
+        filtrare anche per utente.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:1.5rem;">
+  <div class="card-body">
+    <h2>Ruoli e permessi</h2>
+    <ul>
+      <li><strong>Utente standard:</strong> usa dashboard, attività, agenti, report, manuale e timesheet personali.</li>
+      <li><strong>Superadmin:</strong> in più gestisce utenti e audit log, e può operare su tutte le attività/timesheet.
+      </li>
+      <li>L'utente superadmin non è eliminabile dal pannello utenti.</li>
     </ul>
   </div>
 </div>
@@ -39,19 +94,23 @@
   <div class="card-body">
     <h2>Audit e Sicurezza</h2>
     <p>
-      Ogni operazione (creazione, modifica, cancellazione) viene registrata automaticamente nell'<strong>audit log</strong>,
+      Ogni operazione (creazione, modifica, cancellazione) viene registrata automaticamente nell'<strong>audit
+        log</strong>,
       con dettaglio di chi ha eseguito l'azione, quando e quali dati sono stati modificati.
-      L'applicazione supporta l'autenticazione utente, la protezione CSRF e le sessioni sicure.
+      L'applicazione usa autenticazione con sessione, logout via POST, protezione CSRF e controlli sui redirect.
+      I valori numerici vengono validati (es. percentuali 0-100, importi non negativi).
     </p>
   </div>
 </div>
 
 <div class="card" style="margin-bottom:1.5rem;">
   <div class="card-body">
-    <h2>Lingue supportate</h2>
+    <h2>Report, dashboard e lingue</h2>
     <p>
-      L'interfaccia è disponibile in <strong>italiano</strong> e <strong>inglese</strong>.
-      Puoi cambiare lingua in qualsiasi momento dal selettore nella barra laterale.
+      La dashboard mostra indicatori sintetici e attività recenti, mentre i report mensili aggregano ricavi, costi e
+      margini.
+      L'interfaccia è disponibile in <strong>italiano</strong> e <strong>inglese</strong>, con cambio lingua dal
+      selettore nella barra laterale.
     </p>
   </div>
 </div>
@@ -63,22 +122,77 @@
     <h2>What is Small ERP</h2>
     <p>
       Small ERP is a web application designed for simplified management of <strong>revenue activities</strong>.
-      It lets you track revenues, costs, sales agents and participants involved in each activity,
-      automatically calculating margins, agent commissions and work shares.
+      It lets you track revenues, costs, sales agents, participants, and worked hours,
+      automatically calculating margins, agent commissions, internal costs, and payout distribution.
     </p>
   </div>
 </div>
 
 <div class="card" style="margin-bottom:1.5rem;">
   <div class="card-body">
-    <h2>Key Features</h2>
+    <h2>Recommended Workflow</h2>
     <ul>
-      <li><strong>Activity Management:</strong> create, edit and close revenue activities. Each activity has a title, total revenue, date and status (draft, confirmed, closed).</li>
-      <li><strong>Costs:</strong> record costs associated with each activity, broken down by category (material, transport, consulting, marketing, out-of-pocket, other) and type (operational or extra).</li>
-      <li><strong>Participants:</strong> assign participants to activities, specifying their role, work share and fixed compensation.</li>
-      <li><strong>Agents:</strong> manage sales agent records and link them to activities with a customisable commission percentage.</li>
-      <li><strong>Monthly Reports:</strong> view a monthly summary of revenues, costs, margin and calculated commissions.</li>
-      <li><strong>Dashboard:</strong> an at-a-glance overview with key indicators of current activity.</li>
+      <li><strong>1) Configure users and agents:</strong> superadmin creates operational users (with hourly rate) and
+        manages sales agents.</li>
+      <li><strong>2) Create the activity:</strong> set title, date, total revenue, status (draft/confirmed/closed), and
+        optional agent percentage.</li>
+      <li><strong>3) Add costs and participants:</strong> enter manual costs and define work share + fixed compensation
+        per participant.</li>
+      <li><strong>4) Log timesheets:</strong> internal consultant hours automatically generate the corresponding
+        operational cost.</li>
+      <li><strong>5) Review activity and reports:</strong> verify margins and participant payouts in activity detail and
+        monthly reports.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:1.5rem;">
+  <div class="card-body">
+    <h2>Revenue Activities</h2>
+    <ul>
+      <li>The activity list supports filters by status, agent, date range, and title search.</li>
+      <li>Available operations are: create, edit, single delete, and bulk delete.</li>
+      <li>Standard users can edit/delete only activities they created; superadmin can manage all activities.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:1.5rem;">
+  <div class="card-body">
+    <h2>Costs, Participants, and Calculations</h2>
+    <ul>
+      <li>Manual costs are classified by category (material, transport, consulting, marketing, out-of-pocket, other) and
+        type (operational/extra).</li>
+      <li>Auto-generated costs from timesheets (internal consulting) cannot be edited manually.</li>
+      <li>Financial totals include: agent commission, total costs, net margin, fixed compensations, and variable
+        participant shares.</li>
+      <li>Variable share distribution is based on each participant's work share percentage.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:1.5rem;">
+  <div class="card-body">
+    <h2>Timesheets and Auto Costs</h2>
+    <ul>
+      <li>From activity detail, you can log worked hours with date and description.</li>
+      <li>The system stores the user's hourly rate snapshot at entry creation time.</li>
+      <li>When a timesheet is edited/deleted, the internal aggregated cost is rebuilt automatically.</li>
+      <li>In <strong>My Timesheets</strong>, filters are available by month, year, and activity; superadmin can also
+        filter by user.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:1.5rem;">
+  <div class="card-body">
+    <h2>Roles and Permissions</h2>
+    <ul>
+      <li><strong>Standard user:</strong> can use dashboard, activities, agents, reports, manual, and personal
+        timesheets.</li>
+      <li><strong>Superadmin:</strong> additionally manages users and audit log, and can operate on all
+        activities/timesheets.</li>
+      <li>The superadmin account cannot be deleted from user management.</li>
     </ul>
   </div>
 </div>
@@ -89,17 +203,20 @@
     <p>
       Every operation (create, update, delete) is automatically recorded in the <strong>audit log</strong>,
       detailing who performed the action, when, and what data was changed.
-      The application supports user authentication, CSRF protection and secure sessions.
+      The application uses session-based authentication, POST-only logout, CSRF protection, and safe redirect checks.
+      Numeric values are validated (for example: percentages 0-100, non-negative amounts).
     </p>
   </div>
 </div>
 
 <div class="card" style="margin-bottom:1.5rem;">
   <div class="card-body">
-    <h2>Supported Languages</h2>
+    <h2>Reports, Dashboard, and Languages</h2>
     <p>
-      The interface is available in <strong>Italian</strong> and <strong>English</strong>.
-      You can switch language at any time from the selector in the sidebar.
+      The dashboard shows key indicators and recent activities, while monthly reports aggregate revenues, costs, and
+      margins.
+      The interface is available in <strong>Italian</strong> and <strong>English</strong>, and can be switched anytime
+      from the sidebar language selector.
     </p>
   </div>
 </div>

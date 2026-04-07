@@ -708,6 +708,8 @@ class TestManualRoutes:
         assert response.status_code == 200
         assert 'Manuale Utente'.encode() in response.data
         assert 'Cos\'è Small ERP'.encode() in response.data
+        assert 'Timesheet e costi automatici'.encode() in response.data
+        assert 'Ruoli e permessi'.encode() in response.data
 
     def test_manual_logged_in_english(self, client, superadmin_user):
         """Test manual page loads in English."""
@@ -723,6 +725,8 @@ class TestManualRoutes:
         assert response.status_code == 200
         assert b'User Manual' in response.data
         assert b'What is Small ERP' in response.data
+        assert b'Timesheets and Auto Costs' in response.data
+        assert b'Roles and Permissions' in response.data
 
     def test_manual_accessible_by_regular_user(self, client, operator_user):
         """Test manual page is accessible by regular user."""

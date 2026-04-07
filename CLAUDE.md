@@ -205,18 +205,23 @@ These were all identified in a security audit (April 2026) — **do not regress*
 2. **Open redirect**: Validate `next` param with `url_for` comparison, block external URLs
 3. **Logout via POST only**: The logout route must be POST with CSRF token
 4. **CSRF**: All state-changing forms must include `{{ form.hidden_tag() }}` or `{{ csrf_token() }}`
-5. **Security headers**: Set in `app/__init__.py` after-request hook — X-Content-Type-Options, X-Frame-Options, X-XSS-Protection
+5. **Security headers**: Set in `app/__init__.py` after-request hook — X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, Referrer-Policy, CSP
 6. **Password policy**: Min 12 chars, 1 uppercase, 1 lowercase, 1 digit (enforced in users.py)
 7. **Audit wildcard injection**: Strip `%` and `_` from username filter inputs
 8. **Date injection**: Validate date inputs as ISO format before passing to queries
 9. **No exception text in UI**: Use generic error messages; log the real exception server-side
 10. **Decimal overflow**: Reject values > 999,999,999.99 in all numeric inputs
+11. **Rate limiting**: `/login` POST limited to 10 req/min per IP via Flask-Limiter (in-memory storage)
+12. **Account lockout**: 5 consecutive login failures lock account for 15 min (in-memory, resets on restart)
+13. **HTTPS flags**: Set `HTTPS_ENABLED=true` in `.env` to activate `SESSION_COOKIE_SECURE=True` and HSTS header
+14. **Content Security Policy**: `default-src 'self'` — no inline scripts allowed; all JS in `app/static/js/`
+15. **No inline JS in templates**: All event handlers in external static files; use `data-confirm="..."` on forms for confirm dialogs
+16. **Force password change**: New users get `must_change_password=True`; intercepted by `before_request` hook redirecting to `/change-password`
+17. **Read audit logging**: Activity detail views and report views log `action_type='read'` to audit log
 
-**Not yet implemented** (do not add without user approval):
-- Rate limiting / account lockout
-- `SESSION_COOKIE_SECURE=True` (needs HTTPS)
-- Content Security Policy header
-- Database encryption at rest
+**Not implemented** (requires infrastructure change):
+- `SESSION_COOKIE_SECURE=True` active only with `HTTPS_ENABLED=true` in `.env`
+- Database encryption at rest (SQLite limitation — consider SQLCipher or PostgreSQL)
 
 ---
 

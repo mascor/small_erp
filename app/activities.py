@@ -3,8 +3,14 @@ from datetime import date
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from . import db
-from .models import RevenueActivity, Agent, ActivityCost, ActivityParticipant, User
-from .services import calc_activity_totals
+from .models import RevenueActivity, Agent, ActivityCost, ActivityParticipant, TimesheetEntry, User
+from .services import (
+    calc_activity_totals,
+    create_timesheet_entry,
+    update_timesheet_entry,
+    delete_timesheet_entry,
+    TimesheetValidationError,
+)
 from .audit_service import log_action, model_to_dict
 from .logging_config import get_logger
 from .i18n import tr
@@ -133,8 +139,24 @@ def create():
 @login_required
 def detail(id):
     activity = db.get_or_404(RevenueActivity, id)
+    log_action('read', 'RevenueActivity', activity.id,
+               f'Visualizzata attività: {activity.title}')
     totals = calc_activity_totals(activity)
-    return render_template('activities/detail.html', activity=activity, totals=totals)
+
+    # Timesheets for this activity (superadmin sees all, user sees own + aggregated view)
+    if current_user.is_superadmin:
+        timesheets = TimesheetEntry.query.filter_by(activity_id=id).order_by(
+            TimesheetEntry.work_date.desc()
+        ).all()
+    else:
+        timesheets = TimesheetEntry.query.filter_by(
+            activity_id=id, user_id=current_user.id
+        ).order_by(TimesheetEntry.work_date.desc()).all()
+
+    return render_template('activities/detail.html',
+                           activity=activity,
+                           totals=totals,
+                           timesheets=timesheets)
 
 
 @activities_bp.route('/<int:id>/edit', methods=['GET', 'POST'])
@@ -237,7 +259,7 @@ def bulk_delete():
 
 # --- Costs sub-routes ---
 
-COST_FIELDS = ['category', 'description', 'amount', 'date', 'cost_type', 'notes']
+COST_FIELDS = ['category', 'description', 'amount', 'date', 'cost_type', 'notes', 'line_type']
 
 
 @activities_bp.route('/<int:id>/costs/add', methods=['GET', 'POST'])
@@ -250,6 +272,12 @@ def add_cost(id):
             cost_desc = _require_non_empty(request.form.get('description', ''), tr('Descrizione', 'Description'))
             cost_date_str = _require_non_empty(request.form.get('date', ''), tr('Data', 'Date'))
 
+            line_type = request.form.get('line_type', 'generic')
+            if line_type not in {'generic', 'external_consultant'}:
+                line_type = 'generic'
+
+            vendor_name = request.form.get('vendor_name', '').strip() or None
+
             cost = ActivityCost(
                 activity_id=activity.id,
                 category=request.form['category'] if request.form['category'] in VALID_COST_CATEGORIES else 'altro',
@@ -258,6 +286,10 @@ def add_cost(id):
                 date=date.fromisoformat(cost_date_str),
                 cost_type=request.form.get('cost_type', 'operativo') if request.form.get('cost_type') in VALID_COST_TYPES else 'operativo',
                 notes=request.form.get('notes', '').strip(),
+                line_type=line_type,
+                source_type='manual',
+                vendor_name=vendor_name,
+                is_auto_generated=False,
             )
             db.session.add(cost)
             db.session.commit()
@@ -282,6 +314,12 @@ def edit_cost(id, cost_id):
     activity = db.get_or_404(RevenueActivity, id)
     cost = db.get_or_404(ActivityCost, cost_id)
 
+    # Prevent manual editing of auto-generated costs
+    if cost.is_auto_generated:
+        flash(tr('Questo costo è generato automaticamente dai timesheet e non può essere modificato manualmente.',
+                 'This cost is auto-generated from timesheets and cannot be edited manually.'), 'error')
+        return redirect(url_for('activities.detail', id=id))
+
     if request.method == 'POST':
         try:
             old_values = model_to_dict(cost, COST_FIELDS)
@@ -289,12 +327,18 @@ def edit_cost(id, cost_id):
             cost_desc = _require_non_empty(request.form.get('description', ''), tr('Descrizione', 'Description'))
             cost_date_str = _require_non_empty(request.form.get('date', ''), tr('Data', 'Date'))
 
+            line_type = request.form.get('line_type', 'generic')
+            if line_type not in {'generic', 'external_consultant'}:
+                line_type = 'generic'
+
             cost.category = request.form['category'] if request.form['category'] in VALID_COST_CATEGORIES else 'altro'
             cost.description = cost_desc
             cost.amount = _validate_decimal(request.form['amount'], tr('Importo', 'Amount'))
             cost.date = date.fromisoformat(cost_date_str)
             cost.cost_type = request.form.get('cost_type', 'operativo') if request.form.get('cost_type') in VALID_COST_TYPES else 'operativo'
             cost.notes = request.form.get('notes', '').strip()
+            cost.line_type = line_type
+            cost.vendor_name = request.form.get('vendor_name', '').strip() or None
 
             db.session.commit()
 
@@ -315,6 +359,13 @@ def edit_cost(id, cost_id):
 @login_required
 def delete_cost(id, cost_id):
     cost = db.get_or_404(ActivityCost, cost_id)
+
+    # Prevent manual deletion of auto-generated costs
+    if cost.is_auto_generated:
+        flash(tr('Questo costo è generato automaticamente dai timesheet e non può essere eliminato manualmente.',
+                 'This cost is auto-generated from timesheets and cannot be deleted manually.'), 'error')
+        return redirect(url_for('activities.detail', id=id))
+
     desc = cost.description
 
     logger.info(f'Cost deleted: {desc} (ID: {cost_id}) from activity {id} by user {current_user.username}')
@@ -417,4 +468,144 @@ def delete_participant(id, pid):
     db.session.delete(p)
     db.session.commit()
     flash(tr(f'Partecipante "{name}" rimosso.', f'Participant "{name}" removed.'), 'success')
+    return redirect(url_for('activities.detail', id=id))
+
+
+# --- Timesheet sub-routes ---
+
+TIMESHEET_FIELDS = ['user_id', 'activity_id', 'work_date', 'hours', 'description', 'hourly_rate_snapshot']
+
+
+@activities_bp.route('/<int:id>/timesheets/add', methods=['GET', 'POST'])
+@login_required
+def add_timesheet(id):
+    activity = db.get_or_404(RevenueActivity, id)
+
+    if request.method == 'POST':
+        try:
+            work_date_str = _require_non_empty(request.form.get('work_date', ''), tr('Data', 'Date'))
+            work_date_val = date.fromisoformat(work_date_str)
+            hours_str = _require_non_empty(request.form.get('hours', ''), tr('Ore', 'Hours'))
+            description = _require_non_empty(request.form.get('description', ''), tr('Descrizione', 'Description'))
+
+            # Superadmin can log hours for any user; regular user logs for themselves
+            if current_user.is_superadmin and request.form.get('user_id'):
+                target_user_id = int(request.form['user_id'])
+            else:
+                target_user_id = current_user.id
+
+            entry = create_timesheet_entry(
+                user_id=target_user_id,
+                activity_id=id,
+                work_date=work_date_val,
+                hours=Decimal(hours_str.replace(',', '.')),
+                description=description,
+                created_by_id=current_user.id,
+            )
+
+            log_action('create', 'TimesheetEntry', entry.id,
+                       f'Aggiunto timesheet: {entry.hours}h il {entry.work_date} per attività "{activity.title}"',
+                       new_values={
+                           'user_id': entry.user_id,
+                           'activity_id': entry.activity_id,
+                           'work_date': str(entry.work_date),
+                           'hours': str(entry.hours),
+                           'description': entry.description,
+                           'hourly_rate_snapshot': str(entry.hourly_rate_snapshot),
+                       })
+
+            flash(tr('Timesheet aggiunto.', 'Timesheet added.'), 'success')
+            return redirect(url_for('activities.detail', id=id))
+        except TimesheetValidationError as e:
+            flash(str(e), 'error')
+        except (ValueError, KeyError, InvalidOperation) as e:
+            logger.error(f'Error adding timesheet to activity {id}: {str(e)}', exc_info=True)
+            flash(tr('Errore nei dati inseriti.', 'Invalid input data.'), 'error')
+
+    users = User.query.filter_by(is_active_user=True).order_by(User.full_name).all() if current_user.is_superadmin else []
+    return render_template('activities/timesheet_form.html',
+                           activity=activity, entry=None, users=users)
+
+
+@activities_bp.route('/<int:id>/timesheets/<int:entry_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_timesheet(id, entry_id):
+    activity = db.get_or_404(RevenueActivity, id)
+    entry = db.get_or_404(TimesheetEntry, entry_id)
+
+    if not current_user.is_superadmin and entry.user_id != current_user.id:
+        flash(tr('Non autorizzato a modificare questo timesheet.', 'Not authorized to edit this timesheet.'), 'error')
+        return redirect(url_for('activities.detail', id=id))
+
+    if request.method == 'POST':
+        try:
+            work_date_str = _require_non_empty(request.form.get('work_date', ''), tr('Data', 'Date'))
+            work_date_val = date.fromisoformat(work_date_str)
+            hours_str = _require_non_empty(request.form.get('hours', ''), tr('Ore', 'Hours'))
+            description = _require_non_empty(request.form.get('description', ''), tr('Descrizione', 'Description'))
+
+            old_vals = {
+                'work_date': str(entry.work_date),
+                'hours': str(entry.hours),
+                'description': entry.description,
+            }
+
+            update_timesheet_entry(
+                entry_id=entry_id,
+                requesting_user=current_user,
+                hours=Decimal(hours_str.replace(',', '.')),
+                work_date=work_date_val,
+                description=description,
+            )
+
+            log_action('update', 'TimesheetEntry', entry_id,
+                       f'Modificato timesheet ID {entry_id} per attività "{activity.title}"',
+                       old_values=old_vals,
+                       new_values={
+                           'work_date': work_date_str,
+                           'hours': hours_str,
+                           'description': description,
+                       })
+
+            flash(tr('Timesheet aggiornato.', 'Timesheet updated.'), 'success')
+            return redirect(url_for('activities.detail', id=id))
+        except TimesheetValidationError as e:
+            flash(str(e), 'error')
+        except (ValueError, KeyError, InvalidOperation) as e:
+            logger.error(f'Error editing timesheet {entry_id}: {str(e)}', exc_info=True)
+            flash(tr('Errore nei dati inseriti.', 'Invalid input data.'), 'error')
+
+    users = User.query.filter_by(is_active_user=True).order_by(User.full_name).all() if current_user.is_superadmin else []
+    return render_template('activities/timesheet_form.html',
+                           activity=activity, entry=entry, users=users)
+
+
+@activities_bp.route('/<int:id>/timesheets/<int:entry_id>/delete', methods=['POST'])
+@login_required
+def delete_timesheet(id, entry_id):
+    entry = db.get_or_404(TimesheetEntry, entry_id)
+
+    if not current_user.is_superadmin and entry.user_id != current_user.id:
+        flash(tr('Non autorizzato a eliminare questo timesheet.', 'Not authorized to delete this timesheet.'), 'error')
+        return redirect(url_for('activities.detail', id=id))
+
+    activity = db.get_or_404(RevenueActivity, id)
+
+    log_action('delete', 'TimesheetEntry', entry_id,
+               f'Eliminato timesheet ID {entry_id} per attività "{activity.title}"',
+               old_values={
+                   'user_id': entry.user_id,
+                   'activity_id': entry.activity_id,
+                   'work_date': str(entry.work_date),
+                   'hours': str(entry.hours),
+                   'description': entry.description,
+               })
+
+    try:
+        delete_timesheet_entry(entry_id, current_user)
+    except TimesheetValidationError as e:
+        flash(str(e), 'error')
+        return redirect(url_for('activities.detail', id=id))
+
+    flash(tr('Timesheet eliminato.', 'Timesheet deleted.'), 'success')
     return redirect(url_for('activities.detail', id=id))

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}{{ tr('Timesheet', 'Timesheet') }} — {{ activity.title }} — Small ERP{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb">
+  <a href="{{ url_for('activities.index') }}">{{ tr('Attivita', 'Activities') }}</a>
+  <span class="separator">/</span>
+  <a href="{{ url_for('activities.detail', id=activity.id) }}">{{ activity.title }}</a>
+  <span class="separator">/</span>
+  <span class="current">{{ tr('Timesheet', 'Timesheet') }}</span>
+</nav>
+
+<div class="page-header">
+  <h1>{% if entry %}{{ tr('Modifica Timesheet', 'Edit Timesheet') }}{% else %}{{ tr('Aggiungi Timesheet', 'Add Timesheet') }}{% endif %}</h1>
+</div>
+
+<div class="card" style="max-width:540px;">
+  <div class="card-body">
+    <form method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      {% if current_user.is_superadmin and users %}
+      <div class="form-group">
+        <label class="form-label">{{ tr('Consulente', 'Consultant') }}</label>
+        <select name="user_id" class="form-control">
+          {% for u in users %}
+          <option value="{{ u.id }}"
+            {% if entry and entry.user_id == u.id %}selected{% endif %}
+            {% if not entry and u.id == current_user.id %}selected{% endif %}>
+            {{ u.full_name }}{% if u.hourly_cost_rate %} (€ {{ u.hourly_cost_rate }}/h){% endif %}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      {% endif %}
+
+      <div class="form-group">
+        <label class="form-label">{{ tr('Data', 'Date') }} *</label>
+        <input type="date" name="work_date" class="form-control" required
+          value="{{ entry.work_date.isoformat() if entry else today }}">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">{{ tr('Ore lavorate', 'Hours worked') }} *</label>
+        <input type="number" name="hours" class="form-control" required
+          min="0.25" max="24" step="0.25"
+          value="{{ entry.hours if entry else '' }}"
+          placeholder="es. 4.5">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">{{ tr('Descrizione attivita svolta', 'Description of work done') }} *</label>
+        <textarea name="description" class="form-control" rows="3" required
+          placeholder="{{ tr('Descrivi brevemente il lavoro svolto...', 'Briefly describe the work done...') }}">{{ entry.description if entry else '' }}</textarea>
+      </div>
+
+      {% if entry %}
+      <div class="form-group">
+        <label class="form-label text-muted text-sm">{{ tr('Tariffa applicata (snapshot)', 'Applied rate (snapshot)') }}</label>
+        <p class="text-muted text-sm">&euro; {{ entry.hourly_rate_snapshot }}/h</p>
+      </div>
+      {% endif %}
+
+      <div class="btn-group mt-lg">
+        <button type="submit" class="btn btn-primary">
+          {% if entry %}{{ tr('Salva Modifiche', 'Save Changes') }}{% else %}{{ tr('Aggiungi', 'Add') }}{% endif %}
+        </button>
+        <a href="{{ url_for('activities.detail', id=activity.id) }}" class="btn btn-secondary">
+          {{ tr('Annulla', 'Cancel') }}
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

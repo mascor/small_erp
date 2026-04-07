@@ -49,7 +49,7 @@
 
 {% if activities %}
 <form id="bulk-delete-form" method="POST" action="{{ url_for('activities.bulk_delete') }}"
-  onsubmit="return confirm('{{ tr('Eliminare le attività selezionate e tutti i dati collegati?', 'Delete selected activities and all linked data?') }}')">
+  data-confirm="{{ tr('Eliminare le attività selezionate e tutti i dati collegati?', 'Delete selected activities and all linked data?') }}">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <div class="bulk-actions" id="bulk-actions" style="display:none;">
     <span id="selected-count">0</span> {{ tr('selezionate', 'selected') }}
@@ -65,8 +65,10 @@
           <th>{{ tr('Data', 'Date') }}</th>
           <th>{{ tr('Stato', 'Status') }}</th>
           <th>{{ tr('Agente', 'Agent') }}</th>
+          {% if current_user.is_superadmin %}
           <th class="num">{{ tr('Ricavo', 'Revenue') }}</th>
           <th class="num">% {{ tr('Agente', 'Agent') }}</th>
+          {% endif %}
           <th></th>
         </tr>
       </thead>
@@ -82,8 +84,10 @@
           <td class="text-muted text-sm nowrap">{{ act.date.strftime('%d/%m/%Y') }}</td>
           <td><span class="badge badge-{{ act.status }} badge-dot">{{ status_label(act.status) }}</span></td>
           <td>{% if act.agent %}{{ act.agent.full_name }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+          {% if current_user.is_superadmin %}
           <td class="num">&euro; {{ act.total_revenue|currency }}</td>
           <td class="num">{{ act.agent_percentage|percentage }}</td>
+          {% endif %}
           <td class="text-right">
             <div class="btn-group">
               <a href="{{ url_for('activities.detail', id=act.id) }}" class="btn btn-ghost btn-sm">{{ tr('Dettaglio',
@@ -92,7 +96,7 @@
               <a href="{{ url_for('activities.edit', id=act.id) }}" class="btn btn-ghost btn-sm">{{ tr('Modifica',
                 'Edit') }}</a>
               <form method="POST" action="{{ url_for('activities.delete', id=act.id) }}" class="confirm-delete"
-                onsubmit="return confirm('{{ tr('Eliminare questa attivita e tutti i dati collegati?', 'Delete this activity and all linked data?') }}')">
+                data-confirm="{{ tr('Eliminare questa attivita e tutti i dati collegati?', 'Delete this activity and all linked data?') }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button type="submit" class="btn btn-ghost btn-sm text-danger">{{ tr('Elimina', 'Delete') }}</button>
               </form>
@@ -149,39 +153,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
-(function() {
-  var selectAll = document.getElementById('select-all');
-  var bulkActions = document.getElementById('bulk-actions');
-  var countSpan = document.getElementById('selected-count');
-  if (!selectAll) return;
-
-  function getCheckboxes() {
-    return document.querySelectorAll('.activity-checkbox');
-  }
-
-  function updateUI() {
-    var checked = document.querySelectorAll('.activity-checkbox:checked').length;
-    countSpan.textContent = checked;
-    bulkActions.style.display = checked > 0 ? 'flex' : 'none';
-    var boxes = getCheckboxes();
-    selectAll.checked = boxes.length > 0 && checked === boxes.length;
-    selectAll.indeterminate = checked > 0 && checked < boxes.length;
-  }
-
-  selectAll.addEventListener('change', function() {
-    var boxes = getCheckboxes();
-    for (var i = 0; i < boxes.length; i++) {
-      boxes[i].checked = selectAll.checked;
-    }
-    updateUI();
-  });
-
-  document.addEventListener('change', function(e) {
-    if (e.target.classList.contains('activity-checkbox')) {
-      updateUI();
-    }
-  });
-})();
-</script>
+<script src="{{ url_for('static', filename='js/activities-list.js') }}"></script>
 {% endblock %}

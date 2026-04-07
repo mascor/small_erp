@@ -6,7 +6,7 @@
   <div>
     <h1>{{ tr('Report Mensile', 'Monthly Report') }}</h1>
   </div>
-  <button class="btn btn-secondary" onclick="window.print()">{{ tr('Stampa Report', 'Print Report') }}</button>
+  <button class="btn btn-secondary" id="print-report-btn">{{ tr('Stampa Report', 'Print Report') }}</button>
 </div>
 
 <!-- Period selector -->
@@ -45,8 +45,13 @@
     <div class="summary-value">&euro; {{ report.total_costs|currency }}</div>
   </div>
   <div class="report-summary-card">
-    <div class="summary-label">{{ tr('Spese Extra', 'Extra Costs') }}</div>
-    <div class="summary-value">&euro; {{ report.total_extra_costs|currency }}</div>
+    <div class="summary-label">{{ tr('Consulenti Interni', 'Internal Consultants') }}</div>
+    <div class="summary-value">&euro; {{ report.total_internal_consultant_costs|currency }}</div>
+    <div class="text-muted text-sm">{{ report.total_internal_hours }} h</div>
+  </div>
+  <div class="report-summary-card">
+    <div class="summary-label">{{ tr('Consulenti Esterni', 'External Consultants') }}</div>
+    <div class="summary-value">&euro; {{ report.total_external_consultant_costs|currency }}</div>
   </div>
   <div class="report-summary-card">
     <div class="summary-label">{{ tr('Commissioni Agenti', 'Agent Commissions') }}</div>
@@ -106,6 +111,20 @@
               <td>{{ tr('Spese extra', 'Extra costs') }}</td>
               <td class="num negative">&minus; &euro; {{ t.total_extra_costs|currency }}</td>
             </tr>
+            {% if t.total_internal_consultant_costs > 0 %}
+            <tr class="text-muted">
+              <td class="text-sm" style="padding-left:1.5rem;">
+                ↳ {{ tr('Consulenti interni', 'Internal consultants') }} ({{ t.total_internal_hours }} h)
+              </td>
+              <td class="num text-sm">&euro; {{ t.total_internal_consultant_costs|currency }}</td>
+            </tr>
+            {% endif %}
+            {% if t.total_external_consultant_costs > 0 %}
+            <tr class="text-muted">
+              <td class="text-sm" style="padding-left:1.5rem;">↳ {{ tr('Consulenti esterni', 'External consultants') }}</td>
+              <td class="num text-sm">&euro; {{ t.total_external_consultant_costs|currency }}</td>
+            </tr>
+            {% endif %}
             <tr style="font-weight:600; background:var(--navy-50)">
               <td>{{ tr('Margine Netto', 'Net Margin') }}</td>
               <td class="num {% if t.net_margin >= 0 %}positive{% else %}negative{% endif %}">
@@ -214,4 +233,8 @@
   </div>
 </div>
 {% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/reports.js') }}"></script>
 {% endblock %}

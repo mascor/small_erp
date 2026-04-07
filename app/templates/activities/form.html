@@ -56,6 +56,7 @@ tr('Attivita', 'Activity') }} — Small ERP{% endblock %}
               status_label('chiusa') }}</option>
           </select>
         </div>
+        {% if current_user.is_superadmin %}
         <div class="form-group">
           <label class="form-label" for="total_revenue">{{ tr('Ricavo Totale', 'Total Revenue') }} (&euro;) <span
               class="required">*</span></label>
@@ -67,6 +68,10 @@ tr('Attivita', 'Activity') }} — Small ERP{% endblock %}
           <input type="text" id="agent_percentage" name="agent_percentage" class="form-control"
             value="{{ activity.agent_percentage if activity else '0' }}" placeholder="0,00">
         </div>
+        {% else %}
+        <input type="hidden" name="total_revenue" value="{{ activity.total_revenue if activity else '0' }}">
+        <input type="hidden" name="agent_percentage" value="{{ activity.agent_percentage if activity else '0' }}">
+        {% endif %}
       </div>
 
       <div class="form-group">
@@ -103,13 +108,5 @@ tr('Attivita', 'Activity') }} — Small ERP{% endblock %}
 {% endblock %}
 
 {% block scripts %}
-<script>
-  document.getElementById('agent_id').addEventListener('change', function () {
-    const selected = this.options[this.selectedIndex];
-    const pct = selected.getAttribute('data-percentage');
-    if (pct && parseFloat(pct) > 0) {
-      document.getElementById('agent_percentage').value = pct;
-    }
-  });
-</script>
+<script src="{{ url_for('static', filename='js/activity-form.js') }}"></script>
 {% endblock %}

@@ -20,6 +20,18 @@ def init():
             logger.info('Database created successfully')
             print('Database creato con successo.')
 
+            # Migration: add must_change_password column if missing (existing DBs)
+            from sqlalchemy import text
+            with db.engine.connect() as conn:
+                cols = [row[1] for row in conn.execute(text("PRAGMA table_info(users)"))]
+                if 'must_change_password' not in cols:
+                    conn.execute(text(
+                        "ALTER TABLE users ADD COLUMN must_change_password BOOLEAN NOT NULL DEFAULT 0"
+                    ))
+                    conn.commit()
+                    logger.info('Migration: added must_change_password column to users')
+                    print('Migrazione: aggiunta colonna must_change_password agli utenti.')
+
             env_password = os.environ.get('SUPERADMIN_PASSWORD')
             if not env_password:
                 raise ValueError('SUPERADMIN_PASSWORD must be set in .env')

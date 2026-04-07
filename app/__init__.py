@@ -3,6 +3,8 @@ from flask import Flask, request, redirect, url_for, flash, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from sqlalchemy.exc import SQLAlchemyError
 from dotenv import load_dotenv
 from .logging_config import configure_logging
@@ -16,6 +18,12 @@ login_manager = LoginManager()
 login_manager.login_view = 'auth.login'
 login_manager.login_message = None
 login_manager.login_message_category = 'warning'
+
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=[],
+    storage_uri='memory://',
+)
 
 
 def create_app(test_config=None):
@@ -42,6 +50,8 @@ def create_app(test_config=None):
 
     os.makedirs(os.path.dirname(db_path), exist_ok=True)
 
+    https_enabled = os.environ.get('HTTPS_ENABLED', 'false').lower() == 'true'
+
     app.config.from_mapping(
         SECRET_KEY=os.environ.get('SECRET_KEY'),
         SQLALCHEMY_DATABASE_URI=f'sqlite:///{db_path}',
@@ -49,6 +59,7 @@ def create_app(test_config=None):
         WTF_CSRF_ENABLED=True,
         SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SAMESITE='Lax',
+        SESSION_COOKIE_SECURE=https_enabled,
         PERMANENT_SESSION_LIFETIME=1800,  # 30 minutes
     )
 
@@ -69,6 +80,7 @@ def create_app(test_config=None):
     db.init_app(app)
     csrf.init_app(app)
     login_manager.init_app(app)
+    limiter.init_app(app)
 
     @login_manager.unauthorized_handler
     def unauthorized():
@@ -95,6 +107,7 @@ def create_app(test_config=None):
     from .reports import reports_bp
     from .audit import audit_bp
     from .manual import manual_bp
+    from .timesheets import timesheets_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
@@ -104,6 +117,27 @@ def create_app(test_config=None):
     app.register_blueprint(reports_bp)
     app.register_blueprint(audit_bp)
     app.register_blueprint(manual_bp)
+    app.register_blueprint(timesheets_bp)
+
+    # Force password change intercept
+    from flask_login import current_user
+
+    @app.before_request
+    def enforce_password_change():
+        exempt_endpoints = {'auth.login', 'auth.logout', 'auth.change_password', 'static'}
+        if (
+            request.endpoint not in exempt_endpoints
+            and current_user.is_authenticated
+            and getattr(current_user, 'must_change_password', False)
+        ):
+            flash(
+                tr(
+                    'Devi cambiare la password prima di continuare.',
+                    'You must change your password before continuing.',
+                ),
+                'warning',
+            )
+            return redirect(url_for('auth.change_password'))
 
     @app.after_request
     def set_security_headers(response):
@@ -111,6 +145,17 @@ def create_app(test_config=None):
         response.headers['X-Frame-Options'] = 'DENY'
         response.headers['X-XSS-Protection'] = '1; mode=block'
         response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+        if https_enabled:
+            response.headers['Strict-Transport-Security'] = 'max-age=63072000; includeSubDomains'
+        csp = (
+            "default-src 'self'; "
+            "script-src 'self'; "
+            "style-src 'self'; "
+            "img-src 'self' data:; "
+            "font-src 'self'; "
+            "frame-ancestors 'none';"
+        )
+        response.headers['Content-Security-Policy'] = csp
         return response
 
     @app.route('/set-language', methods=['POST'])
