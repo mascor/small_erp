@@ -133,6 +133,9 @@ def _validate_timesheet_input(user, activity_id, work_date, hours, description, 
         raise TimesheetValidationError('Le ore devono essere maggiori di 0')
     if hours_d > MAX_HOURS_PER_ENTRY:
         raise TimesheetValidationError('Le ore non possono superare 24 per voce')
+    VALID_HOURS = {Decimal('0.5'), Decimal('1'), Decimal('1.5')}
+    if hours_d not in VALID_HOURS:
+        raise TimesheetValidationError('Le ore devono essere 0.5, 1 oppure 1.5')
 
     if not description or not description.strip():
         raise TimesheetValidationError('Descrizione obbligatoria')
@@ -212,6 +215,9 @@ def update_timesheet_entry(entry_id, requesting_user, hours=None, work_date=None
             raise TimesheetValidationError('Le ore devono essere maggiori di 0')
         if hours_d > MAX_HOURS_PER_ENTRY:
             raise TimesheetValidationError('Le ore non possono superare 24 per voce')
+        VALID_HOURS = {Decimal('0.5'), Decimal('1'), Decimal('1.5')}
+        if hours_d not in VALID_HOURS:
+            raise TimesheetValidationError('Le ore devono essere 0.5, 1 oppure 1.5')
         entry.hours = hours_d
 
     if work_date is not None:

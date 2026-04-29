@@ -7,7 +7,9 @@
     <h1>{{ tr('Attivita di Ricavo', 'Revenue Activities') }}</h1>
     <p class="page-subtitle">{{ pagination.total }} {{ tr('attivita totali', 'total activities') }}</p>
   </div>
+  {% if current_user.is_superadmin %}
   <a href="{{ url_for('activities.create') }}" class="btn btn-primary">+ {{ tr('Nuova Attivita', 'New Activity') }}</a>
+  {% endif %}
 </div>
 
 <!-- Filters -->
@@ -22,7 +24,8 @@
     <select name="status" class="form-control">
       <option value="">{{ tr('Tutti gli stati', 'All statuses') }}</option>
       <option value="bozza" {% if filters.status=='bozza' %}selected{% endif %}>{{ status_label('bozza') }}</option>
-      <option value="confermata" {% if filters.status=='confermata' %}selected{% endif %}>{{ status_label('confermata') }}</option>
+      <option value="confermata" {% if filters.status=='confermata' %}selected{% endif %}>{{ status_label('confermata')
+        }}</option>
       <option value="chiusa" {% if filters.status=='chiusa' %}selected{% endif %}>{{ status_label('chiusa') }}</option>
     </select>
   </div>
@@ -31,7 +34,8 @@
     <select name="agent_id" class="form-control">
       <option value="">{{ tr('Tutti', 'All') }}</option>
       {% for agent in agents_list %}
-      <option value="{{ agent.id }}" {% if filters.agent_id == agent.id|string %}selected{% endif %}>{{ agent.full_name }}</option>
+      <option value="{{ agent.id }}" {% if filters.agent_id==agent.id|string %}selected{% endif %}>{{ agent.full_name }}
+      </option>
       {% endfor %}
     </select>
   </div>
@@ -55,66 +59,68 @@
     <span id="selected-count">0</span> {{ tr('selezionate', 'selected') }}
     <button type="submit" class="btn btn-danger btn-sm">{{ tr('Elimina selezionate', 'Delete selected') }}</button>
   </div>
-<div class="card">
-  <div class="table-wrapper">
-    <table>
-      <thead>
-        <tr>
-          <th style="width:40px"><input type="checkbox" id="select-all" title="{{ tr('Seleziona tutto', 'Select all') }}"></th>
-          <th>{{ tr('Titolo', 'Title') }}</th>
-          <th>{{ tr('Data', 'Date') }}</th>
-          <th>{{ tr('Stato', 'Status') }}</th>
-          <th>{{ tr('Agente', 'Agent') }}</th>
-          {% if current_user.is_superadmin %}
-          <th class="num">{{ tr('Ricavo', 'Revenue') }}</th>
-          <th class="num">% {{ tr('Agente', 'Agent') }}</th>
-          {% endif %}
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for act in activities %}
-        <tr>
-          <td>
-            {% if current_user.is_superadmin or act.created_by == current_user.id %}
-            <input type="checkbox" name="activity_ids" value="{{ act.id }}" class="activity-checkbox">
+  <div class="card">
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:40px"><input type="checkbox" id="select-all"
+                title="{{ tr('Seleziona tutto', 'Select all') }}"></th>
+            <th>{{ tr('Titolo', 'Title') }}</th>
+            <th>{{ tr('Data', 'Date') }}</th>
+            <th>{{ tr('Stato', 'Status') }}</th>
+            <th>{{ tr('Agente', 'Agent') }}</th>
+            {% if current_user.is_superadmin %}
+            <th class="num">{{ tr('Ricavo', 'Revenue') }}</th>
+            <th class="num">% {{ tr('Agente', 'Agent') }}</th>
             {% endif %}
-          </td>
-          <td><a href="{{ url_for('activities.detail', id=act.id) }}"><strong>{{ act.title }}</strong></a></td>
-          <td class="text-muted text-sm nowrap">{{ act.date.strftime('%d/%m/%Y') }}</td>
-          <td><span class="badge badge-{{ act.status }} badge-dot">{{ status_label(act.status) }}</span></td>
-          <td>{% if act.agent %}{{ act.agent.full_name }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
-          {% if current_user.is_superadmin %}
-          <td class="num">&euro; {{ act.total_revenue|currency }}</td>
-          <td class="num">{{ act.agent_percentage|percentage }}</td>
-          {% endif %}
-          <td class="text-right">
-            <div class="btn-group">
-              <a href="{{ url_for('activities.detail', id=act.id) }}" class="btn btn-ghost btn-sm">{{ tr('Dettaglio',
-                'Details') }}</a>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for act in activities %}
+          <tr>
+            <td>
               {% if current_user.is_superadmin or act.created_by == current_user.id %}
-              <a href="{{ url_for('activities.edit', id=act.id) }}" class="btn btn-ghost btn-sm">{{ tr('Modifica',
-                'Edit') }}</a>
-              <form method="POST" action="{{ url_for('activities.delete', id=act.id) }}" class="confirm-delete"
-                data-confirm="{{ tr('Eliminare questa attivita e tutti i dati collegati?', 'Delete this activity and all linked data?') }}">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button type="submit" class="btn btn-ghost btn-sm text-danger">{{ tr('Elimina', 'Delete') }}</button>
-              </form>
+              <input type="checkbox" name="activity_ids" value="{{ act.id }}" class="activity-checkbox">
               {% endif %}
-            </div>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+            </td>
+            <td><a href="{{ url_for('activities.detail', id=act.id) }}"><strong>{{ act.title }}</strong></a></td>
+            <td class="text-muted text-sm nowrap">{{ act.date.strftime('%d/%m/%Y') }}</td>
+            <td><span class="badge badge-{{ act.status }} badge-dot">{{ status_label(act.status) }}</span></td>
+            <td>{% if act.agent %}{{ act.agent.full_name }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+            {% if current_user.is_superadmin %}
+            <td class="num">&euro; {{ act.total_revenue|currency }}</td>
+            <td class="num">{{ act.agent_percentage|percentage }}</td>
+            {% endif %}
+            <td class="text-right">
+              <div class="btn-group">
+                <a href="{{ url_for('activities.detail', id=act.id) }}" class="btn btn-ghost btn-sm">{{ tr('Dettaglio',
+                  'Details') }}</a>
+                {% if current_user.is_superadmin or act.created_by == current_user.id %}
+                <a href="{{ url_for('activities.edit', id=act.id) }}" class="btn btn-ghost btn-sm">{{ tr('Modifica',
+                  'Edit') }}</a>
+                <form method="POST" action="{{ url_for('activities.delete', id=act.id) }}" class="confirm-delete"
+                  data-confirm="{{ tr('Eliminare questa attivita e tutti i dati collegati?', 'Delete this activity and all linked data?') }}">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="btn btn-ghost btn-sm text-danger">{{ tr('Elimina', 'Delete') }}</button>
+                </form>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
-</div>
 </form>
 
 {% if pagination.pages > 1 %}
 <div class="pagination">
   {% if pagination.has_prev %}
-  <a href="?page={{ pagination.prev_num }}&q={{ filters.q }}&status={{ filters.status }}&agent_id={{ filters.agent_id }}&date_from={{ filters.date_from }}&date_to={{ filters.date_to }}">&laquo;</a>
+  <a
+    href="?page={{ pagination.prev_num }}&q={{ filters.q }}&status={{ filters.status }}&agent_id={{ filters.agent_id }}&date_from={{ filters.date_from }}&date_to={{ filters.date_to }}">&laquo;</a>
   {% else %}
   <span class="disabled">&laquo;</span>
   {% endif %}
@@ -124,7 +130,9 @@
   {% if p == pagination.page %}
   <span class="current">{{ p }}</span>
   {% else %}
-  <a href="?page={{ p }}&q={{ filters.q }}&status={{ filters.status }}&agent_id={{ filters.agent_id }}&date_from={{ filters.date_from }}&date_to={{ filters.date_to }}">{{ p }}</a>
+  <a
+    href="?page={{ p }}&q={{ filters.q }}&status={{ filters.status }}&agent_id={{ filters.agent_id }}&date_from={{ filters.date_from }}&date_to={{ filters.date_to }}">{{
+    p }}</a>
   {% endif %}
   {% else %}
   <span class="disabled">...</span>
@@ -132,7 +140,8 @@
   {% endfor %}
 
   {% if pagination.has_next %}
-  <a href="?page={{ pagination.next_num }}&q={{ filters.q }}&status={{ filters.status }}&agent_id={{ filters.agent_id }}&date_from={{ filters.date_from }}&date_to={{ filters.date_to }}">&raquo;</a>
+  <a
+    href="?page={{ pagination.next_num }}&q={{ filters.q }}&status={{ filters.status }}&agent_id={{ filters.agent_id }}&date_from={{ filters.date_from }}&date_to={{ filters.date_to }}">&raquo;</a>
   {% else %}
   <span class="disabled">&raquo;</span>
   {% endif %}

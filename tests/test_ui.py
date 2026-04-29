@@ -1512,6 +1512,7 @@ class TestFullWorkflowE2E:
     def test_operator_can_create_and_view_own_activity(self, client, app, operator_user, agent):
         _login(client, 'operator')
 
+        # Operators can no longer create activities — should be redirected with error
         resp = client.post('/activities/new', data={
             'title': 'Operator Activity',
             'date': date.today().isoformat(),
@@ -1523,21 +1524,13 @@ class TestFullWorkflowE2E:
 
         with app.app_context():
             act = RevenueActivity.query.filter_by(title='Operator Activity').first()
-            assert act is not None
-            act_id = act.id
-
-        # Operator can see it in list
-        resp = client.get('/activities/')
-        assert b'Operator Activity' in resp.data
-
-        # Operator can view detail
-        resp = client.get(f'/activities/{act_id}')
-        assert resp.status_code == 200
+            assert act is None  # activity was NOT created
 
     def test_operator_can_edit_own_activity(self, client, app, operator_user):
         _login(client, 'operator')
 
-        client.post('/activities/new', data={
+        # Operators cannot create activities
+        resp = client.post('/activities/new', data={
             'title': 'My Activity',
             'date': date.today().isoformat(),
             'total_revenue': '100',
@@ -1547,18 +1540,8 @@ class TestFullWorkflowE2E:
 
         with app.app_context():
             act = RevenueActivity.query.filter_by(title='My Activity').first()
-            act_id = act.id
-
-        resp = client.post(f'/activities/{act_id}/edit', data={
-            'title': 'My Updated Activity',
-            'date': date.today().isoformat(),
-            'total_revenue': '200',
-            'agent_percentage': '0',
-            'status': 'confermata',
-        }, follow_redirects=True)
-        with app.app_context():
-            act = db.session.get(RevenueActivity, act_id)
-            assert act.title == 'My Updated Activity'
+            # Activity should not have been created
+            assert act is None
 
     def test_operator_cannot_edit_others_activity(self, client, app, operator_user, revenue_activity):
         _login(client, 'operator')

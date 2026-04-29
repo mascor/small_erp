@@ -157,14 +157,14 @@ class TestTimesheetServices:
                 user_id=user_with_rate.id,
                 activity_id=simple_activity.id,
                 work_date=date.today(),
-                hours=Decimal('5'),
+                hours=Decimal('1'),
                 description='Test work day 1',
                 created_by_id=user_with_rate.id,
             )
             cost = get_internal_consultant_cost(simple_activity.id, user_with_rate.id)
             assert cost is not None
-            assert cost.hours_total == Decimal('5')
-            assert cost.amount == Decimal('100.00')  # 5h * 20€
+            assert cost.hours_total == Decimal('1')
+            assert cost.amount == Decimal('20.00')  # 1h * 20€
             assert cost.line_type == 'internal_consultant'
             assert cost.source_type == 'timesheet_aggregate'
             assert cost.is_auto_generated is True
@@ -172,7 +172,7 @@ class TestTimesheetServices:
     def test_multiple_timesheets_produce_single_cost_row(self, app, user_with_rate, simple_activity):
         with app.app_context():
             # Three timesheet entries like in the spec example
-            for h, desc in [(5, 'Day 1'), (7, 'Day 2'), (8, 'Day 3')]:
+            for h, desc in [('1', 'Day 1'), ('1', 'Day 2'), ('0.5', 'Day 3')]:
                 create_timesheet_entry(
                     user_id=user_with_rate.id,
                     activity_id=simple_activity.id,
@@ -187,8 +187,8 @@ class TestTimesheetServices:
                 line_type='internal_consultant',
             ).all()
             assert len(costs) == 1
-            assert costs[0].hours_total == Decimal('20')
-            assert costs[0].amount == Decimal('400.00')  # 20h * 20€
+            assert costs[0].hours_total == Decimal('2.5')
+            assert costs[0].amount == Decimal('50.00')  # 2.5h * 20€
 
     def test_cost_description_format(self, app, user_with_rate, simple_activity):
         with app.app_context():
@@ -196,7 +196,7 @@ class TestTimesheetServices:
                 user_id=user_with_rate.id,
                 activity_id=simple_activity.id,
                 work_date=date.today(),
-                hours=Decimal('4'),
+                hours=Decimal('1'),
                 description='Work',
                 created_by_id=user_with_rate.id,
             )
@@ -209,7 +209,7 @@ class TestTimesheetServices:
                 user_id=user_with_rate.id,
                 activity_id=simple_activity.id,
                 work_date=date.today(),
-                hours=Decimal('5'),
+                hours=Decimal('1'),
                 description='Initial',
                 created_by_id=user_with_rate.id,
             )
@@ -219,12 +219,12 @@ class TestTimesheetServices:
             update_timesheet_entry(
                 entry_id=eid,
                 requesting_user=user,
-                hours=Decimal('8'),
+                hours=Decimal('1.5'),
             )
 
             cost = get_internal_consultant_cost(simple_activity.id, user_with_rate.id)
-            assert cost.hours_total == Decimal('8')
-            assert cost.amount == Decimal('160.00')  # 8h * 20€
+            assert cost.hours_total == Decimal('1.5')
+            assert cost.amount == Decimal('30.00')  # 1.5h * 20€
 
     def test_delete_timesheet_removes_cost_aggregate(self, app, user_with_rate, simple_activity):
         with app.app_context():
@@ -232,7 +232,7 @@ class TestTimesheetServices:
                 user_id=user_with_rate.id,
                 activity_id=simple_activity.id,
                 work_date=date.today(),
-                hours=Decimal('5'),
+                hours=Decimal('1'),
                 description='To delete',
                 created_by_id=user_with_rate.id,
             )
@@ -250,7 +250,7 @@ class TestTimesheetServices:
                 user_id=user_with_rate.id,
                 activity_id=simple_activity.id,
                 work_date=date.today(),
-                hours=Decimal('5'),
+                hours=Decimal('1'),
                 description='First',
                 created_by_id=user_with_rate.id,
             )
@@ -258,7 +258,7 @@ class TestTimesheetServices:
                 user_id=user_with_rate.id,
                 activity_id=simple_activity.id,
                 work_date=date.today() + timedelta(days=1),
-                hours=Decimal('7'),
+                hours=Decimal('1.5'),
                 description='Second',
                 created_by_id=user_with_rate.id,
             )
@@ -268,8 +268,8 @@ class TestTimesheetServices:
 
             cost = get_internal_consultant_cost(simple_activity.id, user_with_rate.id)
             assert cost is not None
-            assert cost.hours_total == Decimal('7')
-            assert cost.amount == Decimal('140.00')
+            assert cost.hours_total == Decimal('1.5')
+            assert cost.amount == Decimal('30.00')
 
     def test_uses_hourly_rate_snapshot_not_current_rate(self, app, simple_activity):
         """Verify historical snapshot is used, not the user's current rate."""
@@ -288,7 +288,7 @@ class TestTimesheetServices:
                 user_id=user.id,
                 activity_id=simple_activity.id,
                 work_date=date.today(),
-                hours=Decimal('5'),
+                hours=Decimal('1'),
                 description='Work at old rate',
                 created_by_id=user.id,
             )
@@ -303,8 +303,8 @@ class TestTimesheetServices:
             db.session.commit()
 
             cost = get_internal_consultant_cost(simple_activity.id, user.id)
-            # Amount should still be 5*10=50, not 5*50=250
-            assert cost.amount == Decimal('50.00')
+            # Amount should still be 1*10=10, not 1*50=50
+            assert cost.amount == Decimal('10.00')
 
     def test_external_consultant_costs_not_affected_by_timesheets(self, app, user_with_rate, simple_activity):
         with app.app_context():
@@ -329,7 +329,7 @@ class TestTimesheetServices:
                 user_id=user_with_rate.id,
                 activity_id=simple_activity.id,
                 work_date=date.today(),
-                hours=Decimal('3'),
+                hours=Decimal('1'),
                 description='Internal work',
                 created_by_id=user_with_rate.id,
             )
@@ -343,7 +343,7 @@ class TestTimesheetServices:
             # Internal aggregate must exist separately
             int_cost = get_internal_consultant_cost(simple_activity.id, user_with_rate.id)
             assert int_cost is not None
-            assert int_cost.amount == Decimal('60.00')  # 3*20
+            assert int_cost.amount == Decimal('20.00')  # 1*20
 
     def test_user_without_rate_cannot_create_timesheet(self, app, user_no_rate, simple_activity):
         with app.app_context():
@@ -352,7 +352,7 @@ class TestTimesheetServices:
                     user_id=user_no_rate.id,
                     activity_id=simple_activity.id,
                     work_date=date.today(),
-                    hours=Decimal('4'),
+                    hours=Decimal('1'),
                     description='Work',
                     created_by_id=user_no_rate.id,
                 )
@@ -381,6 +381,20 @@ class TestTimesheetServices:
                     created_by_id=user_with_rate.id,
                 )
 
+    def test_hours_must_be_valid_value(self, app, user_with_rate, simple_activity):
+        """Only 0.5, 1 and 1.5 are accepted hour values."""
+        with app.app_context():
+            for invalid_h in ['2', '4', '0.75', '3']:
+                with pytest.raises(TimesheetValidationError, match='0.5, 1 oppure 1.5'):
+                    create_timesheet_entry(
+                        user_id=user_with_rate.id,
+                        activity_id=simple_activity.id,
+                        work_date=date.today(),
+                        hours=Decimal(invalid_h),
+                        description='Work',
+                        created_by_id=user_with_rate.id,
+                    )
+
     def test_description_is_required(self, app, user_with_rate, simple_activity):
         with app.app_context():
             with pytest.raises(TimesheetValidationError):
@@ -388,7 +402,7 @@ class TestTimesheetServices:
                     user_id=user_with_rate.id,
                     activity_id=simple_activity.id,
                     work_date=date.today(),
-                    hours=Decimal('4'),
+                    hours=Decimal('1'),
                     description='   ',
                     created_by_id=user_with_rate.id,
                 )
@@ -406,7 +420,7 @@ class TestTimesheetAuthorization:
                 user_id=user_with_rate.id,
                 activity_id=simple_activity.id,
                 work_date=date.today(),
-                hours=Decimal('4'),
+                hours=Decimal('1'),
                 description='Entry by user_with_rate',
                 created_by_id=user_with_rate.id,
             )
@@ -414,7 +428,7 @@ class TestTimesheetAuthorization:
 
             other = db.session.get(User, operator_user.id)
             with pytest.raises(TimesheetValidationError, match='autorizzato'):
-                update_timesheet_entry(eid, other, hours=Decimal('2'))
+                update_timesheet_entry(eid, other, hours=Decimal('1'))
 
     def test_user_cannot_delete_another_users_timesheet(self, app, user_with_rate, simple_activity, operator_user):
         with app.app_context():
@@ -422,7 +436,7 @@ class TestTimesheetAuthorization:
                 user_id=user_with_rate.id,
                 activity_id=simple_activity.id,
                 work_date=date.today(),
-                hours=Decimal('4'),
+                hours=Decimal('1'),
                 description='Entry by user_with_rate',
                 created_by_id=user_with_rate.id,
             )
@@ -438,7 +452,7 @@ class TestTimesheetAuthorization:
                 user_id=user_with_rate.id,
                 activity_id=simple_activity.id,
                 work_date=date.today(),
-                hours=Decimal('4'),
+                hours=Decimal('1'),
                 description='Entry by user_with_rate',
                 created_by_id=user_with_rate.id,
             )
@@ -446,8 +460,8 @@ class TestTimesheetAuthorization:
 
             admin = db.session.get(User, superadmin_user.id)
             # Should not raise
-            updated = update_timesheet_entry(eid, admin, hours=Decimal('6'))
-            assert updated.hours == Decimal('6')
+            updated = update_timesheet_entry(eid, admin, hours=Decimal('1.5'))
+            assert updated.hours == Decimal('1.5')
 
     def test_superadmin_can_delete_any_timesheet(self, app, user_with_rate, simple_activity, superadmin_user):
         with app.app_context():
@@ -455,7 +469,7 @@ class TestTimesheetAuthorization:
                 user_id=user_with_rate.id,
                 activity_id=simple_activity.id,
                 work_date=date.today(),
-                hours=Decimal('4'),
+                hours=Decimal('1'),
                 description='Entry by user_with_rate',
                 created_by_id=user_with_rate.id,
             )
@@ -498,7 +512,7 @@ class TestTimesheetRoutes:
             f'/activities/{simple_activity.id}/timesheets/add',
             data={
                 'work_date': date.today().isoformat(),
-                'hours': '5',
+                'hours': '1',
                 'description': 'Test work via route',
             },
             follow_redirects=True,
@@ -507,7 +521,7 @@ class TestTimesheetRoutes:
         with app.app_context():
             entries = TimesheetEntry.query.filter_by(activity_id=simple_activity.id).all()
             assert len(entries) == 1
-            assert entries[0].hours == Decimal('5')
+            assert entries[0].hours == Decimal('1')
 
     def test_edit_timesheet_own(self, client, app, user_with_rate, simple_activity):
         with app.app_context():
@@ -518,7 +532,7 @@ class TestTimesheetRoutes:
                 user_id=user_with_rate.id,
                 activity_id=simple_activity.id,
                 work_date=date.today(),
-                hours=Decimal('4'),
+                hours=Decimal('1'),
                 description='Original',
                 created_by_id=user_with_rate.id,
             )
@@ -529,7 +543,7 @@ class TestTimesheetRoutes:
             f'/activities/{simple_activity.id}/timesheets/{eid}/edit',
             data={
                 'work_date': date.today().isoformat(),
-                'hours': '8',
+                'hours': '1.5',
                 'description': 'Updated description',
             },
             follow_redirects=True,
@@ -537,7 +551,7 @@ class TestTimesheetRoutes:
         assert resp.status_code == 200
         with app.app_context():
             e = db.session.get(TimesheetEntry, eid)
-            assert e.hours == Decimal('8')
+            assert e.hours == Decimal('1.5')
 
     def test_delete_timesheet_own(self, client, app, user_with_rate, simple_activity):
         with app.app_context():
@@ -548,7 +562,7 @@ class TestTimesheetRoutes:
                 user_id=user_with_rate.id,
                 activity_id=simple_activity.id,
                 work_date=date.today(),
-                hours=Decimal('4'),
+                hours=Decimal('1'),
                 description='To delete',
                 created_by_id=user_with_rate.id,
             )
@@ -570,7 +584,7 @@ class TestTimesheetRoutes:
                 user_id=user_with_rate.id,
                 activity_id=simple_activity.id,
                 work_date=date.today(),
-                hours=Decimal('3'),
+                hours=Decimal('1'),
                 description='Work',
                 created_by_id=user_with_rate.id,
             )
@@ -596,7 +610,7 @@ class TestTimesheetRoutes:
                 user_id=user_with_rate.id,
                 activity_id=simple_activity.id,
                 work_date=date.today(),
-                hours=Decimal('3'),
+                hours=Decimal('1'),
                 description='Work',
                 created_by_id=user_with_rate.id,
             )
@@ -627,7 +641,7 @@ class TestTimesheetRoutes:
                 user_id=user_with_rate.id,
                 activity_id=simple_activity.id,
                 work_date=date.today(),
-                hours=Decimal('5'),
+                hours=Decimal('1'),
                 description='Visible entry',
                 created_by_id=user_with_rate.id,
             )
@@ -650,15 +664,15 @@ class TestTimesheetReports:
                 user_id=user_with_rate.id,
                 activity_id=simple_activity.id,
                 work_date=date.today(),
-                hours=Decimal('10'),
+                hours=Decimal('1'),
                 description='Work',
                 created_by_id=user_with_rate.id,
             )
             activity = db.session.get(RevenueActivity, simple_activity.id)
             totals = calc_activity_totals(activity)
 
-            assert totals['total_internal_consultant_costs'] == Decimal('200.00')
-            assert totals['total_internal_hours'] == Decimal('10')
+            assert totals['total_internal_consultant_costs'] == Decimal('20.00')
+            assert totals['total_internal_hours'] == Decimal('1')
             assert totals['total_external_consultant_costs'] == Decimal('0')
 
     def test_activity_totals_separates_internal_external(self, app, user_with_rate, simple_activity):
@@ -668,7 +682,7 @@ class TestTimesheetReports:
                 user_id=user_with_rate.id,
                 activity_id=simple_activity.id,
                 work_date=date.today(),
-                hours=Decimal('5'),
+                hours=Decimal('1'),
                 description='Internal work',
                 created_by_id=user_with_rate.id,
             )
@@ -688,9 +702,9 @@ class TestTimesheetReports:
             activity = db.session.get(RevenueActivity, simple_activity.id)
             totals = calc_activity_totals(activity)
 
-            assert totals['total_internal_consultant_costs'] == Decimal('100.00')
+            assert totals['total_internal_consultant_costs'] == Decimal('20.00')
             assert totals['total_external_consultant_costs'] == Decimal('300.00')
-            assert totals['total_internal_hours'] == Decimal('5')
+            assert totals['total_internal_hours'] == Decimal('1')
 
     def test_monthly_report_includes_consultant_totals(self, app, user_with_rate):
         from app.services import calc_monthly_report
@@ -709,11 +723,11 @@ class TestTimesheetReports:
                 user_id=user_with_rate.id,
                 activity_id=activity.id,
                 work_date=date(2026, 4, 1),
-                hours=Decimal('8'),
+                hours=Decimal('1'),
                 description='Report work',
                 created_by_id=user_with_rate.id,
             )
 
             report = calc_monthly_report(2026, 4)
-            assert report['total_internal_consultant_costs'] == Decimal('160.00')
-            assert report['total_internal_hours'] == Decimal('8')
+            assert report['total_internal_consultant_costs'] == Decimal('20.00')
+            assert report['total_internal_hours'] == Decimal('1')

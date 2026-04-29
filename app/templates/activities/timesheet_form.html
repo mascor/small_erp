@@ -11,7 +11,8 @@
 </nav>
 
 <div class="page-header">
-  <h1>{% if entry %}{{ tr('Modifica Timesheet', 'Edit Timesheet') }}{% else %}{{ tr('Aggiungi Timesheet', 'Add Timesheet') }}{% endif %}</h1>
+  <h1>{% if entry %}{{ tr('Modifica Timesheet', 'Edit Timesheet') }}{% else %}{{ tr('Aggiungi Timesheet', 'Add
+    Timesheet') }}{% endif %}</h1>
 </div>
 
 <div class="card" style="max-width:540px;">
@@ -24,9 +25,8 @@
         <label class="form-label">{{ tr('Consulente', 'Consultant') }}</label>
         <select name="user_id" class="form-control">
           {% for u in users %}
-          <option value="{{ u.id }}"
-            {% if entry and entry.user_id == u.id %}selected{% endif %}
-            {% if not entry and u.id == current_user.id %}selected{% endif %}>
+          <option value="{{ u.id }}" {% if entry and entry.user_id==u.id %}selected{% endif %} {% if not entry and
+            u.id==current_user.id %}selected{% endif %}>
             {{ u.full_name }}{% if u.hourly_cost_rate %} (€ {{ u.hourly_cost_rate }}/h){% endif %}
           </option>
           {% endfor %}
@@ -42,10 +42,12 @@
 
       <div class="form-group">
         <label class="form-label">{{ tr('Ore lavorate', 'Hours worked') }} *</label>
-        <input type="number" name="hours" class="form-control" required
-          min="0.25" max="24" step="0.25"
-          value="{{ entry.hours if entry else '' }}"
-          placeholder="es. 4.5">
+        <select name="hours" class="form-control" required>
+          <option value="0.5" {% if entry and entry.hours|string=='0.5' %}selected{% endif %}>0.5</option>
+          <option value="1" {% if entry and entry.hours|string in ('1', '1.0' ) %}selected{% elif not entry %}selected{%
+            endif %}>1</option>
+          <option value="1.5" {% if entry and entry.hours|string in ('1.5',) %}selected{% endif %}>1.5</option>
+        </select>
       </div>
 
       <div class="form-group">
@@ -56,7 +58,8 @@
 
       {% if entry %}
       <div class="form-group">
-        <label class="form-label text-muted text-sm">{{ tr('Tariffa applicata (snapshot)', 'Applied rate (snapshot)') }}</label>
+        <label class="form-label text-muted text-sm">{{ tr('Tariffa applicata (snapshot)', 'Applied rate (snapshot)')
+          }}</label>
         <p class="text-muted text-sm">&euro; {{ entry.hourly_rate_snapshot }}/h</p>
       </div>
       {% endif %}

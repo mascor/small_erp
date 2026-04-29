@@ -28,18 +28,22 @@
 
       <nav class="sidebar-nav">
         <div class="nav-section">{{ tr('Principale', 'Main') }}</div>
+        {% if current_user.is_superadmin %}
         <a href="{{ url_for('dashboard.index') }}"
           class="nav-link {% if request.endpoint == 'dashboard.index' %}active{% endif %}">
           <span class="nav-icon">&#9632;</span> {{ tr('Dashboard', 'Dashboard') }}
         </a>
+        {% endif %}
         <a href="{{ url_for('activities.index') }}"
           class="nav-link {% if request.endpoint and request.endpoint.startswith('activities.') %}active{% endif %}">
           <span class="nav-icon">&#9733;</span> {{ tr('Attivita', 'Activities') }}
         </a>
+        {% if current_user.is_superadmin %}
         <a href="{{ url_for('agents.index') }}"
           class="nav-link {% if request.endpoint and request.endpoint.startswith('agents.') %}active{% endif %}">
           <span class="nav-icon">&#9679;</span> {{ tr('Agenti', 'Agents') }}
         </a>
+        {% endif %}
 
         <div class="nav-section">{{ tr('Analisi', 'Insights') }}</div>
         <a href="{{ url_for('timesheets.my_timesheets') }}"
@@ -52,11 +56,12 @@
           <span class="nav-icon">&#9776;</span> {{ tr('Report Mensili', 'Monthly Reports') }}
         </a>
         {% endif %}
+        {% if current_user.is_superadmin %}
         <a href="{{ url_for('manual.index') }}"
           class="nav-link {% if request.endpoint and request.endpoint.startswith('manual.') %}active{% endif %}">
           <span class="nav-icon">&#128214;</span> {{ tr('Manuale', 'Manual') }}
         </a>
-
+        {% endif %}
         {% if current_user.is_superadmin %}
         <div class="nav-section">{{ tr('Amministrazione', 'Administration') }}</div>
         <a href="{{ url_for('users.index') }}"

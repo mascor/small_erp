@@ -15,12 +15,12 @@
       &nbsp; {{ activity.date.strftime('%d/%m/%Y') }}
     </p>
   </div>
-  {% if current_user.is_superadmin or activity.created_by == current_user.id %}
+  {% if current_user.is_superadmin %}
   <div class="btn-group">
     <a href="{{ url_for('activities.edit', id=activity.id) }}" class="btn btn-secondary">{{ tr('Modifica', 'Edit')
       }}</a>
     <form method="POST" action="{{ url_for('activities.delete', id=activity.id) }}" class="confirm-delete"
-              data-confirm="{{ tr('Eliminare questa attivita e tutti i dati collegati?', 'Delete this activity and all linked data?') }}">
+      data-confirm="{{ tr('Eliminare questa attivita e tutti i dati collegati?', 'Delete this activity and all linked data?') }}">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <button type="submit" class="btn btn-danger btn-sm">{{ tr('Elimina', 'Delete') }}</button>
     </form>
@@ -69,7 +69,8 @@
     {% endif %}
     {% if totals.total_external_consultant_costs > 0 %}
     <div class="breakdown-row" style="padding-left:1.5rem;">
-      <span class="label text-muted text-sm">↳ {{ tr('di cui Consulenti Esterni', 'of which External Consultants') }}</span>
+      <span class="label text-muted text-sm">↳ {{ tr('di cui Consulenti Esterni', 'of which External Consultants')
+        }}</span>
       <span class="value text-muted text-sm">&euro; {{ totals.total_external_consultant_costs|currency }}</span>
     </div>
     {% endif %}
@@ -136,7 +137,7 @@
                 <form method="POST"
                   action="{{ url_for('activities.delete_timesheet', id=activity.id, entry_id=ts.id) }}"
                   class="confirm-delete"
-              data-confirm="{{ tr('Eliminare questo timesheet?', 'Delete this timesheet?') }}">
+                  data-confirm="{{ tr('Eliminare questo timesheet?', 'Delete this timesheet?') }}">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                   <button type="submit" class="btn btn-ghost btn-sm text-danger">{{ tr('Elimina', 'Delete') }}</button>
                 </form>
@@ -165,8 +166,10 @@
 <div class="detail-section">
   <div class="d-flex justify-between align-center mb-md">
     <h3>{{ tr('Costi', 'Costs') }} ({{ activity.costs.count() }})</h3>
+    {% if current_user.is_superadmin %}
     <a href="{{ url_for('activities.add_cost', id=activity.id) }}" class="btn btn-primary btn-sm">+ {{ tr('Aggiungi
       Costo', 'Add Cost') }}</a>
+    {% endif %}
   </div>
 
   {% set costs = activity.costs.all() %}
@@ -190,14 +193,16 @@
             <td>
               {{ cost.description }}
               {% if cost.is_auto_generated %}
-              <span class="badge badge-bozza text-sm" title="{{ tr('Generato automaticamente dai timesheet', 'Auto-generated from timesheets') }}">
+              <span class="badge badge-bozza text-sm"
+                title="{{ tr('Generato automaticamente dai timesheet', 'Auto-generated from timesheets') }}">
                 Auto
               </span>
               {% endif %}
               {% if cost.line_type == 'internal_consultant' %}
               <span class="badge badge-confermata text-sm">{{ tr('Interno', 'Internal') }}</span>
               {% elif cost.line_type == 'external_consultant' %}
-              <span class="badge" style="background:#e8f4fd;color:#1a6fa8;" class="text-sm">{{ tr('Esterno', 'External') }}</span>
+              <span class="badge" style="background:#e8f4fd;color:#1a6fa8;" class="text-sm">{{ tr('Esterno', 'External')
+                }}</span>
               {% endif %}
             </td>
             <td><span class="text-sm">{{ cost.category|capitalize }}</span></td>
@@ -218,13 +223,12 @@
             <td class="text-right">
               {% if cost.is_auto_generated %}
               <span class="text-muted text-sm">{{ tr('Da timesheet', 'From timesheets') }}</span>
-              {% else %}
+              {% elif current_user.is_superadmin %}
               <div class="btn-group">
                 <a href="{{ url_for('activities.edit_cost', id=activity.id, cost_id=cost.id) }}"
                   class="btn btn-ghost btn-sm">{{ tr('Modifica', 'Edit') }}</a>
                 <form method="POST" action="{{ url_for('activities.delete_cost', id=activity.id, cost_id=cost.id) }}"
-                  class="confirm-delete"
-              data-confirm="{{ tr('Eliminare questo costo?', 'Delete this cost?') }}">
+                  class="confirm-delete" data-confirm="{{ tr('Eliminare questo costo?', 'Delete this cost?') }}">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                   <button type="submit" class="btn btn-ghost btn-sm text-danger">{{ tr('Elimina', 'Delete') }}</button>
                 </form>
@@ -241,8 +245,10 @@
   <div class="card">
     <div class="empty-state">
       <p>{{ tr('Nessun costo registrato per questa attivita.', 'No costs recorded for this activity.') }}</p>
+      {% if current_user.is_superadmin %}
       <a href="{{ url_for('activities.add_cost', id=activity.id) }}" class="btn btn-primary btn-sm">+ {{ tr('Aggiungi
         Costo', 'Add Cost') }}</a>
+      {% endif %}
     </div>
   </div>
   {% endif %}
@@ -252,8 +258,10 @@
 <div class="detail-section">
   <div class="d-flex justify-between align-center mb-md">
     <h3>{{ tr('Partecipanti', 'Participants') }} ({{ activity.participants.count() }})</h3>
+    {% if current_user.is_superadmin %}
     <a href="{{ url_for('activities.add_participant', id=activity.id) }}" class="btn btn-primary btn-sm">+ {{
       tr('Aggiungi Partecipante', 'Add Participant') }}</a>
+    {% endif %}
   </div>
 
   {% if totals.participants %}
@@ -265,16 +273,18 @@
           <div class="participant-name">{{ p.name }}</div>
           {% if p.role %}<div class="participant-role">{{ p.role }}</div>{% endif %}
         </div>
+        {% if current_user.is_superadmin %}
         <div class="btn-group">
           <a href="{{ url_for('activities.edit_participant', id=activity.id, pid=p.id) }}"
             class="btn btn-ghost btn-sm">{{ tr('Modifica', 'Edit') }}</a>
           <form method="POST" action="{{ url_for('activities.delete_participant', id=activity.id, pid=p.id) }}"
             class="confirm-delete"
-              data-confirm="{{ tr('Rimuovere questo partecipante?', 'Remove this participant?') }}">
+            data-confirm="{{ tr('Rimuovere questo partecipante?', 'Remove this participant?') }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="btn btn-ghost btn-sm text-danger">&times;</button>
           </form>
         </div>
+        {% endif %}
       </div>
       <div class="participant-details">
         <div class="participant-detail">
@@ -301,8 +311,10 @@
   <div class="card">
     <div class="empty-state">
       <p>{{ tr('Nessun partecipante per questa attivita.', 'No participants for this activity.') }}</p>
+      {% if current_user.is_superadmin %}
       <a href="{{ url_for('activities.add_participant', id=activity.id) }}" class="btn btn-primary btn-sm">+ {{
         tr('Aggiungi Partecipante', 'Add Participant') }}</a>
+      {% endif %}
     </div>
   </div>
   {% endif %}

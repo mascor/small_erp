@@ -48,8 +48,8 @@ def _require_non_empty(value, field_name):
 
 
 def _can_modify_activity(activity):
-    """Check if current user can modify the activity."""
-    return current_user.is_superadmin or activity.created_by == current_user.id
+    """Check if current user can modify the activity (superadmin only)."""
+    return current_user.is_superadmin
 
 
 @activities_bp.route('/')
@@ -62,6 +62,13 @@ def index():
     search = request.args.get('q', '').strip()
 
     query = RevenueActivity.query
+
+    # Regular users see only activities where they are participants
+    if not current_user.is_superadmin:
+        participant_activity_ids = db.session.query(ActivityParticipant.activity_id).filter_by(
+            user_id=current_user.id
+        ).subquery()
+        query = query.filter(RevenueActivity.id.in_(participant_activity_ids))
 
     if status_filter:
         query = query.filter_by(status=status_filter)
@@ -96,6 +103,9 @@ def index():
 @activities_bp.route('/new', methods=['GET', 'POST'])
 @login_required
 def create():
+    if not current_user.is_superadmin:
+        flash(tr('Non autorizzato a creare attività.', 'Not authorized to create activities.'), 'error')
+        return redirect(url_for('activities.index'))
     agents = Agent.query.filter_by(is_active=True).order_by(Agent.first_name).all()
 
     if request.method == 'POST':
@@ -139,6 +149,16 @@ def create():
 @login_required
 def detail(id):
     activity = db.get_or_404(RevenueActivity, id)
+
+    # Regular users can only access activities where they are participants
+    if not current_user.is_superadmin:
+        is_participant = db.session.query(ActivityParticipant).filter_by(
+            activity_id=id, user_id=current_user.id
+        ).first() is not None
+        if not is_participant:
+            flash(tr('Non autorizzato a visualizzare questa attività.', 'Not authorized to view this activity.'), 'error')
+            return redirect(url_for('activities.index'))
+
     log_action('read', 'RevenueActivity', activity.id,
                f'Visualizzata attività: {activity.title}')
     totals = calc_activity_totals(activity)
@@ -265,6 +285,9 @@ COST_FIELDS = ['category', 'description', 'amount', 'date', 'cost_type', 'notes'
 @activities_bp.route('/<int:id>/costs/add', methods=['GET', 'POST'])
 @login_required
 def add_cost(id):
+    if not current_user.is_superadmin:
+        flash(tr('Non autorizzato.', 'Not authorized.'), 'error')
+        return redirect(url_for('activities.detail', id=id))
     activity = db.get_or_404(RevenueActivity, id)
 
     if request.method == 'POST':
@@ -388,6 +411,9 @@ PARTICIPANT_FIELDS = ['participant_name', 'role_description', 'work_share',
 @activities_bp.route('/<int:id>/participants/add', methods=['GET', 'POST'])
 @login_required
 def add_participant(id):
+    if not current_user.is_superadmin:
+        flash(tr('Non autorizzato.', 'Not authorized.'), 'error')
+        return redirect(url_for('activities.detail', id=id))
     activity = db.get_or_404(RevenueActivity, id)
     users = User.query.filter_by(is_active_user=True).order_by(User.full_name).all()
 
