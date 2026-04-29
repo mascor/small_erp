@@ -96,6 +96,7 @@
 {% endif %}
 
 <!-- Timesheets Section -->
+{% if current_user.is_superadmin or activity.status == 'confermata' %}
 <div class="detail-section">
   <div class="d-flex justify-between align-center mb-md">
     <h3>{{ tr('Timesheets', 'Timesheets') }} ({{ timesheets|length }})</h3>
@@ -110,23 +111,26 @@
       <table>
         <thead>
           <tr>
-            <th>{{ tr('Data', 'Date') }}</th>
-            <th>{{ tr('Consulente', 'Consultant') }}</th>
             <th class="num">{{ tr('Ore', 'Hours') }}</th>
             <th>{{ tr('Descrizione', 'Description') }}</th>
+            <th>{{ tr('Data', 'Date') }}</th>
+            {% if current_user.is_superadmin %}
+            <th>{{ tr('Consulente', 'Consultant') }}</th>
             <th class="num">{{ tr('Tariffa', 'Rate') }}</th>
             <th class="num">{{ tr('Costo', 'Cost') }}</th>
             <th></th>
+            {% endif %}
           </tr>
         </thead>
         <tbody>
           {% for ts in timesheets %}
           {% set ts_cost = ts.hours|float * ts.hourly_rate_snapshot|float %}
           <tr>
-            <td class="text-sm">{{ ts.work_date.strftime('%d/%m/%Y') }}</td>
-            <td>{{ ts.user.full_name if ts.user else '—' }}</td>
             <td class="num">{{ ts.hours }}</td>
             <td class="text-muted text-sm">{{ ts.description }}</td>
+            <td class="text-sm">{{ ts.work_date.strftime('%d/%m/%Y') }}</td>
+            {% if current_user.is_superadmin %}
+            <td>{{ ts.user.full_name if ts.user else '—' }}</td>
             <td class="num text-sm">&euro; {{ ts.hourly_rate_snapshot|currency }}</td>
             <td class="num">&euro; {{ ts_cost|currency }}</td>
             <td class="text-right">
@@ -144,6 +148,7 @@
               </div>
               {% endif %}
             </td>
+            {% endif %}
           </tr>
           {% endfor %}
         </tbody>
@@ -161,7 +166,9 @@
   </div>
   {% endif %}
 </div>
+{% endif %}
 
+{% if current_user.is_superadmin %}
 <!-- Costs Section -->
 <div class="detail-section">
   <div class="d-flex justify-between align-center mb-md">
@@ -253,7 +260,9 @@
   </div>
   {% endif %}
 </div>
+{% endif %}
 
+{% if current_user.is_superadmin %}
 <!-- Participants Section -->
 <div class="detail-section">
   <div class="d-flex justify-between align-center mb-md">
@@ -292,12 +301,12 @@
           <span class="detail-value">{{ p.work_share }}</span>
         </div>
         <div class="participant-detail">
-          <span class="detail-label">{{ tr('Compenso Fisso', 'Fixed Compensation') }}</span>
-          <span class="detail-value">&euro; {{ p.fixed_compensation|currency }}</span>
+          <span class="detail-label">{{ tr('Ore Timesheet', 'Timesheet Hours') }}</span>
+          <span class="detail-value">{{ p.timesheet_hours }}</span>
         </div>
         <div class="participant-detail">
-          <span class="detail-label">{{ tr('Quota Proporzionale', 'Proportional Share') }}</span>
-          <span class="detail-value">&euro; {{ p.proportional_share|currency }}</span>
+          <span class="detail-label">{{ tr('Compenso Timesheet', 'Timesheet Compensation') }}</span>
+          <span class="detail-value">&euro; {{ p.timesheet_compensation|currency }}</span>
         </div>
       </div>
       <div class="participant-total">
@@ -319,6 +328,7 @@
   </div>
   {% endif %}
 </div>
+{% endif %}
 
 {% if activity.notes %}
 <div class="detail-section">

@@ -4,7 +4,7 @@ from datetime import date, timedelta
 from decimal import Decimal
 
 from app import create_app, db
-from app.models import User, RevenueActivity, ActivityCost, TimesheetEntry, Agent
+from app.models import User, RevenueActivity, ActivityCost, TimesheetEntry, Agent, ActivityParticipant
 from app.services import (
     create_timesheet_entry,
     update_timesheet_entry,
@@ -67,6 +67,17 @@ def simple_activity(app, user_with_rate):
             created_by=user_with_rate.id,
         )
         db.session.add(activity)
+        db.session.flush()
+
+        # Link the user as participant and use work_share as max loadable hours.
+        participant = ActivityParticipant(
+            activity_id=activity.id,
+            participant_name=user_with_rate.full_name,
+            user_id=user_with_rate.id,
+            work_share=Decimal('100.00'),
+            fixed_compensation=Decimal('0.00'),
+        )
+        db.session.add(participant)
         db.session.commit()
         aid = activity.id
     with app.app_context():
@@ -282,6 +293,15 @@ class TestTimesheetServices:
             )
             user.set_password('TestPassword1!')
             db.session.add(user)
+            db.session.flush()
+
+            db.session.add(ActivityParticipant(
+                activity_id=simple_activity.id,
+                participant_name=user.full_name,
+                user_id=user.id,
+                work_share=Decimal('10.00'),
+                fixed_compensation=Decimal('0.00'),
+            ))
             db.session.commit()
 
             entry = create_timesheet_entry(
@@ -369,23 +389,23 @@ class TestTimesheetServices:
                     created_by_id=user_with_rate.id,
                 )
 
-    def test_hours_cannot_exceed_24(self, app, user_with_rate, simple_activity):
+    def test_hours_cannot_exceed_10(self, app, user_with_rate, simple_activity):
         with app.app_context():
             with pytest.raises(TimesheetValidationError):
                 create_timesheet_entry(
                     user_id=user_with_rate.id,
                     activity_id=simple_activity.id,
                     work_date=date.today(),
-                    hours=Decimal('25'),
+                    hours=Decimal('11'),
                     description='Work',
                     created_by_id=user_with_rate.id,
                 )
 
     def test_hours_must_be_valid_value(self, app, user_with_rate, simple_activity):
-        """Only 0.5, 1 and 1.5 are accepted hour values."""
+        """Only integer or .5 values in range 0.5-10 are accepted."""
         with app.app_context():
-            for invalid_h in ['2', '4', '0.75', '3']:
-                with pytest.raises(TimesheetValidationError, match='0.5, 1 oppure 1.5'):
+            for invalid_h in ['0.25', '0.75', '1.2', '10.5']:
+                with pytest.raises(TimesheetValidationError):
                     create_timesheet_entry(
                         user_id=user_with_rate.id,
                         activity_id=simple_activity.id,
@@ -394,6 +414,33 @@ class TestTimesheetServices:
                         description='Work',
                         created_by_id=user_with_rate.id,
                     )
+
+    def test_hours_accepts_integer_and_half_step(self, app, user_with_rate, simple_activity):
+        with app.app_context():
+            participant = ActivityParticipant.query.filter_by(
+                activity_id=simple_activity.id,
+                user_id=user_with_rate.id,
+            ).first()
+            participant.work_share = Decimal('50.00')
+            db.session.commit()
+
+            create_timesheet_entry(
+                user_id=user_with_rate.id,
+                activity_id=simple_activity.id,
+                work_date=date.today(),
+                hours=Decimal('2'),
+                description='Integer hours',
+                created_by_id=user_with_rate.id,
+            )
+
+            create_timesheet_entry(
+                user_id=user_with_rate.id,
+                activity_id=simple_activity.id,
+                work_date=date.today() + timedelta(days=1),
+                hours=Decimal('2.5'),
+                description='Half-step hours',
+                created_by_id=user_with_rate.id,
+            )
 
     def test_description_is_required(self, app, user_with_rate, simple_activity):
         with app.app_context():
@@ -406,6 +453,92 @@ class TestTimesheetServices:
                     description='   ',
                     created_by_id=user_with_rate.id,
                 )
+
+    def test_hours_cannot_exceed_daily_limit(self, app, user_with_rate, simple_activity):
+        """Il totale ore per utente+giorno non può superare 10h (stesso progetto)."""
+        with app.app_context():
+            create_timesheet_entry(
+                user_id=user_with_rate.id,
+                activity_id=simple_activity.id,
+                work_date=date.today(),
+                hours=Decimal('7'),
+                description='Morning slot',
+                created_by_id=user_with_rate.id,
+            )
+
+            with pytest.raises(TimesheetValidationError, match='limite'):
+                create_timesheet_entry(
+                    user_id=user_with_rate.id,
+                    activity_id=simple_activity.id,
+                    work_date=date.today(),
+                    hours=Decimal('5'),
+                    description='Evening slot over daily cap',
+                    created_by_id=user_with_rate.id,
+                )
+
+    def test_hours_daily_limit_is_cross_project(self, app, user_with_rate, simple_activity):
+        """Il limite di 10h/giorno si applica su tutti i progetti."""
+        with app.app_context():
+            # Crea una seconda attività con partecipante
+            activity2 = RevenueActivity(
+                title='Second Project',
+                date=date.today(),
+                status='confermata',
+                total_revenue=Decimal('1000.00'),
+                created_by=user_with_rate.id,
+            )
+            db.session.add(activity2)
+            db.session.flush()
+            db.session.add(ActivityParticipant(
+                activity_id=activity2.id,
+                participant_name=user_with_rate.full_name,
+                user_id=user_with_rate.id,
+                work_share=Decimal('100.00'),
+                fixed_compensation=Decimal('0.00'),
+            ))
+            db.session.commit()
+            aid2 = activity2.id
+
+            create_timesheet_entry(
+                user_id=user_with_rate.id,
+                activity_id=simple_activity.id,
+                work_date=date.today(),
+                hours=Decimal('7'),
+                description='Morning on project 1',
+                created_by_id=user_with_rate.id,
+            )
+
+            with pytest.raises(TimesheetValidationError, match='limite'):
+                create_timesheet_entry(
+                    user_id=user_with_rate.id,
+                    activity_id=aid2,
+                    work_date=date.today(),
+                    hours=Decimal('5'),
+                    description='Evening on project 2 — should exceed global cap',
+                    created_by_id=user_with_rate.id,
+                )
+
+    def test_hours_different_days_are_independent(self, app, user_with_rate, simple_activity):
+        """Ore su giorni diversi non si sommano: ogni giorno ha il proprio limite."""
+        with app.app_context():
+            create_timesheet_entry(
+                user_id=user_with_rate.id,
+                activity_id=simple_activity.id,
+                work_date=date.today(),
+                hours=Decimal('10'),
+                description='Full day today',
+                created_by_id=user_with_rate.id,
+            )
+            # Giorno diverso: deve passare senza errori
+            entry = create_timesheet_entry(
+                user_id=user_with_rate.id,
+                activity_id=simple_activity.id,
+                work_date=date.today() - timedelta(days=1),
+                hours=Decimal('8'),
+                description='Full day yesterday',
+                created_by_id=user_with_rate.id,
+            )
+            assert entry.id is not None
 
 
 # ---------------------------------------------------------------------------
@@ -650,6 +783,102 @@ class TestTimesheetRoutes:
         resp = client.get('/timesheets/')
         assert resp.status_code == 200
 
+    def test_my_timesheets_non_admin_hides_financial_data(self, client, app, user_with_rate, simple_activity):
+        """Non-admin non vede Total cost, Rate, Cost nella pagina timesheets."""
+        with app.app_context():
+            u = db.session.get(User, user_with_rate.id)
+            u.set_password('TestPassword1!')
+            db.session.commit()
+            create_timesheet_entry(
+                user_id=user_with_rate.id,
+                activity_id=simple_activity.id,
+                work_date=date.today(),
+                hours=Decimal('2'),
+                description='Work entry',
+                created_by_id=user_with_rate.id,
+            )
+
+        _login(client, 'consultant1', 'TestPassword1!')
+        resp = client.get('/timesheets/')
+        assert resp.status_code == 200
+        assert b'Total cost' not in resp.data
+        assert b'Costo totale' not in resp.data
+        assert b'Tariffa' not in resp.data
+        assert b'Rate' not in resp.data
+
+    def test_my_timesheets_superadmin_sees_financial_data(self, client, app, user_with_rate, simple_activity, superadmin_user):
+        """Il superadmin vede Total cost, Rate, Cost nella pagina timesheets."""
+        with app.app_context():
+            sa = db.session.get(User, superadmin_user.id)
+            sa.set_password('SuperPass1!')
+            db.session.commit()
+            create_timesheet_entry(
+                user_id=user_with_rate.id,
+                activity_id=simple_activity.id,
+                work_date=date.today(),
+                hours=Decimal('2'),
+                description='Work entry',
+                created_by_id=user_with_rate.id,
+            )
+
+        client.post('/login', data={'username': 'superadmin', 'password': 'SuperPass1!'}, follow_redirects=True)
+        resp = client.get('/timesheets/')
+        assert resp.status_code == 200
+        assert b'Costo totale' in resp.data or b'Total cost' in resp.data
+
+    def test_non_admin_cannot_add_timesheet_on_draft_activity(self, client, app, user_with_rate, simple_activity):
+        """Non-admin non può aggiungere timesheet su attività in bozza."""
+        with app.app_context():
+            u = db.session.get(User, user_with_rate.id)
+            u.set_password('TestPassword1!')
+            act = db.session.get(RevenueActivity, simple_activity.id)
+            act.status = 'bozza'
+            db.session.commit()
+
+        _login(client, 'consultant1', 'TestPassword1!')
+        resp = client.post(f'/activities/{simple_activity.id}/timesheets/add', data={
+            'work_date': date.today().isoformat(),
+            'hours': '2',
+            'description': 'Should be blocked',
+        }, follow_redirects=True)
+        assert resp.status_code == 200
+        assert b'confermate' in resp.data or b'confirmed' in resp.data
+
+    def test_non_admin_cannot_add_timesheet_on_closed_activity(self, client, app, user_with_rate, simple_activity):
+        """Non-admin non può aggiungere timesheet su attività chiusa."""
+        with app.app_context():
+            u = db.session.get(User, user_with_rate.id)
+            u.set_password('TestPassword1!')
+            act = db.session.get(RevenueActivity, simple_activity.id)
+            act.status = 'chiusa'
+            db.session.commit()
+
+        _login(client, 'consultant1', 'TestPassword1!')
+        resp = client.post(f'/activities/{simple_activity.id}/timesheets/add', data={
+            'work_date': date.today().isoformat(),
+            'hours': '2',
+            'description': 'Should be blocked',
+        }, follow_redirects=True)
+        assert resp.status_code == 200
+        assert b'confermate' in resp.data or b'confirmed' in resp.data
+
+    def test_non_admin_can_add_timesheet_on_confirmed_activity(self, client, app, user_with_rate, simple_activity):
+        """Non-admin può aggiungere timesheet su attività confermata."""
+        with app.app_context():
+            u = db.session.get(User, user_with_rate.id)
+            u.set_password('TestPassword1!')
+            db.session.commit()
+        # simple_activity ha status 'confermata' per default
+
+        _login(client, 'consultant1', 'TestPassword1!')
+        resp = client.post(f'/activities/{simple_activity.id}/timesheets/add', data={
+            'work_date': date.today().isoformat(),
+            'hours': '2',
+            'description': 'Valid timesheet',
+        }, follow_redirects=True)
+        assert resp.status_code == 200
+        assert b'Timesheet' in resp.data
+
 
 # ---------------------------------------------------------------------------
 # Report tests
@@ -717,6 +946,15 @@ class TestTimesheetReports:
                 created_by=user_with_rate.id,
             )
             db.session.add(activity)
+            db.session.flush()
+
+            db.session.add(ActivityParticipant(
+                activity_id=activity.id,
+                participant_name=user_with_rate.full_name,
+                user_id=user_with_rate.id,
+                work_share=Decimal('10.00'),
+                fixed_compensation=Decimal('0.00'),
+            ))
             db.session.commit()
 
             create_timesheet_entry(

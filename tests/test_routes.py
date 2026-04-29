@@ -2,6 +2,8 @@
 import pytest
 from decimal import Decimal
 from datetime import date
+from app import db
+from app.models import User
 
 
 class TestDashboardRoutes:
@@ -46,6 +48,42 @@ class TestActivityRoutes:
         response = client.get('/activities/')
         assert response.status_code == 200
         assert b'attivit' in response.data.lower() or b'attivita' in response.data.lower()
+
+    def test_non_admin_sees_only_confirmed_activities(self, client, app, operator_user, agent):
+        """Non-admin vede solo attività con status confermata."""
+        from app.models import RevenueActivity, ActivityParticipant
+        with app.app_context():
+            op = db.session.get(User, operator_user.id)
+            op.set_password('TestPass1!')
+            draft_act = RevenueActivity(
+                title='Draft Hidden',
+                date=date.today(),
+                status='bozza',
+                total_revenue=Decimal('100.00'),
+                created_by=operator_user.id,
+            )
+            confirmed_act = RevenueActivity(
+                title='Confirmed Visible',
+                date=date.today(),
+                status='confermata',
+                total_revenue=Decimal('100.00'),
+                created_by=operator_user.id,
+            )
+            db.session.add_all([draft_act, confirmed_act])
+            db.session.flush()
+            db.session.add_all([
+                ActivityParticipant(activity_id=draft_act.id, participant_name=op.full_name,
+                                    user_id=op.id, work_share=Decimal('100'), fixed_compensation=Decimal('0')),
+                ActivityParticipant(activity_id=confirmed_act.id, participant_name=op.full_name,
+                                    user_id=op.id, work_share=Decimal('100'), fixed_compensation=Decimal('0')),
+            ])
+            db.session.commit()
+
+        client.post('/login', data={'username': 'operator', 'password': 'TestPass1!'})
+        resp = client.get('/activities/')
+        assert resp.status_code == 200
+        assert b'Confirmed Visible' in resp.data
+        assert b'Draft Hidden' not in resp.data
 
     def test_activities_filter_by_status(self, client, superadmin_user):
         """Test filtering activities by status."""
@@ -344,7 +382,6 @@ class TestActivityParticipantRoutes:
         })
         
         response = client.post(f'/activities/{revenue_activity.id}/participants/add', data={
-            'participant_name': 'New Participant',
             'role_description': 'Developer',
             'user_id': operator_user.id,
             'work_share': '50.00',
@@ -353,8 +390,9 @@ class TestActivityParticipantRoutes:
         
         with app.app_context():
             from app.models import ActivityParticipant
-            participant = ActivityParticipant.query.filter_by(participant_name='New Participant').first()
+            participant = ActivityParticipant.query.filter_by(activity_id=revenue_activity.id, user_id=operator_user.id).first()
             assert participant is not None
+            assert participant.participant_name == operator_user.full_name
 
     def test_delete_participant(self, client, app, superadmin_user, revenue_activity, activity_participant):
         """Test deleting participant."""
@@ -708,8 +746,8 @@ class TestManualRoutes:
         assert response.status_code == 200
         assert 'Manuale Utente'.encode() in response.data
         assert 'Cos\'è Small ERP'.encode() in response.data
-        assert 'Timesheet e costi automatici'.encode() in response.data
-        assert 'Ruoli e permessi'.encode() in response.data
+        assert 'Timesheet'.encode() in response.data
+        assert 'Gestione utenti'.encode() in response.data
 
     def test_manual_logged_in_english(self, client, superadmin_user):
         """Test manual page loads in English."""
@@ -725,8 +763,8 @@ class TestManualRoutes:
         assert response.status_code == 200
         assert b'User Manual' in response.data
         assert b'What is Small ERP' in response.data
-        assert b'Timesheets and Auto Costs' in response.data
-        assert b'Roles and Permissions' in response.data
+        assert b'Timesheets' in response.data
+        assert b'User Management' in response.data
 
     def test_manual_accessible_by_regular_user(self, client, operator_user):
         """Test manual page is accessible by regular user."""

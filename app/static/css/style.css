@@ -260,6 +260,15 @@ h4 {
   margin-top: 1px;
 }
 
+.sidebar-brand small.app-version {
+  font-size: 0.6rem;
+  color: var(--navy-600);
+  text-transform: none;
+  letter-spacing: 0.04em;
+  opacity: 0.7;
+  margin-top: 2px;
+}
+
 .sidebar-nav {
   flex: 1;
   padding: var(--space-md) 0;

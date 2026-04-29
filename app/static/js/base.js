@@ -47,4 +47,53 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     });
   });
+
+  // Bulk delete timesheets: select-all + single-row delete
+  var selectAll = document.getElementById('ts-select-all');
+  var bulkDeleteBtn = document.getElementById('bulk-delete-btn');
+  var bulkForm = document.getElementById('bulk-delete-form');
+
+  function updateBulkDeleteBtn() {
+    if (!bulkDeleteBtn) return;
+    var checked = document.querySelectorAll('.ts-row-checkbox:checked').length;
+    bulkDeleteBtn.disabled = checked === 0;
+  }
+
+  if (selectAll) {
+    selectAll.addEventListener('change', function () {
+      document.querySelectorAll('.ts-row-checkbox').forEach(function (cb) {
+        cb.checked = selectAll.checked;
+      });
+      updateBulkDeleteBtn();
+    });
+  }
+
+  document.querySelectorAll('.ts-row-checkbox').forEach(function (cb) {
+    cb.addEventListener('change', function () {
+      updateBulkDeleteBtn();
+      if (!cb.checked && selectAll) selectAll.checked = false;
+    });
+  });
+
+  // Single-row "Elimina" button: uncheck all, check only this row, confirm, submit
+  document.querySelectorAll('.ts-single-delete').forEach(function (btn) {
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      if (!confirm(btn.getAttribute('data-confirm'))) return;
+      var entryId = btn.getAttribute('data-id');
+      document.querySelectorAll('.ts-row-checkbox').forEach(function (cb) {
+        cb.checked = cb.value === entryId;
+      });
+      if (bulkForm) bulkForm.submit();
+    });
+  });
+
+  // Bulk delete form confirm (when using "Elimina selezionati" button)
+  if (bulkForm) {
+    bulkDeleteBtn && bulkDeleteBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+      if (!confirm(bulkForm.getAttribute('data-confirm'))) return;
+      bulkForm.submit();
+    });
+  }
 });

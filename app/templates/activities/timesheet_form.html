@@ -37,23 +37,21 @@
       <div class="form-group">
         <label class="form-label">{{ tr('Data', 'Date') }} *</label>
         <input type="date" name="work_date" class="form-control" required
-          value="{{ entry.work_date.isoformat() if entry else today }}">
+          value="{{ form_date if form_date is defined else (entry.work_date.isoformat() if entry else today) }}">
       </div>
 
       <div class="form-group">
         <label class="form-label">{{ tr('Ore lavorate', 'Hours worked') }} *</label>
-        <select name="hours" class="form-control" required>
-          <option value="0.5" {% if entry and entry.hours|string=='0.5' %}selected{% endif %}>0.5</option>
-          <option value="1" {% if entry and entry.hours|string in ('1', '1.0' ) %}selected{% elif not entry %}selected{%
-            endif %}>1</option>
-          <option value="1.5" {% if entry and entry.hours|string in ('1.5',) %}selected{% endif %}>1.5</option>
-        </select>
+        <input type="text" name="hours" class="form-control" required inputmode="decimal"
+          value="{{ form_hours if form_hours is defined else (entry.hours if entry else '1') }}" placeholder="0.5 - 10">
+        <span class="form-hint">{{ tr('Inserisci un valore da 0,5 a 10. Ammessi interi o .5 (es: 1, 2,5, 7.5).', 'Enter
+          a value from 0.5 to 10. Allowed: integers or .5 (e.g. 1, 2.5, 7.5).') }}</span>
       </div>
 
       <div class="form-group">
         <label class="form-label">{{ tr('Descrizione attivita svolta', 'Description of work done') }} *</label>
         <textarea name="description" class="form-control" rows="3" required
-          placeholder="{{ tr('Descrivi brevemente il lavoro svolto...', 'Briefly describe the work done...') }}">{{ entry.description if entry else '' }}</textarea>
+          placeholder="{{ tr('Descrivi brevemente il lavoro svolto...', 'Briefly describe the work done...') }}">{{ form_description if form_description is defined else (entry.description if entry else '') }}</textarea>
       </div>
 
       {% if entry %}

@@ -9,7 +9,8 @@ from app.services import (
     calc_agent_compensation,
     calc_activity_totals,
     calc_monthly_report,
-    calc_dashboard_stats
+    calc_dashboard_stats,
+    create_timesheet_entry,
 )
 from app.models import RevenueActivity
 
@@ -195,6 +196,32 @@ class TestActivityTotalsCalculation:
             assert participant_detail['fixed_compensation'] == Decimal('200.00')
             assert participant_detail['work_share'] == Decimal('50.00')
 
+    def test_activity_totals_participant_total_due_from_timesheet(self, app, revenue_activity, activity_participant):
+        """Total due must be derived only from timesheet compensation."""
+        with app.app_context():
+            from app import db
+            from app.models import User
+
+            participant_user = User.query.get(activity_participant.user_id)
+            participant_user.hourly_cost_rate = Decimal('25.00')
+            db.session.commit()
+
+            create_timesheet_entry(
+                user_id=participant_user.id,
+                activity_id=revenue_activity.id,
+                work_date=date.today(),
+                hours=Decimal('1'),
+                description='Timesheet for payout',
+                created_by_id=participant_user.id,
+            )
+
+            result = calc_activity_totals(revenue_activity)
+            participant_detail = result['participants'][0]
+
+            assert participant_detail['timesheet_hours'] == Decimal('1.00')
+            assert participant_detail['timesheet_compensation'] == Decimal('25.00')
+            assert participant_detail['total_due'] == Decimal('25.00')
+
     def test_activity_totals_multiple_participants_distribution(self, app, revenue_activity):
         """Test distribution among multiple participants."""
         with app.app_context():
@@ -220,12 +247,11 @@ class TestActivityTotalsCalculation:
             
             # Net margin = 1000 - 100 (agent) - 0 (costs) = 900
             # Fixed comp total = 150, distributable = 750
-            # P1 gets: 100 + (750 * 60/100) = 550
-            # P2 gets: 50 + (750 * 40/100) = 350
+            # Total due is now timesheet-based only. No timesheet -> 0 for both.
             
             assert len(result['participants']) == 2
-            assert result['participants'][0]['total_due'] == Decimal('550.00')
-            assert result['participants'][1]['total_due'] == Decimal('350.00')
+            assert result['participants'][0]['total_due'] == Decimal('0.00')
+            assert result['participants'][1]['total_due'] == Decimal('0.00')
 
     def test_activity_totals_no_work_share_distribution(self, app, revenue_activity):
         """Test when total work share is zero."""
@@ -246,7 +272,7 @@ class TestActivityTotalsCalculation:
             
             p_detail = result['participants'][0]
             assert p_detail['proportional_share'] == Decimal('0.00')
-            assert p_detail['total_due'] == Decimal('200.00')
+            assert p_detail['total_due'] == Decimal('0.00')
 
 
 class TestMonthlyReportCalculation:

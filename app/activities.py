@@ -63,12 +63,15 @@ def index():
 
     query = RevenueActivity.query
 
-    # Regular users see only activities where they are participants
+    # Regular users see only confirmed activities where they are participants
     if not current_user.is_superadmin:
         participant_activity_ids = db.session.query(ActivityParticipant.activity_id).filter_by(
             user_id=current_user.id
         ).subquery()
-        query = query.filter(RevenueActivity.id.in_(participant_activity_ids))
+        query = query.filter(
+            RevenueActivity.id.in_(participant_activity_ids),
+            RevenueActivity.status == 'confermata',
+        )
 
     if status_filter:
         query = query.filter_by(status=status_filter)
@@ -408,6 +411,20 @@ PARTICIPANT_FIELDS = ['participant_name', 'role_description', 'work_share',
                       'fixed_compensation', 'notes']
 
 
+def _get_required_linked_user(user_id_raw):
+    """Return linked active user from form value, raising if missing/invalid."""
+    user_id_val = _require_non_empty(user_id_raw, tr('Utente collegato', 'Linked user'))
+    try:
+        user_id = int(user_id_val)
+    except (TypeError, ValueError):
+        raise ValueError(f"{tr('Utente collegato', 'Linked user')}: valore non valido")
+
+    user = db.session.get(User, user_id)
+    if user is None or not user.is_active_user:
+        raise ValueError(f"{tr('Utente collegato', 'Linked user')}: utente non valido")
+    return user
+
+
 @activities_bp.route('/<int:id>/participants/add', methods=['GET', 'POST'])
 @login_required
 def add_participant(id):
@@ -419,15 +436,19 @@ def add_participant(id):
 
     if request.method == 'POST':
         try:
-            p_name = _require_non_empty(request.form.get('participant_name', ''), tr('Nome partecipante', 'Participant name'))
+            linked_user = _get_required_linked_user(request.form.get('user_id', ''))
+            fixed_compensation_raw = _require_non_empty(
+                request.form.get('fixed_compensation', ''),
+                tr('Compenso fisso', 'Fixed compensation')
+            )
 
             p = ActivityParticipant(
                 activity_id=activity.id,
-                participant_name=p_name,
-                user_id=int(request.form['user_id']) if request.form.get('user_id') else None,
+                participant_name=(linked_user.full_name or linked_user.username).strip(),
+                user_id=linked_user.id,
                 role_description=request.form.get('role_description', '').strip(),
                 work_share=_validate_decimal(request.form.get('work_share', '0'), tr('Quota lavoro', 'Work share')),
-                fixed_compensation=_validate_decimal(request.form.get('fixed_compensation', '0'), tr('Compenso fisso', 'Fixed compensation')),
+                fixed_compensation=_validate_decimal(fixed_compensation_raw, tr('Compenso fisso', 'Fixed compensation')),
                 notes=request.form.get('notes', '').strip(),
             )
             db.session.add(p)
@@ -455,14 +476,17 @@ def edit_participant(id, pid):
     if request.method == 'POST':
         try:
             old_values = model_to_dict(p, PARTICIPANT_FIELDS)
+            linked_user = _get_required_linked_user(request.form.get('user_id', ''))
+            fixed_compensation_raw = _require_non_empty(
+                request.form.get('fixed_compensation', ''),
+                tr('Compenso fisso', 'Fixed compensation')
+            )
 
-            p_name = _require_non_empty(request.form.get('participant_name', ''), tr('Nome partecipante', 'Participant name'))
-
-            p.participant_name = p_name
-            p.user_id = int(request.form['user_id']) if request.form.get('user_id') else None
+            p.participant_name = (linked_user.full_name or linked_user.username).strip()
+            p.user_id = linked_user.id
             p.role_description = request.form.get('role_description', '').strip()
             p.work_share = _validate_decimal(request.form.get('work_share', '0'), tr('Quota lavoro', 'Work share'))
-            p.fixed_compensation = _validate_decimal(request.form.get('fixed_compensation', '0'), tr('Compenso fisso', 'Fixed compensation'))
+            p.fixed_compensation = _validate_decimal(fixed_compensation_raw, tr('Compenso fisso', 'Fixed compensation'))
             p.notes = request.form.get('notes', '').strip()
 
             db.session.commit()
@@ -507,6 +531,10 @@ TIMESHEET_FIELDS = ['user_id', 'activity_id', 'work_date', 'hours', 'description
 def add_timesheet(id):
     activity = db.get_or_404(RevenueActivity, id)
 
+    if not current_user.is_superadmin and activity.status != 'confermata':
+        flash(tr('Puoi aggiungere timesheet solo su attività confermate.', 'You can only add timesheets to confirmed activities.'), 'error')
+        return redirect(url_for('activities.detail', id=id))
+
     if request.method == 'POST':
         try:
             work_date_str = _require_non_empty(request.form.get('work_date', ''), tr('Data', 'Date'))
@@ -547,6 +575,13 @@ def add_timesheet(id):
         except (ValueError, KeyError, InvalidOperation) as e:
             logger.error(f'Error adding timesheet to activity {id}: {str(e)}', exc_info=True)
             flash(tr('Errore nei dati inseriti.', 'Invalid input data.'), 'error')
+        # Preserve submitted form data on error
+        users = User.query.filter_by(is_active_user=True).order_by(User.full_name).all() if current_user.is_superadmin else []
+        return render_template('activities/timesheet_form.html',
+                               activity=activity, entry=None, users=users,
+                               form_date=request.form.get('work_date', date.today().isoformat()),
+                               form_hours=request.form.get('hours', '1'),
+                               form_description=request.form.get('description', ''))
 
     users = User.query.filter_by(is_active_user=True).order_by(User.full_name).all() if current_user.is_superadmin else []
     return render_template('activities/timesheet_form.html',
@@ -600,6 +635,13 @@ def edit_timesheet(id, entry_id):
         except (ValueError, KeyError, InvalidOperation) as e:
             logger.error(f'Error editing timesheet {entry_id}: {str(e)}', exc_info=True)
             flash(tr('Errore nei dati inseriti.', 'Invalid input data.'), 'error')
+        # Preserve submitted form data on error
+        users = User.query.filter_by(is_active_user=True).order_by(User.full_name).all() if current_user.is_superadmin else []
+        return render_template('activities/timesheet_form.html',
+                               activity=activity, entry=entry, users=users,
+                               form_date=request.form.get('work_date', entry.work_date.isoformat()),
+                               form_hours=request.form.get('hours', str(entry.hours)),
+                               form_description=request.form.get('description', entry.description))
 
     users = User.query.filter_by(is_active_user=True).order_by(User.full_name).all() if current_user.is_superadmin else []
     return render_template('activities/timesheet_form.html',
@@ -616,6 +658,10 @@ def delete_timesheet(id, entry_id):
         return redirect(url_for('activities.detail', id=id))
 
     activity = db.get_or_404(RevenueActivity, id)
+
+    if not current_user.is_superadmin and activity.status != 'confermata':
+        flash(tr('Puoi eliminare timesheet solo su attività confermate.', 'You can only delete timesheets on confirmed activities.'), 'error')
+        return redirect(url_for('activities.detail', id=id))
 
     log_action('delete', 'TimesheetEntry', entry_id,
                f'Eliminato timesheet ID {entry_id} per attività "{activity.title}"',

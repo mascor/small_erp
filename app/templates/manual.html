@@ -10,13 +10,16 @@
 
 {% if current_lang == 'it' %}
 
+{% if current_user.is_superadmin %}
+{# ──────────────────────────────── ADMIN IT ──────────────────────────────── #}
+
 <div class="card" style="margin-bottom:1.5rem;">
   <div class="card-body">
     <h2>Cos'è Small ERP</h2>
     <p>
-      Small ERP è un'applicazione web pensata per la gestione semplificata delle <strong>attività a ricavo</strong>.
-      Permette di tracciare ricavi, costi, agenti commerciali, partecipanti e ore lavorate,
-      calcolando automaticamente margini, compensi agente, costi interni e ripartizione compensi.
+      Small ERP è un'applicazione web per la gestione delle <strong>attività a ricavo</strong>: consente di tracciare
+      ricavi, costi, agenti, partecipanti e ore lavorate, calcolando automaticamente margini, provvigioni, costi interni
+      e ripartizione dei compensi.
     </p>
   </div>
 </div>
@@ -24,106 +27,191 @@
 <div class="card" style="margin-bottom:1.5rem;">
   <div class="card-body">
     <h2>Flusso operativo consigliato</h2>
-    <ul>
-      <li><strong>1) Configura utenti e agenti:</strong> il superadmin crea utenti operativi (con tariffa oraria) e
-        gestisce l'anagrafica agenti.</li>
-      <li><strong>2) Crea l'attività:</strong> inserisci titolo, data, ricavo totale, stato (bozza/confermata/chiusa) e
+    <ol>
+      <li><strong>Configura utenti e agenti:</strong> crea utenti operativi con tariffa oraria e gestisci l'anagrafica
+        agenti.</li>
+      <li><strong>Crea l'attività:</strong> inserisci titolo, data, ricavo totale, stato (bozza/confermata/chiusa) e
         agente con percentuale.</li>
-      <li><strong>3) Aggiungi costi e partecipanti:</strong> registra costi manuali e definisci quota lavoro + compenso
-        fisso per ogni partecipante.</li>
-      <li><strong>4) Registra timesheet:</strong> le ore dei consulenti interni generano automaticamente il relativo
-        costo operativo.</li>
-      <li><strong>5) Verifica dettaglio e report:</strong> controlla margini e ripartizioni nella scheda attività e nel
+      <li><strong>Aggiungi costi e partecipanti:</strong> registra costi manuali e assegna quota lavoro + compenso fisso
+        per ogni partecipante.</li>
+      <li><strong>Registra timesheet:</strong> le ore degli utenti interni generano automaticamente il relativo costo
+        operativo.</li>
+      <li><strong>Verifica dettaglio e report:</strong> controlla margini e ripartizioni nel dettaglio attività e nel
         report mensile.</li>
-    </ul>
+    </ol>
   </div>
 </div>
 
 <div class="card" style="margin-bottom:1.5rem;">
   <div class="card-body">
-    <h2>Attività a ricavo</h2>
+    <h2>Attività</h2>
     <ul>
-      <li>La lista attività supporta filtri per stato, agente, intervallo date e ricerca per titolo.</li>
-      <li>Le operazioni disponibili sono: creazione, modifica, cancellazione singola e cancellazione multipla.</li>
-      <li>Gli utenti normali possono modificare/eliminare solo le attività di cui sono creatori; il superadmin può
-        operare su tutte.</li>
-    </ul>
-  </div>
-</div>
-
-<div class="card" style="margin-bottom:1.5rem;">
-  <div class="card-body">
-    <h2>Costi, partecipanti e calcoli</h2>
-    <ul>
-      <li>I costi manuali sono classificati per categoria (materiale, trasporto, consulenza, marketing, spese vive,
-        altro) e tipo (operativo/extra).</li>
-      <li>I costi auto-generati da timesheet (consulenza interna) non sono modificabili manualmente.</li>
-      <li>Il calcolo economico include: provvigione agente, totale costi, margine netto, compensi fissi e quota
-        variabile per partecipante.</li>
-      <li>La quota variabile viene ripartita in base alla quota lavoro inserita sui partecipanti.</li>
-    </ul>
-  </div>
-</div>
-
-<div class="card" style="margin-bottom:1.5rem;">
-  <div class="card-body">
-    <h2>Timesheet e costi automatici</h2>
-    <ul>
-      <li>Dal dettaglio attività puoi inserire ore, data e descrizione della prestazione.</li>
-      <li>Il sistema salva la tariffa oraria dell'utente al momento dell'inserimento (snapshot storico).</li>
-      <li>Su ogni modifica/eliminazione timesheet, il costo interno aggregato viene ricalcolato automaticamente.</li>
-      <li>Nella sezione <strong>Miei Timesheet</strong> puoi filtrare per mese, anno e attività; il superadmin può
-        filtrare anche per utente.</li>
-    </ul>
-  </div>
-</div>
-
-<div class="card" style="margin-bottom:1.5rem;">
-  <div class="card-body">
-    <h2>Ruoli e permessi</h2>
-    <ul>
-      <li><strong>Utente standard:</strong> usa dashboard, attività, agenti, report, manuale e timesheet personali.</li>
-      <li><strong>Superadmin:</strong> in più gestisce utenti e audit log, e può operare su tutte le attività/timesheet.
+      <li>Come superadmin vedi <strong>tutte le attività</strong> in tutti gli stati: bozza, confermata, chiusa.</li>
+      <li>I filtri disponibili sono: ricerca per titolo, stato, agente e intervallo di date.</li>
+      <li>Puoi eliminare più attività contemporaneamente con la selezione multipla (checkbox + "Elimina selezionate").
       </li>
-      <li>L'utente superadmin non è eliminabile dal pannello utenti.</li>
+      <li>Puoi modificare o eliminare qualsiasi attività, indipendentemente da chi l'ha creata.</li>
+      <li>Sono disponibili tre stati: <em>Bozza</em> (lavorazione), <em>Confermata</em> (operativa), <em>Chiusa</em>
+        (archiviata).</li>
     </ul>
   </div>
 </div>
 
 <div class="card" style="margin-bottom:1.5rem;">
   <div class="card-body">
-    <h2>Audit e Sicurezza</h2>
+    <h2>Dettaglio attività e calcoli economici</h2>
+    <ul>
+      <li><strong>Riepilogo economico:</strong> ricavo totale, provvigione agente, totale costi, margine netto e
+        ripartizione per partecipante.</li>
+      <li><strong>Costi manuali:</strong> classificati per categoria (materiale, trasporto, consulenza, marketing, spese
+        vive, altro) e tipo (operativo/extra).</li>
+      <li><strong>Costi auto-generati:</strong> i timesheet degli utenti interni creano automaticamente un costo
+        operativo aggregato; non sono modificabili manualmente.</li>
+      <li><strong>Partecipanti:</strong> per ognuno si definisce quota lavoro (%) e compenso fisso. Il sistema calcola
+        la quota variabile sul margine distribuibile.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:1.5rem;">
+  <div class="card-body">
+    <h2>Timesheet</h2>
+    <ul>
+      <li>I timesheet si inseriscono dal dettaglio attività (solo se l'attività è in stato <em>Confermata</em>).</li>
+      <li>Il sistema salva lo snapshot della tariffa oraria al momento dell'inserimento.</li>
+      <li>Ogni modifica o eliminazione ricalcola automaticamente il costo interno aggregato.</li>
+      <li>In <strong>I miei Timesheet</strong> puoi filtrare per giorno, mese, anno, attività e utente.</li>
+      <li>Puoi eliminare più timesheet contemporaneamente con le checkbox e il pulsante "Elimina selezionati".</li>
+      <li>Il limite massimo è <strong>10 ore al giorno</strong> per utente, sommando tutti i progetti.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:1.5rem;">
+  <div class="card-body">
+    <h2>Gestione utenti</h2>
+    <ul>
+      <li>Crea e gestisci gli utenti dalla sezione <strong>Utenti</strong> (accessibile solo al superadmin).</li>
+      <li>Per ogni utente si definisce: nome completo, username, email, tariffa oraria e stato attivo/disattivo.</li>
+      <li>I nuovi utenti ricevono una password temporanea e vengono forzati al cambio alla prima sessione.</li>
+      <li>Il superadmin non può essere eliminato.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:1.5rem;">
+  <div class="card-body">
+    <h2>Audit log</h2>
     <p>
-      Ogni operazione (creazione, modifica, cancellazione) viene registrata automaticamente nell'<strong>audit
-        log</strong>,
-      con dettaglio di chi ha eseguito l'azione, quando e quali dati sono stati modificati.
-      L'applicazione usa autenticazione con sessione, logout via POST, protezione CSRF e controlli sui redirect.
-      I valori numerici vengono validati (es. percentuali 0-100, importi non negativi).
+      Ogni operazione (creazione, modifica, eliminazione, cambio stato, login/logout) viene registrata
+      nell'<strong>audit log</strong>
+      con dettaglio di utente, timestamp, entità interessata e valori prima/dopo.
+      Accessibile dal menu <em>Audit</em> (solo superadmin).
     </p>
   </div>
 </div>
 
 <div class="card" style="margin-bottom:1.5rem;">
   <div class="card-body">
-    <h2>Report, dashboard e lingue</h2>
+    <h2>Report e dashboard</h2>
     <p>
-      La dashboard mostra indicatori sintetici e attività recenti, mentre i report mensili aggregano ricavi, costi e
-      margini.
-      L'interfaccia è disponibile in <strong>italiano</strong> e <strong>inglese</strong>, con cambio lingua dal
-      selettore nella barra laterale.
+      La <strong>dashboard</strong> mostra KPI sintetici (attività per stato, ore del mese, ricavi del mese).
+      I <strong>report mensili</strong> aggregano ricavi, costi, margini e ore per tutte le attività del periodo
+      selezionato.
     </p>
   </div>
 </div>
 
 {% else %}
+{# ─────────────────────────────── NON-ADMIN IT ─────────────────────────────── #}
+
+<div class="card" style="margin-bottom:1.5rem;">
+  <div class="card-body">
+    <h2>Cos'è Small ERP</h2>
+    <p>
+      Small ERP è un'applicazione web per gestire le <strong>attività lavorative</strong> su cui sei coinvolto.
+      Puoi consultare le attività confermate, registrare le tue ore di lavoro e visualizzare i tuoi timesheet mensili.
+    </p>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:1.5rem;">
+  <div class="card-body">
+    <h2>Le tue attività</h2>
+    <ul>
+      <li>Nella sezione <strong>Attività</strong> vedi solo le attività in stato <em>Confermata</em> a cui partecipi.
+      </li>
+      <li>Puoi filtrare la lista per titolo, data di inizio e data di fine.</li>
+      <li>Clicca su <em>Dettagli</em> per aprire il dettaglio dell'attività e inserire/gestire i tuoi timesheet.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:1.5rem;">
+  <div class="card-body">
+    <h2>Inserire timesheet</h2>
+    <ol>
+      <li>Apri il dettaglio di un'attività confermata.</li>
+      <li>Nella sezione <strong>Timesheet</strong> clicca su <em>Aggiungi ore</em>.</li>
+      <li>Compila data, ore lavorate (multipli di 0,5 — min 0,5, max 10) e una descrizione.</li>
+      <li>Salva. Il record apparirà nella lista con data, ore e descrizione.</li>
+    </ol>
+    <p class="text-muted text-sm">
+      <strong>Nota:</strong> non puoi inserire più di 10 ore in totale in un singolo giorno, sommando tutti i progetti.
+    </p>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:1.5rem;">
+  <div class="card-body">
+    <h2>Modificare ed eliminare timesheet</h2>
+    <ul>
+      <li>Puoi modificare o eliminare solo i timesheet che hai inserito tu.</li>
+      <li>Clicca <em>Modifica</em> accanto a una voce per cambiare data, ore o descrizione.</li>
+      <li>Clicca <em>Elimina</em> per rimuovere la voce (con conferma).</li>
+      <li>In alternativa, usa le <strong>checkbox</strong> per selezionare più voci e clicca <em>Elimina
+          selezionati</em>.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:1.5rem;">
+  <div class="card-body">
+    <h2>I miei Timesheet</h2>
+    <ul>
+      <li>La sezione <strong>I miei Timesheet</strong> mostra tutte le tue voci ordinate per data.</li>
+      <li>Usa i filtri <em>Giorno</em>, <em>Mese</em>, <em>Anno</em> e <em>Attività</em> per restringere la vista.</li>
+      <li>In cima trovi il totale ore e il numero di voci per il periodo filtrato.</li>
+      <li>Puoi eliminare più voci contemporaneamente selezionandole con le checkbox.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:1.5rem;">
+  <div class="card-body">
+    <h2>Cambio password</h2>
+    <p>
+      Se desideri aggiornare la tua password, clicca sul tuo nome nella barra laterale e scegli <em>Cambia
+        password</em>.
+      La nuova password deve avere almeno 12 caratteri, con almeno una maiuscola, una minuscola e un numero.
+    </p>
+  </div>
+</div>
+
+{% endif %}
+
+{% else %}
+
+{% if current_user.is_superadmin %}
+{# ──────────────────────────────── ADMIN EN ──────────────────────────────── #}
 
 <div class="card" style="margin-bottom:1.5rem;">
   <div class="card-body">
     <h2>What is Small ERP</h2>
     <p>
-      Small ERP is a web application designed for simplified management of <strong>revenue activities</strong>.
-      It lets you track revenues, costs, sales agents, participants, and worked hours,
-      automatically calculating margins, agent commissions, internal costs, and payout distribution.
+      Small ERP is a web application for managing <strong>revenue activities</strong>: track revenues, costs, agents,
+      participants, and worked hours, with automatic calculation of margins, commissions, internal costs, and payout
+      distribution.
     </p>
   </div>
 </div>
@@ -131,95 +219,174 @@
 <div class="card" style="margin-bottom:1.5rem;">
   <div class="card-body">
     <h2>Recommended Workflow</h2>
-    <ul>
-      <li><strong>1) Configure users and agents:</strong> superadmin creates operational users (with hourly rate) and
-        manages sales agents.</li>
-      <li><strong>2) Create the activity:</strong> set title, date, total revenue, status (draft/confirmed/closed), and
+    <ol>
+      <li><strong>Configure users and agents:</strong> create operational users with hourly rates and manage the agents
+        directory.</li>
+      <li><strong>Create the activity:</strong> set title, date, total revenue, status (draft/confirmed/closed), and
         optional agent percentage.</li>
-      <li><strong>3) Add costs and participants:</strong> enter manual costs and define work share + fixed compensation
-        per participant.</li>
-      <li><strong>4) Log timesheets:</strong> internal consultant hours automatically generate the corresponding
-        operational cost.</li>
-      <li><strong>5) Review activity and reports:</strong> verify margins and participant payouts in activity detail and
-        monthly reports.</li>
+      <li><strong>Add costs and participants:</strong> enter manual costs and define work share + fixed compensation per
+        participant.</li>
+      <li><strong>Log timesheets:</strong> internal user hours automatically generate the corresponding operational
+        cost.</li>
+      <li><strong>Review activity and reports:</strong> verify margins and payouts in activity detail and monthly
+        reports.</li>
+    </ol>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:1.5rem;">
+  <div class="card-body">
+    <h2>Activities</h2>
+    <ul>
+      <li>As superadmin you see <strong>all activities</strong> in every status: draft, confirmed, closed.</li>
+      <li>Available filters: title search, status, agent, date range.</li>
+      <li>Use the checkboxes and "Delete selected" to bulk-delete multiple activities at once.</li>
+      <li>You can edit or delete any activity regardless of who created it.</li>
+      <li>Three statuses: <em>Draft</em> (in progress), <em>Confirmed</em> (active), <em>Closed</em> (archived).</li>
     </ul>
   </div>
 </div>
 
 <div class="card" style="margin-bottom:1.5rem;">
   <div class="card-body">
-    <h2>Revenue Activities</h2>
+    <h2>Activity Detail and Financial Calculations</h2>
     <ul>
-      <li>The activity list supports filters by status, agent, date range, and title search.</li>
-      <li>Available operations are: create, edit, single delete, and bulk delete.</li>
-      <li>Standard users can edit/delete only activities they created; superadmin can manage all activities.</li>
+      <li><strong>Financial summary:</strong> total revenue, agent commission, total costs, net margin, per-participant
+        breakdown.</li>
+      <li><strong>Manual costs:</strong> categorised by type (material, transport, consulting, marketing, out-of-pocket,
+        other) and kind (operational/extra).</li>
+      <li><strong>Auto-generated costs:</strong> internal timesheet entries create an aggregated operational cost
+        automatically; not manually editable.</li>
+      <li><strong>Participants:</strong> define work share (%) and fixed compensation per person. Variable share is
+        computed from the distributable margin.</li>
     </ul>
   </div>
 </div>
 
 <div class="card" style="margin-bottom:1.5rem;">
   <div class="card-body">
-    <h2>Costs, Participants, and Calculations</h2>
+    <h2>Timesheets</h2>
     <ul>
-      <li>Manual costs are classified by category (material, transport, consulting, marketing, out-of-pocket, other) and
-        type (operational/extra).</li>
-      <li>Auto-generated costs from timesheets (internal consulting) cannot be edited manually.</li>
-      <li>Financial totals include: agent commission, total costs, net margin, fixed compensations, and variable
-        participant shares.</li>
-      <li>Variable share distribution is based on each participant's work share percentage.</li>
-    </ul>
-  </div>
-</div>
-
-<div class="card" style="margin-bottom:1.5rem;">
-  <div class="card-body">
-    <h2>Timesheets and Auto Costs</h2>
-    <ul>
-      <li>From activity detail, you can log worked hours with date and description.</li>
+      <li>Timesheets are logged from activity detail (only for <em>Confirmed</em> activities).</li>
       <li>The system stores the user's hourly rate snapshot at entry creation time.</li>
-      <li>When a timesheet is edited/deleted, the internal aggregated cost is rebuilt automatically.</li>
-      <li>In <strong>My Timesheets</strong>, filters are available by month, year, and activity; superadmin can also
-        filter by user.</li>
+      <li>Every edit or deletion automatically rebuilds the aggregated internal cost.</li>
+      <li>In <strong>My Timesheets</strong>, filter by day, month, year, activity, and user.</li>
+      <li>Use checkboxes and "Delete selected" to bulk-delete multiple entries.</li>
+      <li>Maximum <strong>10 hours per day</strong> per user across all projects.</li>
     </ul>
   </div>
 </div>
 
 <div class="card" style="margin-bottom:1.5rem;">
   <div class="card-body">
-    <h2>Roles and Permissions</h2>
+    <h2>User Management</h2>
     <ul>
-      <li><strong>Standard user:</strong> can use dashboard, activities, agents, reports, manual, and personal
-        timesheets.</li>
-      <li><strong>Superadmin:</strong> additionally manages users and audit log, and can operate on all
-        activities/timesheets.</li>
-      <li>The superadmin account cannot be deleted from user management.</li>
+      <li>Create and manage users in the <strong>Users</strong> section (superadmin only).</li>
+      <li>Each user has: full name, username, email, hourly rate, active/inactive flag.</li>
+      <li>New users receive a temporary password and are forced to change it on first login.</li>
+      <li>The superadmin account cannot be deleted.</li>
     </ul>
   </div>
 </div>
 
 <div class="card" style="margin-bottom:1.5rem;">
   <div class="card-body">
-    <h2>Audit &amp; Security</h2>
+    <h2>Audit Log</h2>
     <p>
-      Every operation (create, update, delete) is automatically recorded in the <strong>audit log</strong>,
-      detailing who performed the action, when, and what data was changed.
-      The application uses session-based authentication, POST-only logout, CSRF protection, and safe redirect checks.
-      Numeric values are validated (for example: percentages 0-100, non-negative amounts).
+      Every operation (create, update, delete, status change, login/logout) is recorded in the <strong>audit
+        log</strong>
+      with user, timestamp, entity, and before/after values.
+      Accessible from the <em>Audit</em> menu (superadmin only).
     </p>
   </div>
 </div>
 
 <div class="card" style="margin-bottom:1.5rem;">
   <div class="card-body">
-    <h2>Reports, Dashboard, and Languages</h2>
+    <h2>Reports and Dashboard</h2>
     <p>
-      The dashboard shows key indicators and recent activities, while monthly reports aggregate revenues, costs, and
-      margins.
-      The interface is available in <strong>Italian</strong> and <strong>English</strong>, and can be switched anytime
-      from the sidebar language selector.
+      The <strong>dashboard</strong> shows key KPIs (activities by status, monthly hours, monthly revenue).
+      <strong>Monthly reports</strong> aggregate revenues, costs, margins, and hours for all activities in the selected
+      period.
     </p>
   </div>
 </div>
+
+{% else %}
+{# ─────────────────────────────── NON-ADMIN EN ─────────────────────────────── #}
+
+<div class="card" style="margin-bottom:1.5rem;">
+  <div class="card-body">
+    <h2>What is Small ERP</h2>
+    <p>
+      Small ERP is a web application for managing <strong>work activities</strong> you are involved in.
+      You can view confirmed activities, log your worked hours, and review your monthly timesheets.
+    </p>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:1.5rem;">
+  <div class="card-body">
+    <h2>Your Activities</h2>
+    <ul>
+      <li>In the <strong>Activities</strong> section you see only <em>Confirmed</em> activities you participate in.</li>
+      <li>You can filter by title, start date, and end date.</li>
+      <li>Click <em>Details</em> to open an activity and manage your timesheets.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:1.5rem;">
+  <div class="card-body">
+    <h2>Logging Timesheets</h2>
+    <ol>
+      <li>Open a confirmed activity's detail page.</li>
+      <li>In the <strong>Timesheets</strong> section, click <em>Add hours</em>.</li>
+      <li>Fill in the date, worked hours (multiples of 0.5 — min 0.5, max 10), and a description.</li>
+      <li>Save. The entry will appear in the list with date, hours, and description.</li>
+    </ol>
+    <p class="text-muted text-sm">
+      <strong>Note:</strong> you cannot log more than 10 hours total in a single day across all projects.
+    </p>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:1.5rem;">
+  <div class="card-body">
+    <h2>Editing and Deleting Timesheets</h2>
+    <ul>
+      <li>You can only edit or delete timesheet entries you created.</li>
+      <li>Click <em>Edit</em> next to an entry to change its date, hours, or description.</li>
+      <li>Click <em>Delete</em> to remove an entry (confirmation required).</li>
+      <li>Use the <strong>checkboxes</strong> to select multiple entries and click <em>Delete selected</em>.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:1.5rem;">
+  <div class="card-body">
+    <h2>My Timesheets</h2>
+    <ul>
+      <li>The <strong>My Timesheets</strong> section shows all your entries ordered by date.</li>
+      <li>Use the <em>Day</em>, <em>Month</em>, <em>Year</em>, and <em>Activity</em> filters to narrow the view.</li>
+      <li>The summary at the top shows total hours and entry count for the filtered period.</li>
+      <li>You can bulk-delete entries using the checkboxes.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:1.5rem;">
+  <div class="card-body">
+    <h2>Changing Your Password</h2>
+    <p>
+      To update your password, click your name in the sidebar and choose <em>Change password</em>.
+      The new password must be at least 12 characters long and include at least one uppercase letter, one lowercase
+      letter, and one digit.
+    </p>
+  </div>
+</div>
+
+{% endif %}
 
 {% endif %}
 {% endblock %}

@@ -9,6 +9,20 @@ Per questo repository, Copilot deve seguire sempre queste regole:
 3. Per le regole operative dell'agente, aggiornare solo `.github/copilot-instructions.md`.
 4. Se serve spostare o consolidare documentazione esistente, migrare prima i contenuti utili in `README.md`, poi rimuovere i file Markdown ridondanti.
 
+## Regola Versione
+
+Ad ogni commit significativo (nuova feature, bugfix, modifica rilevante) **aggiornare** `app/version.py`:
+
+```python
+APP_VERSION = "MAJOR.MINOR.PATCH"
+```
+
+- **MAJOR**: cambiamenti incompatibili o ristrutturazioni architetturali
+- **MINOR**: nuove funzionalità retrocompatibili
+- **PATCH**: bugfix e piccole correzioni
+
+La versione viene mostrata nella sidebar dell'interfaccia web.
+
 ## Regola Fondamentale: Test Obbligatori
 
 **Ogni volta che viene creata una nuova funzione, corretto un bug, o apportata una modifica significativa al codice, è OBBLIGATORIO:**

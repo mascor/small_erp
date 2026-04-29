@@ -11,6 +11,15 @@
   <div class="card-body">
     <form method="GET" class="timesheets-filters-form">
       <div class="form-group timesheets-filter-field">
+        <label class="form-label text-sm">{{ tr('Giorno', 'Day') }}</label>
+        <select name="day" class="form-control form-control-sm">
+          <option value="">— {{ tr('Tutti', 'All') }} —</option>
+          {% for d in range(1, 32) %}
+          <option value="{{ d }}" {% if filter_day==d|string %}selected{% endif %}>{{ '%02d'|format(d) }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group timesheets-filter-field">
         <label class="form-label text-sm">{{ tr('Mese', 'Month') }}</label>
         <select name="month" class="form-control form-control-sm">
           {% for m in range(1,13) %}
@@ -59,10 +68,12 @@
     <div class="text-muted text-sm">{{ tr('Ore totali', 'Total hours') }}</div>
     <div class="timesheets-summary-value">{{ total_hours }}</div>
   </div>
+  {% if current_user.is_superadmin %}
   <div class="card timesheets-summary-card">
     <div class="text-muted text-sm">{{ tr('Costo totale', 'Total cost') }}</div>
     <div class="timesheets-summary-value">&euro; {{ total_cost|currency }}</div>
   </div>
+  {% endif %}
   <div class="card timesheets-summary-card">
     <div class="text-muted text-sm">{{ tr('Voci', 'Entries') }}</div>
     <div class="timesheets-summary-value">{{ entries|length }}</div>
@@ -71,60 +82,85 @@
 
 <!-- Entries table -->
 {% if entries %}
-<div class="card timesheets-entries-card">
-  <div class="table-wrapper">
-    <table class="timesheets-entries-table">
-      <thead>
-        <tr>
-          <th>{{ tr('Data', 'Date') }}</th>
-          {% if current_user.is_superadmin %}
-          <th>{{ tr('Utente', 'User') }}</th>
-          {% endif %}
-          <th>{{ tr('Attivita', 'Activity') }}</th>
-          <th class="num">{{ tr('Ore', 'Hours') }}</th>
-          <th>{{ tr('Descrizione', 'Description') }}</th>
-          <th class="num">{{ tr('Tariffa', 'Rate') }}</th>
-          <th class="num">{{ tr('Costo', 'Cost') }}</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for ts in entries %}
-        {% set ts_cost = ts.hours|float * ts.hourly_rate_snapshot|float %}
-        <tr>
-          <td class="text-sm">{{ ts.work_date.strftime('%d/%m/%Y') }}</td>
-          {% if current_user.is_superadmin %}
-          <td class="text-sm">{{ ts.user.full_name if ts.user else '—' }}</td>
-          {% endif %}
-          <td>
-            <a href="{{ url_for('activities.detail', id=ts.activity_id) }}" class="text-sm">
-              {{ ts.activity.title if ts.activity else '—' }}
-            </a>
-          </td>
-          <td class="num">{{ ts.hours }}</td>
-          <td class="text-muted text-sm">{{ ts.description }}</td>
-          <td class="num text-sm">&euro; {{ ts.hourly_rate_snapshot|currency }}</td>
-          <td class="num">&euro; {{ ts_cost|currency }}</td>
-          <td class="text-right">
-            {% if current_user.is_superadmin or ts.user_id == current_user.id %}
-            <div class="btn-group">
-              <a href="{{ url_for('activities.edit_timesheet', id=ts.activity_id, entry_id=ts.id) }}"
-                class="btn btn-ghost btn-sm">{{ tr('Modifica', 'Edit') }}</a>
-              <form method="POST"
-                action="{{ url_for('activities.delete_timesheet', id=ts.activity_id, entry_id=ts.id) }}"
-                class="confirm-delete" data-confirm="{{ tr('Eliminare questo timesheet?', 'Delete this timesheet?') }}">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button type="submit" class="btn btn-ghost btn-sm text-danger">{{ tr('Elimina', 'Delete') }}</button>
-              </form>
-            </div>
-            {% endif %}
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+<form id="bulk-delete-form" method="POST" action="{{ url_for('timesheets.bulk_delete_timesheets') }}"
+  data-confirm="{{ tr('Eliminare i timesheet selezionati?', 'Delete selected timesheets?') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input type="hidden" name="filter_month" value="{{ filter_month }}">
+  <input type="hidden" name="filter_year" value="{{ filter_year }}">
+  <input type="hidden" name="filter_day" value="{{ filter_day }}">
+  <input type="hidden" name="filter_activity_id" value="{{ filter_activity_id }}">
+  <input type="hidden" name="filter_user_id" value="{{ filter_user_id }}">
+
+  <div class="bulk-actions mb-sm">
+    <button type="submit" class="btn btn-danger btn-sm" id="bulk-delete-btn" disabled>
+      {{ tr('Elimina selezionati', 'Delete selected') }}
+    </button>
   </div>
-</div>
+
+  <div class="card timesheets-entries-card">
+    <div class="table-wrapper">
+      <table class="timesheets-entries-table">
+        <thead>
+          <tr>
+            <th style="width:2rem"><input type="checkbox" id="ts-select-all"
+                title="{{ tr('Seleziona tutto', 'Select all') }}"></th>
+            <th>{{ tr('Data', 'Date') }}</th>
+            {% if current_user.is_superadmin %}
+            <th>{{ tr('Utente', 'User') }}</th>
+            {% endif %}
+            <th>{{ tr('Attivita', 'Activity') }}</th>
+            <th class="num">{{ tr('Ore', 'Hours') }}</th>
+            <th>{{ tr('Descrizione', 'Description') }}</th>
+            {% if current_user.is_superadmin %}
+            <th class="num">{{ tr('Tariffa', 'Rate') }}</th>
+            <th class="num">{{ tr('Costo', 'Cost') }}</th>
+            {% endif %}
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ts in entries %}
+          {% set ts_cost = ts.hours|float * ts.hourly_rate_snapshot|float %}
+          <tr>
+            <td>
+              {% if current_user.is_superadmin or ts.user_id == current_user.id %}
+              <input type="checkbox" name="entry_ids" value="{{ ts.id }}" class="ts-row-checkbox">
+              {% endif %}
+            </td>
+            <td class="text-sm">{{ ts.work_date.strftime('%d/%m/%Y') }}</td>
+            {% if current_user.is_superadmin %}
+            <td class="text-sm">{{ ts.user.full_name if ts.user else '—' }}</td>
+            {% endif %}
+            <td>
+              <a href="{{ url_for('activities.detail', id=ts.activity_id) }}" class="text-sm">
+                {{ ts.activity.title if ts.activity else '—' }}
+              </a>
+            </td>
+            <td class="num">{{ ts.hours }}</td>
+            <td class="text-muted text-sm">{{ ts.description }}</td>
+            {% if current_user.is_superadmin %}
+            <td class="num text-sm">&euro; {{ ts.hourly_rate_snapshot|currency }}</td>
+            <td class="num">&euro; {{ ts_cost|currency }}</td>
+            {% endif %}
+            <td class="text-right">
+              {% if current_user.is_superadmin or ts.user_id == current_user.id %}
+              <div class="btn-group">
+                <a href="{{ url_for('activities.edit_timesheet', id=ts.activity_id, entry_id=ts.id) }}"
+                  class="btn btn-ghost btn-sm">{{ tr('Modifica', 'Edit') }}</a>
+                <button type="submit" class="btn btn-ghost btn-sm text-danger ts-single-delete" data-id="{{ ts.id }}"
+                  data-confirm="{{ tr('Eliminare questo timesheet?', 'Delete this timesheet?') }}">
+                  {{ tr('Elimina', 'Delete') }}
+                </button>
+              </div>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</form>
 {% else %}
 <div class="card">
   <div class="empty-state">

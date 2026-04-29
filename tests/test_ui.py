@@ -8,7 +8,7 @@ import pytest
 from decimal import Decimal
 from datetime import date, timedelta
 from app.models import (
-    User, Agent, RevenueActivity, ActivityCost, ActivityParticipant, AuditLog,
+    User, Agent, RevenueActivity, ActivityCost, ActivityParticipant, TimesheetEntry, AuditLog,
 )
 from app import db
 
@@ -629,6 +629,52 @@ class TestActivityDetailUI:
         with app.app_context():
             assert db.session.get(RevenueActivity, act_id) is None
 
+    def test_detail_non_admin_hides_costs_and_participants_sections(self, client, operator_user, revenue_activity, activity_participant):
+        _login(client, 'operator')
+        resp = client.get(f'/activities/{revenue_activity.id}')
+        assert b'Costi' not in resp.data
+        assert b'Costs' not in resp.data
+        assert b'Partecipanti' not in resp.data
+        assert b'Participants' not in resp.data
+
+    def test_detail_non_admin_timesheet_shows_hours_description_and_date(self, client, app, superadmin_user, operator_user, revenue_activity, activity_participant):
+        with app.app_context():
+            act = db.session.get(RevenueActivity, revenue_activity.id)
+            act.status = 'confermata'
+            db.session.add_all([
+                TimesheetEntry(
+                    user_id=operator_user.id,
+                    activity_id=revenue_activity.id,
+                    work_date=date.today(),
+                    hours=Decimal('1.5'),
+                    description='Operator own entry',
+                    hourly_rate_snapshot=Decimal('20.00'),
+                    created_by=operator_user.id,
+                ),
+                TimesheetEntry(
+                    user_id=superadmin_user.id,
+                    activity_id=revenue_activity.id,
+                    work_date=date.today(),
+                    hours=Decimal('1'),
+                    description='Admin private entry',
+                    hourly_rate_snapshot=Decimal('99.00'),
+                    created_by=superadmin_user.id,
+                ),
+            ])
+            db.session.commit()
+
+        _login(client, 'operator')
+        resp = client.get(f'/activities/{revenue_activity.id}')
+        assert b'Operator own entry' in resp.data
+        assert b'Admin private entry' not in resp.data
+        assert b'Ore' in resp.data or b'Hours' in resp.data
+        assert b'Descrizione' in resp.data or b'Description' in resp.data
+        assert b'Data' in resp.data or b'Date' in resp.data
+        assert b'Tariffa' not in resp.data
+        assert b'Rate' not in resp.data
+        assert b'Costo' not in resp.data
+        assert b'Cost' not in resp.data
+
 
 # ===========================================================================
 # COST FORM UI
@@ -741,7 +787,8 @@ class TestParticipantFormUI:
         _login(client)
         resp = client.get(f'/activities/{revenue_activity.id}/participants/add')
         assert resp.status_code == 200
-        assert b'name="participant_name"' in resp.data
+        assert b'name="participant_name"' not in resp.data
+        assert b'name="user_id"' in resp.data
         assert b'name="work_share"' in resp.data
         assert b'name="fixed_compensation"' in resp.data
 
@@ -753,14 +800,14 @@ class TestParticipantFormUI:
     def test_add_participant_success(self, client, app, superadmin_user, revenue_activity):
         _login(client)
         resp = client.post(f'/activities/{revenue_activity.id}/participants/add', data={
-            'participant_name': 'UI Test Participant',
+            'user_id': superadmin_user.id,
             'role_description': 'Tester',
             'work_share': '60',
             'fixed_compensation': '100',
         }, follow_redirects=True)
-        assert b'UI Test Participant' in resp.data
+        assert superadmin_user.full_name.encode() in resp.data
         with app.app_context():
-            p = ActivityParticipant.query.filter_by(participant_name='UI Test Participant').first()
+            p = ActivityParticipant.query.filter_by(activity_id=revenue_activity.id, user_id=superadmin_user.id).first()
             assert p is not None
 
     def test_edit_participant(self, client, app, superadmin_user, revenue_activity, activity_participant):
@@ -768,7 +815,7 @@ class TestParticipantFormUI:
         resp = client.post(
             f'/activities/{revenue_activity.id}/participants/{activity_participant.id}/edit',
             data={
-                'participant_name': 'Updated Name',
+                'user_id': superadmin_user.id,
                 'work_share': '70',
                 'fixed_compensation': '300',
             },
@@ -776,7 +823,7 @@ class TestParticipantFormUI:
         )
         with app.app_context():
             p = db.session.get(ActivityParticipant, activity_participant.id)
-            assert p.participant_name == 'Updated Name'
+            assert p.participant_name == superadmin_user.full_name
 
     def test_delete_participant_via_ui(self, client, app, superadmin_user, revenue_activity, activity_participant):
         _login(client)
@@ -791,21 +838,20 @@ class TestParticipantFormUI:
     def test_add_participant_without_user(self, client, app, superadmin_user, revenue_activity):
         _login(client)
         resp = client.post(f'/activities/{revenue_activity.id}/participants/add', data={
-            'participant_name': 'External Contractor',
             'work_share': '40',
             'fixed_compensation': '0',
         }, follow_redirects=True)
+        assert b'flash' in resp.data
         with app.app_context():
-            p = ActivityParticipant.query.filter_by(participant_name='External Contractor').first()
-            assert p is not None
-            assert p.user_id is None
+            p = ActivityParticipant.query.filter_by(activity_id=revenue_activity.id).first()
+            assert p is None
 
-    def test_add_participant_empty_name_rejected(self, client, app, superadmin_user, revenue_activity):
+    def test_add_participant_empty_fixed_comp_rejected(self, client, app, superadmin_user, revenue_activity):
         _login(client)
         resp = client.post(f'/activities/{revenue_activity.id}/participants/add', data={
-            'participant_name': '',
+            'user_id': superadmin_user.id,
             'work_share': '50',
-            'fixed_compensation': '0',
+            'fixed_compensation': '',
         }, follow_redirects=True)
         assert b'flash' in resp.data
 
@@ -1275,6 +1321,7 @@ class TestReportsUI:
             p = ActivityParticipant(
                 activity_id=act.id,
                 participant_name='Report Participant',
+                user_id=superadmin_user.id,
                 work_share=Decimal('100'),
                 fixed_compensation=Decimal('0'),
             )
@@ -1483,11 +1530,11 @@ class TestFullWorkflowE2E:
 
         # 3. Add participant
         resp = client.post(f'/activities/{act_id}/participants/add', data={
-            'participant_name': 'E2E Participant',
+            'user_id': str(superadmin_user.id),
             'work_share': '100',
             'fixed_compensation': '200',
         }, follow_redirects=True)
-        assert b'E2E Participant' in resp.data
+        assert superadmin_user.full_name.encode() in resp.data
 
         # 4. Verify detail financial summary
         resp = client.get(f'/activities/{act_id}')

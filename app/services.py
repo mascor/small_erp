@@ -9,7 +9,8 @@ logger = get_logger(__name__)
 
 
 TWO_PLACES = Decimal('0.01')
-MAX_HOURS_PER_ENTRY = Decimal('24')
+MIN_HOURS_PER_ENTRY = Decimal('0.5')
+MAX_HOURS_PER_ENTRY = Decimal('10')
 MAX_DECIMAL = Decimal('999999999.99')
 
 
@@ -56,6 +57,22 @@ def calc_activity_totals(activity):
         participants = ActivityParticipant.query.filter_by(activity_id=activity.id).all()
         total_fixed_comp = sum(to_decimal(p.fixed_compensation) for p in participants)
 
+        # Timesheet-based compensation per participant user.
+        internal_costs_by_user = {}
+        for c in costs:
+            if c.line_type != 'internal_consultant':
+                continue
+            if c.source_user_id is None:
+                continue
+
+            user_id = c.source_user_id
+            item = internal_costs_by_user.setdefault(user_id, {
+                'hours': Decimal('0.00'),
+                'amount': Decimal('0.00'),
+            })
+            item['hours'] += to_decimal(c.hours_total)
+            item['amount'] += to_decimal(c.amount)
+
         net_margin = revenue - agent_comp - total_costs
         distributable = net_margin - total_fixed_comp
 
@@ -66,12 +83,18 @@ def calc_activity_totals(activity):
             fixed = to_decimal(p.fixed_compensation)
             share = to_decimal(p.work_share)
 
+            ts_hours = Decimal('0.00')
+            ts_amount = Decimal('0.00')
+            if p.user_id is not None and p.user_id in internal_costs_by_user:
+                ts_hours = internal_costs_by_user[p.user_id]['hours'].quantize(TWO_PLACES, rounding=ROUND_HALF_UP)
+                ts_amount = internal_costs_by_user[p.user_id]['amount'].quantize(TWO_PLACES, rounding=ROUND_HALF_UP)
+
             if total_shares > 0 and distributable > 0:
                 proportional = (distributable * share / total_shares).quantize(TWO_PLACES, rounding=ROUND_HALF_UP)
             else:
                 proportional = Decimal('0')
 
-            total_due = fixed + proportional
+            total_due = ts_amount
             participant_details.append({
                 'id': p.id,
                 'name': p.participant_name,
@@ -79,6 +102,8 @@ def calc_activity_totals(activity):
                 'work_share': share,
                 'fixed_compensation': fixed,
                 'proportional_share': proportional,
+                'timesheet_hours': ts_hours,
+                'timesheet_compensation': ts_amount,
                 'total_due': total_due,
             })
 
@@ -116,6 +141,16 @@ class TimesheetValidationError(ValueError):
     pass
 
 
+def _validate_timesheet_hours_value(hours_d):
+    """Validate hours range and allowed granularity (0.5 step)."""
+    if hours_d < MIN_HOURS_PER_ENTRY or hours_d > MAX_HOURS_PER_ENTRY:
+        raise TimesheetValidationError('Le ore devono essere tra 0.5 e 10')
+
+    doubled = hours_d * Decimal('2')
+    if doubled != doubled.to_integral_value():
+        raise TimesheetValidationError('Le ore devono essere intere oppure con .5')
+
+
 def _validate_timesheet_input(user, activity_id, work_date, hours, description, hourly_rate_snapshot=None):
     """Validate inputs for creating/updating a timesheet entry."""
     if activity_id is None:
@@ -129,13 +164,7 @@ def _validate_timesheet_input(user, activity_id, work_date, hours, description, 
         raise TimesheetValidationError('Data obbligatoria')
 
     hours_d = to_decimal(hours)
-    if hours_d <= Decimal('0'):
-        raise TimesheetValidationError('Le ore devono essere maggiori di 0')
-    if hours_d > MAX_HOURS_PER_ENTRY:
-        raise TimesheetValidationError('Le ore non possono superare 24 per voce')
-    VALID_HOURS = {Decimal('0.5'), Decimal('1'), Decimal('1.5')}
-    if hours_d not in VALID_HOURS:
-        raise TimesheetValidationError('Le ore devono essere 0.5, 1 oppure 1.5')
+    _validate_timesheet_hours_value(hours_d)
 
     if not description or not description.strip():
         raise TimesheetValidationError('Descrizione obbligatoria')
@@ -157,6 +186,38 @@ def _validate_timesheet_input(user, activity_id, work_date, hours, description, 
     return activity, hours_d
 
 
+def _validate_hours_within_work_share_limit(user_id, activity_id, new_entry_hours, exclude_entry_id=None, work_date=None):
+    """Ensure daily hours for a user across ALL activities do not exceed MAX_HOURS_PER_ENTRY."""
+    participant = ActivityParticipant.query.filter_by(
+        activity_id=activity_id,
+        user_id=user_id,
+    ).first()
+
+    if participant is None:
+        raise TimesheetValidationError(
+            'Utente non associato come partecipante all\'attività'
+        )
+
+    if work_date is None:
+        return  # no date context, skip daily check
+
+    # Sum hours across ALL activities for this user on this date
+    query = TimesheetEntry.query.filter_by(
+        user_id=user_id,
+        work_date=work_date,
+    )
+    if exclude_entry_id is not None:
+        query = query.filter(TimesheetEntry.id != exclude_entry_id)
+
+    existing_hours = sum(to_decimal(entry.hours) for entry in query.all())
+    total_hours_after_save = existing_hours + to_decimal(new_entry_hours)
+
+    if total_hours_after_save > MAX_HOURS_PER_ENTRY:
+        raise TimesheetValidationError(
+            f'Ore totali del giorno oltre il limite: massimo {MAX_HOURS_PER_ENTRY}h al giorno su tutti i progetti'
+        )
+
+
 def create_timesheet_entry(user_id, activity_id, work_date, hours, description, created_by_id):
     """Create a timesheet entry and rebuild the internal cost aggregate."""
     user = db.session.get(User, user_id)
@@ -171,6 +232,7 @@ def create_timesheet_entry(user_id, activity_id, work_date, hours, description, 
     activity, hours_d = _validate_timesheet_input(
         user, activity_id, work_date, hours, description
     )
+    _validate_hours_within_work_share_limit(user_id, activity.id, hours_d, work_date=work_date)
 
     rate_snapshot = to_decimal(user.hourly_cost_rate)
 
@@ -211,13 +273,7 @@ def update_timesheet_entry(entry_id, requesting_user, hours=None, work_date=None
 
     if hours is not None:
         hours_d = to_decimal(hours)
-        if hours_d <= Decimal('0'):
-            raise TimesheetValidationError('Le ore devono essere maggiori di 0')
-        if hours_d > MAX_HOURS_PER_ENTRY:
-            raise TimesheetValidationError('Le ore non possono superare 24 per voce')
-        VALID_HOURS = {Decimal('0.5'), Decimal('1'), Decimal('1.5')}
-        if hours_d not in VALID_HOURS:
-            raise TimesheetValidationError('Le ore devono essere 0.5, 1 oppure 1.5')
+        _validate_timesheet_hours_value(hours_d)
         entry.hours = hours_d
 
     if work_date is not None:
@@ -233,6 +289,14 @@ def update_timesheet_entry(entry_id, requesting_user, hours=None, work_date=None
         if activity is None:
             raise TimesheetValidationError('Attività non trovata')
         entry.activity_id = activity_id
+
+    _validate_hours_within_work_share_limit(
+        user_id=entry.user_id,
+        activity_id=entry.activity_id,
+        new_entry_hours=entry.hours,
+        exclude_entry_id=entry.id,
+        work_date=entry.work_date,
+    )
 
     db.session.flush()
 

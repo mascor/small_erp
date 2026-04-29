@@ -375,15 +375,15 @@ if activity_id:
     check('flash' in r.text or 'error' in r.text.lower() or 'errore' in r.text.lower(),
           'Hours=0 rejected with error')
 
-    # Hours > 24 rejected
+    # Hours > 10 rejected
     r = post_with_csrf(s, f'{BASE}/activities/{activity_id}/timesheets/add', {
         'user_id': ts_user_id,
         'work_date': date.today().isoformat(),
-        'hours': '25',
+        'hours': '11',
         'description': 'Too many hours',
     }, allow_redirects=True)
     check('flash' in r.text or 'error' in r.text.lower() or 'errore' in r.text.lower(),
-          'Hours > 24 rejected with error')
+          'Hours > 10 rejected with error')
 
     # Empty description rejected
     r = post_with_csrf(s, f'{BASE}/activities/{activity_id}/timesheets/add', {

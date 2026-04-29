@@ -273,24 +273,28 @@ print('\n--- 8. ADD PARTICIPANT ---')
 if activity_id:
     r = s.get(f'{BASE}/activities/{activity_id}/participants/add')
     check(r.status_code == 200, 'Participant form loads')
-    check('name="participant_name"' in r.text, 'Participant form has name field')
+    check('name="participant_name"' not in r.text, 'Participant form does not show name field')
+    check('name="user_id"' in r.text, 'Participant form has linked user field')
     check('name="work_share"' in r.text, 'Participant form has work_share field')
 
+    user_id_match = re.search(r'<option value="(\d+)"[^>]*>[^<]*superadmin', r.text)
+    linked_user_id = user_id_match.group(1) if user_id_match else '1'
+
     r = post_with_csrf(s, f'{BASE}/activities/{activity_id}/participants/add', {
-        'participant_name': 'Browser Test Participant',
+        'user_id': linked_user_id,
         'role_description': 'Tester',
         'work_share': '60',
         'fixed_compensation': '100',
     }, allow_redirects=True)
-    check('Browser Test Participant' in r.text, 'Participant added successfully')
+    check('Tester' in r.text or 'Partecipante' in r.text, 'Participant added successfully')
 
-    # Empty name rejected
+    # Empty linked user rejected
     r = post_with_csrf(s, f'{BASE}/activities/{activity_id}/participants/add', {
-        'participant_name': '',
+        'user_id': '',
         'work_share': '50',
         'fixed_compensation': '0',
     }, allow_redirects=True)
-    check('flash' in r.text, 'Empty participant name rejected')
+    check('flash' in r.text, 'Empty linked user rejected')
 
 # =========================================================================
 print('\n--- 9. AGENTS ---')

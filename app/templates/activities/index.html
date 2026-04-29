@@ -4,7 +4,7 @@
 {% block content %}
 <div class="page-header">
   <div>
-    <h1>{{ tr('Attivita di Ricavo', 'Revenue Activities') }}</h1>
+    <h1>{{ tr('Attivita', 'Activities') }}</h1>
     <p class="page-subtitle">{{ pagination.total }} {{ tr('attivita totali', 'total activities') }}</p>
   </div>
   {% if current_user.is_superadmin %}
@@ -29,6 +29,7 @@
       <option value="chiusa" {% if filters.status=='chiusa' %}selected{% endif %}>{{ status_label('chiusa') }}</option>
     </select>
   </div>
+  {% if current_user.is_superadmin %}
   <div class="filter-group">
     <label>{{ tr('Agente', 'Agent') }}</label>
     <select name="agent_id" class="form-control">
@@ -39,6 +40,7 @@
       {% endfor %}
     </select>
   </div>
+  {% endif %}
   <div class="filter-group">
     <label>{{ tr('Dal', 'From') }}</label>
     <input type="date" name="date_from" class="form-control" value="{{ filters.date_from }}">
@@ -52,6 +54,7 @@
 </form>
 
 {% if activities %}
+{% if current_user.is_superadmin %}
 <form id="bulk-delete-form" method="POST" action="{{ url_for('activities.bulk_delete') }}"
   data-confirm="{{ tr('Eliminare le attività selezionate e tutti i dati collegati?', 'Delete selected activities and all linked data?') }}">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -59,62 +62,73 @@
     <span id="selected-count">0</span> {{ tr('selezionate', 'selected') }}
     <button type="submit" class="btn btn-danger btn-sm">{{ tr('Elimina selezionate', 'Delete selected') }}</button>
   </div>
-  <div class="card">
-    <div class="table-wrapper">
-      <table>
-        <thead>
-          <tr>
-            <th style="width:40px"><input type="checkbox" id="select-all"
-                title="{{ tr('Seleziona tutto', 'Select all') }}"></th>
-            <th>{{ tr('Titolo', 'Title') }}</th>
-            <th>{{ tr('Data', 'Date') }}</th>
-            <th>{{ tr('Stato', 'Status') }}</th>
-            <th>{{ tr('Agente', 'Agent') }}</th>
-            {% if current_user.is_superadmin %}
-            <th class="num">{{ tr('Ricavo', 'Revenue') }}</th>
-            <th class="num">% {{ tr('Agente', 'Agent') }}</th>
-            {% endif %}
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for act in activities %}
-          <tr>
-            <td>
-              {% if current_user.is_superadmin or act.created_by == current_user.id %}
-              <input type="checkbox" name="activity_ids" value="{{ act.id }}" class="activity-checkbox">
+  {% else %}
+  <div>
+    {% endif %}
+    <div class="card">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              {% if current_user.is_superadmin %}
+              <th style="width:40px"><input type="checkbox" id="select-all"
+                  title="{{ tr('Seleziona tutto', 'Select all') }}"></th>
               {% endif %}
-            </td>
-            <td><a href="{{ url_for('activities.detail', id=act.id) }}"><strong>{{ act.title }}</strong></a></td>
-            <td class="text-muted text-sm nowrap">{{ act.date.strftime('%d/%m/%Y') }}</td>
-            <td><span class="badge badge-{{ act.status }} badge-dot">{{ status_label(act.status) }}</span></td>
-            <td>{% if act.agent %}{{ act.agent.full_name }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
-            {% if current_user.is_superadmin %}
-            <td class="num">&euro; {{ act.total_revenue|currency }}</td>
-            <td class="num">{{ act.agent_percentage|percentage }}</td>
-            {% endif %}
-            <td class="text-right">
-              <div class="btn-group">
-                <a href="{{ url_for('activities.detail', id=act.id) }}" class="btn btn-ghost btn-sm">{{ tr('Dettaglio',
-                  'Details') }}</a>
-                {% if current_user.is_superadmin or act.created_by == current_user.id %}
-                <a href="{{ url_for('activities.edit', id=act.id) }}" class="btn btn-ghost btn-sm">{{ tr('Modifica',
-                  'Edit') }}</a>
-                <form method="POST" action="{{ url_for('activities.delete', id=act.id) }}" class="confirm-delete"
-                  data-confirm="{{ tr('Eliminare questa attivita e tutti i dati collegati?', 'Delete this activity and all linked data?') }}">
-                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                  <button type="submit" class="btn btn-ghost btn-sm text-danger">{{ tr('Elimina', 'Delete') }}</button>
-                </form>
-                {% endif %}
-              </div>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+              <th>{{ tr('Titolo', 'Title') }}</th>
+              <th>{{ tr('Data', 'Date') }}</th>
+              <th>{{ tr('Stato', 'Status') }}</th>
+              {% if current_user.is_superadmin %}
+              <th>{{ tr('Agente', 'Agent') }}</th>
+              <th class="num">{{ tr('Ricavo', 'Revenue') }}</th>
+              <th class="num">% {{ tr('Agente', 'Agent') }}</th>
+              {% endif %}
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for act in activities %}
+            <tr>
+              {% if current_user.is_superadmin %}
+              <td>
+                <input type="checkbox" name="activity_ids" value="{{ act.id }}" class="activity-checkbox">
+              </td>
+              {% endif %}
+              <td><a href="{{ url_for('activities.detail', id=act.id) }}"><strong>{{ act.title }}</strong></a></td>
+              <td class="text-muted text-sm nowrap">{{ act.date.strftime('%d/%m/%Y') }}</td>
+              <td><span class="badge badge-{{ act.status }} badge-dot">{{ status_label(act.status) }}</span></td>
+              {% if current_user.is_superadmin %}
+              <td>{% if act.agent %}{{ act.agent.full_name }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+              <td class="num">&euro; {{ act.total_revenue|currency }}</td>
+              <td class="num">{{ act.agent_percentage|percentage }}</td>
+              {% endif %}
+              <td class="text-right">
+                <div class="btn-group">
+                  <a href="{{ url_for('activities.detail', id=act.id) }}" class="btn btn-ghost btn-sm">{{
+                    tr('Dettaglio',
+                    'Details') }}</a>
+                  {% if current_user.is_superadmin or act.created_by == current_user.id %}
+                  <a href="{{ url_for('activities.edit', id=act.id) }}" class="btn btn-ghost btn-sm">{{ tr('Modifica',
+                    'Edit') }}</a>
+                  <form method="POST" action="{{ url_for('activities.delete', id=act.id) }}" class="confirm-delete"
+                    data-confirm="{{ tr('Eliminare questa attivita e tutti i dati collegati?', 'Delete this activity and all linked data?') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-ghost btn-sm text-danger">{{ tr('Elimina', 'Delete')
+                      }}</button>
+                  </form>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
-  </div>
+    {% if current_user.is_superadmin %}
 </form>
+{% else %}
+</div>
+{% endif %}
 
 {% if pagination.pages > 1 %}
 <div class="pagination">

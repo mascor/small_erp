@@ -174,11 +174,13 @@ def create_app(test_config=None):
     @app.context_processor
     def inject_i18n_helpers():
         from datetime import date as _date
+        from .version import APP_VERSION
         return {
             'current_lang': get_lang(),
             'tr': tr,
             'status_label': status_label,
             'today': _date.today().isoformat(),
+            'app_version': APP_VERSION,
         }
 
     app.jinja_env.globals.update(

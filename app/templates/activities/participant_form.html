@@ -8,7 +8,8 @@ tr('Partecipante', 'Participant') }} — Small ERP{% endblock %}
   <span class="separator">/</span>
   <a href="{{ url_for('activities.detail', id=activity.id) }}">{{ activity.title }}</a>
   <span class="separator">/</span>
-  <span class="current">{% if participant %}{{ tr('Modifica Partecipante', 'Edit Participant') }}{% else %}{{ tr('Aggiungi Partecipante', 'Add Participant') }}{% endif %}</span>
+  <span class="current">{% if participant %}{{ tr('Modifica Partecipante', 'Edit Participant') }}{% else %}{{
+    tr('Aggiungi Partecipante', 'Add Participant') }}{% endif %}</span>
 </nav>
 <div class="page-header">
   <div>
@@ -25,24 +26,17 @@ tr('Partecipante', 'Participant') }} — Small ERP{% endblock %}
 
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label" for="participant_name">{{ tr('Nome Partecipante', 'Participant Name') }} <span
-              class="required">*</span></label>
-          <input type="text" id="participant_name" name="participant_name" class="form-control"
-            value="{{ participant.participant_name if participant else '' }}" required
-            placeholder="{{ tr('Nome e cognome', 'First and last name') }}">
-        </div>
-        <div class="form-group">
           <label class="form-label" for="user_id">{{ tr('Utente Collegato', 'Linked User') }}</label>
-          <select id="user_id" name="user_id" class="form-control">
-            <option value="">— {{ tr('Nessuno', 'None') }} —</option>
+          <select id="user_id" name="user_id" class="form-control" required>
+            <option value="">— {{ tr('Seleziona utente', 'Select user') }} —</option>
             {% for u in users %}
             <option value="{{ u.id }}" {% if participant and participant.user_id==u.id %}selected{% endif %}>
               {{ u.full_name }} ({{ u.username }})
             </option>
             {% endfor %}
           </select>
-          <span class="form-hint">{{ tr('Opzionale: collega a un utente del sistema.', 'Optional: link to a system
-            user.') }}</span>
+          <span class="form-hint">{{ tr('Seleziona l\'utente che potrà caricare ore su questa attività.', 'Select the
+            user who can log hours on this activity.') }}</span>
         </div>
       </div>
 
@@ -64,9 +58,9 @@ tr('Partecipante', 'Participant') }} — Small ERP{% endblock %}
         </div>
         <div class="form-group">
           <label class="form-label" for="fixed_compensation">{{ tr('Compenso Fisso', 'Fixed Compensation') }}
-            (&euro;)</label>
+            (&euro;) <span class="required">*</span></label>
           <input type="text" id="fixed_compensation" name="fixed_compensation" class="form-control"
-            value="{{ participant.fixed_compensation if participant else '0' }}" placeholder="0,00">
+            value="{{ participant.fixed_compensation if participant else '' }}" required placeholder="0,00">
           <span class="form-hint">{{ tr('Compenso fisso aggiuntivo (detratto prima della ripartizione).', 'Additional
             fixed amount (deducted before distribution).') }}</span>
         </div>
