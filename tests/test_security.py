@@ -362,6 +362,67 @@ class TestSetLanguageRedirect:
 
 
 # ===========================================================================
+# AUTHZ — Sub-route IDOR: costi e partecipanti
+# ===========================================================================
+
+class TestCostSubrouteAuth:
+    """Regular users must not be able to edit or delete activity costs."""
+
+    def test_edit_cost_requires_superadmin(self, client, operator_user, activity_cost, revenue_activity):
+        client.post('/login', data={'username': 'operator', 'password': 'password123'})
+        resp = client.post(
+            f'/activities/{revenue_activity.id}/costs/{activity_cost.id}/edit',
+            data={
+                'description': 'hacked',
+                'amount': '1',
+                'category': 'altro',
+                'cost_type': 'operativo',
+                'date': '2026-01-01',
+                'line_type': 'generic',
+            },
+            follow_redirects=True,
+        )
+        assert resp.status_code == 200
+        assert b'Non autorizzato' in resp.data or b'Not authorized' in resp.data
+
+    def test_delete_cost_requires_superadmin(self, client, operator_user, activity_cost, revenue_activity):
+        client.post('/login', data={'username': 'operator', 'password': 'password123'})
+        resp = client.post(
+            f'/activities/{revenue_activity.id}/costs/{activity_cost.id}/delete',
+            follow_redirects=True,
+        )
+        assert resp.status_code == 200
+        assert b'Non autorizzato' in resp.data or b'Not authorized' in resp.data
+
+
+class TestParticipantSubrouteAuth:
+    """Regular users must not be able to edit or delete activity participants."""
+
+    def test_edit_participant_requires_superadmin(self, client, operator_user, activity_participant, revenue_activity):
+        client.post('/login', data={'username': 'operator', 'password': 'password123'})
+        resp = client.post(
+            f'/activities/{revenue_activity.id}/participants/{activity_participant.id}/edit',
+            data={
+                'user_id': str(operator_user.id),
+                'work_share': '0',
+                'fixed_compensation': '0',
+            },
+            follow_redirects=True,
+        )
+        assert resp.status_code == 200
+        assert b'Non autorizzato' in resp.data or b'Not authorized' in resp.data
+
+    def test_delete_participant_requires_superadmin(self, client, operator_user, activity_participant, revenue_activity):
+        client.post('/login', data={'username': 'operator', 'password': 'password123'})
+        resp = client.post(
+            f'/activities/{revenue_activity.id}/participants/{activity_participant.id}/delete',
+            follow_redirects=True,
+        )
+        assert resp.status_code == 200
+        assert b'Non autorizzato' in resp.data or b'Not authorized' in resp.data
+
+
+# ===========================================================================
 # Utility
 # ===========================================================================
 

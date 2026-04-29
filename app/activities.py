@@ -337,6 +337,9 @@ def add_cost(id):
 @activities_bp.route('/<int:id>/costs/<int:cost_id>/edit', methods=['GET', 'POST'])
 @login_required
 def edit_cost(id, cost_id):
+    if not current_user.is_superadmin:
+        flash(tr('Non autorizzato.', 'Not authorized.'), 'error')
+        return redirect(url_for('activities.detail', id=id))
     activity = db.get_or_404(RevenueActivity, id)
     cost = db.get_or_404(ActivityCost, cost_id)
 
@@ -384,6 +387,9 @@ def edit_cost(id, cost_id):
 @activities_bp.route('/<int:id>/costs/<int:cost_id>/delete', methods=['POST'])
 @login_required
 def delete_cost(id, cost_id):
+    if not current_user.is_superadmin:
+        flash(tr('Non autorizzato.', 'Not authorized.'), 'error')
+        return redirect(url_for('activities.detail', id=id))
     cost = db.get_or_404(ActivityCost, cost_id)
 
     # Prevent manual deletion of auto-generated costs
@@ -469,6 +475,9 @@ def add_participant(id):
 @activities_bp.route('/<int:id>/participants/<int:pid>/edit', methods=['GET', 'POST'])
 @login_required
 def edit_participant(id, pid):
+    if not current_user.is_superadmin:
+        flash(tr('Non autorizzato.', 'Not authorized.'), 'error')
+        return redirect(url_for('activities.detail', id=id))
     activity = db.get_or_404(RevenueActivity, id)
     p = db.get_or_404(ActivityParticipant, pid)
     users = User.query.filter_by(is_active_user=True).order_by(User.full_name).all()
@@ -507,6 +516,9 @@ def edit_participant(id, pid):
 @activities_bp.route('/<int:id>/participants/<int:pid>/delete', methods=['POST'])
 @login_required
 def delete_participant(id, pid):
+    if not current_user.is_superadmin:
+        flash(tr('Non autorizzato.', 'Not authorized.'), 'error')
+        return redirect(url_for('activities.detail', id=id))
     p = db.get_or_404(ActivityParticipant, pid)
     name = p.participant_name
 
